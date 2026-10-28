@@ -19,6 +19,7 @@ from app.auth.models import Role, Tenant, User
 from app.core.config import get_settings
 from app.core.db import get_engine, get_session, get_sessionmaker
 from app.core.security import create_access_token, hash_password
+from app.documents.schemas import IngestDocumentRequest
 from app.main import create_app
 
 TEST_PASSWORD = "correct-horse-battery-staple"
@@ -110,3 +111,16 @@ def make_user(
 def auth_headers(user: User) -> dict[str, str]:
     token = create_access_token(user.id, user.tenant_id, user.role)
     return {"Authorization": f"Bearer {token}"}
+
+
+def ingest_request(**overrides: object) -> IngestDocumentRequest:
+    """A valid ingest payload; override any field per test."""
+    fields: dict[str, object] = {
+        "source": "fastapi-docs",
+        "slug": "fastapi/dependencies",
+        "version": "0.115",
+        "title": "Dependencies",
+        "content": "# Dependencies\n\nUse Depends to declare a dependency in a path operation.\n",
+    }
+    fields.update(overrides)
+    return IngestDocumentRequest.model_validate(fields)

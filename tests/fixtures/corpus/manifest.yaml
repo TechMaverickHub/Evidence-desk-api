@@ -1,0 +1,14 @@
+# Tiny fixture corpus for loader tests. Content is written for the tests, not copied.
+documents:
+  - path: fastapi/dependencies.md
+    source: fastapi-docs
+    slug: fastapi/dependencies
+    version: "0.115"
+    title: Dependencies
+    license: CC0-1.0
+  - path: incident-0001.md
+    source: synthetic-incidents
+    slug: incidents/0001
+    version: "1"
+    title: "INC-0001: 502 after deploy"
+    license: CC0-1.0

@@ -112,6 +112,9 @@ Guardrails against over-applying SOLID:
   (`db_session` fixture). Use the `make_tenant` / `make_user` fixtures and `auth_headers(user)`
   from `tests/conftest.py`; never hand-roll users or tokens in tests.
 - The LLM is replaced by a fake client in tests; no network calls in the default test run.
+  The embedder and tokenizer use the fakes in `tests/fakes.py`. Tests that need the real
+  model are marked `@pytest.mark.model`, deselected by default (`uv run pytest -m model`), and
+  import `app.ingestion.local_models` inside fixtures so collection never loads torch.
 - Cover: happy path, role denial, cross-tenant access, and failure paths (timeouts, bad output).
 - Commands: `docker compose up -d postgres`, then `uv run pytest -q` and `uv run ruff check .`.
 

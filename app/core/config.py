@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(min_length=32)
     access_token_expire_minutes: int = Field(default=60, gt=0)
 
+    # Changing the model to one with a different output size needs a migration,
+    # because chunks.embedding is vector(384).
+    embedding_model_name: str = "BAAI/bge-small-en-v1.5"
+    embedding_batch_size: int = Field(default=32, gt=0)
+    worker_poll_seconds: float = Field(default=1.0, gt=0)
+
 
 @lru_cache
 def get_settings() -> Settings:

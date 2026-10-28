@@ -5,9 +5,12 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.auth import models as auth_models  # noqa: F401  (registers tables on Base.metadata)
+# Model modules are imported for their side effect of registering tables on Base.metadata.
+from app.auth import models as auth_models  # noqa: F401
 from app.core.config import get_settings
 from app.core.db import Base
+from app.documents import models as document_models  # noqa: F401
+from app.jobs import models as job_models  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url)

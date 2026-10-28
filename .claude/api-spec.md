@@ -25,10 +25,10 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 ## documents — `app/documents`, `app/ingestion`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `documents/ingest` | editor | `{source, slug, version, title, content, metadata?}`. 202 + `{document_id, job_id}`. Same content again → 200 with the existing ids (idempotent) | 003 |
-| GET | `documents` | viewer | Tenant's documents; filters `source`, `version`; `limit`/`offset` | 003 |
-| GET | `documents/{id}` | viewer | Document metadata and chunk count | 003 |
-| GET | `jobs/{id}` | viewer | Job status, attempts, error | 003 |
+| POST | `documents/ingest` | editor | `{source, slug (^[a-z0-9][a-z0-9/_.-]{0,199}$), version, title, content (≤ 1,000,000 chars, not blank), metadata? (flat, ≤ 20 keys)}`. 202 + `{document_id, job_id, status}` when a job is queued (new, or retry of a failed document). 200 with the existing ids if already submitted. 409 if the slug + version exists with different content | 003 ✅ |
+| GET | `documents` | viewer | `{items: [{id, source, slug, version, title, status, created_at}], total, limit, offset}`; filters `source`, `version`; `limit` 1–100 (default 20). Content is never listed | 003 ✅ |
+| GET | `documents/{id}` | viewer | List fields + `content_hash`, `metadata`, `chunk_count` | 003 ✅ |
+| GET | `jobs/{id}` | viewer | `{id, kind, status, attempts, error, created_at, started_at, finished_at}` | 003 ✅ |
 
 ## search — `app/retrieval`
 | Method | Path | Roles | Notes | Task |

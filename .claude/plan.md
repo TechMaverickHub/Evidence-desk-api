@@ -6,7 +6,7 @@ search and reranking second, grounded generation third, reliability throughout.*
 behaviour only after the retrieval system is shown to work.
 
 ```
-W1 Foundation    001 setup ✅ → 002 auth ✅ → 003 ingestion → 004 dense search   <- NEXT: 003
+W1 Foundation    001 setup ✅ → 002 auth ✅ → 003 ingestion ✅ → 004 dense search   <- NEXT: 004
 W2 Measurement   005 dataset + metrics → 006 eval runs + baseline (Exp. A) → 007 hybrid (Exp. B)
 W3 RAG quality   008 rerank (Exp. C) → 009 grounded answers + abstention → 010 chunking (Exp. D)
 W4 Reliability   011 timeouts/retries/failure tests (security tests ship with 002–004)

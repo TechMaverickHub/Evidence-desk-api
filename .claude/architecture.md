@@ -10,7 +10,8 @@
 | Database | PostgreSQL 16 + **pgvector** | One store for relational data, vectors and full-text search |
 | ORM / migrations | SQLAlchemy 2.0 (sync, `psycopg` 3) + Alembic | Sync keeps the code simple; embedding and reranking are CPU-bound anyway |
 | Keyword retrieval | PostgreSQL full-text search (`tsvector`, `ts_rank_cd`) | Exact identifiers, error codes, config keys |
-| Embeddings | `sentence-transformers`, `BAAI/bge-small-en-v1.5` (384 dims) | Small, local, reproducible |
+| Embeddings | `sentence-transformers`, `BAAI/bge-small-en-v1.5` (384 dims), CPU-only `torch` from the PyTorch CPU index | Small, local, reproducible |
+| Chunking | Markdown-heading sections, then 300-token windows with 50 overlap, measured with the model's own tokenizer | Word counts overflowed the 512-token limit on code (task 003) |
 | Reranking | `sentence-transformers` CrossEncoder, `cross-encoder/ms-marco-MiniLM-L-6-v2` | Second-stage ranker for Experiment C |
 | Fusion | Reciprocal Rank Fusion (own ~15-line function) | No library needed |
 | Generation | Groq (`groq` SDK), structured JSON output | Low-cost hosted inference |
@@ -50,7 +51,8 @@ app/
                         errors (AppError + envelope), logging (JSON formatter), deps (current_user)
   auth/                 tenants, users, login, RBAC dependencies
   documents/            document records, ingest endpoint, listing
-  ingestion/            parsing, chunking, embedding, idempotent ingest pipeline
+  ingestion/            chunking (pure), embedding protocol, local_models (torch gateways),
+                        pipeline (chunk → embed → store), cli (corpus loader)
   retrieval/            dense search, keyword search, RRF fusion, reranker, retrieval config
   generation/           prompt loading, LLM client, citation validation, abstention
   evaluation/           dataset loader, IR metrics, run orchestration, reports
@@ -75,9 +77,14 @@ call with structured output `{answer, cited_chunk_ids, status}` → **server-sid
 check** (every cited ID must be in the supplied context, else `status = insufficient_evidence`
 or a 502 `LLM_INVALID_OUTPUT` after one retry) → response with citations.
 
-**Ingest** (`POST /v1/documents/ingest`): store the document (dedupe by `content_hash`) →
-enqueue an `ingest` job → worker chunks, embeds and writes chunks in one transaction.
-Re-ingesting the same content is a no-op (idempotent).
+**Ingest** (`POST /v1/documents/ingest`): store the document (idempotent on slug + version +
+content hash) → enqueue an `ingest` job → worker chunks, embeds and replaces the document's
+chunks in one transaction. On failure the worker rolls back, then marks the document and job
+`failed` in a separate transaction.
+
+**Heavy imports:** `app/ingestion/local_models.py` is the only module importing
+sentence-transformers/transformers (≈ 40 s to import torch on the dev machine). The API, the
+tests and everything else depend only on the `Embedder` / `Tokenizer` protocols.
 
 **Evaluation** (`POST /v1/evaluations/runs`): enqueue an `evaluate` job with a retrieval
 config and a dataset split → worker runs every query, scores it, stores per-query results and

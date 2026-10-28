@@ -72,6 +72,13 @@ class ForbiddenError(AppError):
     message = "You do not have permission to perform this action."
 
 
+class NotFoundError(AppError):
+    # Also used for objects that exist in another tenant, so IDs cannot be probed.
+    status_code = 404
+    error_code = "NOT_FOUND"
+    message = "Resource not found."
+
+
 class ConflictError(AppError):
     status_code = 409
     error_code = "CONFLICT"

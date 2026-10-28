@@ -22,6 +22,11 @@ def get_tenant(session: Session, tenant_id: uuid.UUID) -> Tenant | None:
     return session.get(Tenant, tenant_id)
 
 
+def get_tenant_by_name(session: Session, name: str) -> Tenant | None:
+    # Operator tools (CLIs) address tenants by name; HTTP callers never do.
+    return session.scalar(select(Tenant).where(Tenant.name == name))
+
+
 def add_tenant(session: Session, name: str) -> Tenant:
     tenant = Tenant(name=name)
     session.add(tenant)

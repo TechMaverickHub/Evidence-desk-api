@@ -21,10 +21,22 @@ uv run uvicorn app.main:app --reload
 
 Then open http://127.0.0.1:8000/docs, or check `GET /v1/health`.
 
+Create a tenant and its first admin (password is prompted), then load documents and process
+them with the worker:
+
+```bash
+uv run python -m app.auth.cli create-tenant --name acme --admin-email admin@acme.example.com
+uv run python -m app.ingestion.cli load-corpus --tenant acme --manifest tests/fixtures/corpus/manifest.yaml
+uv run python -m app.worker --once   # or without --once to keep polling for new jobs
+```
+
+The first worker run downloads the embedding model (~130 MB) into the Hugging Face cache.
+
 ## Development
 
 ```bash
 uv run pytest -q                  # needs the compose Postgres running (uses evidencedesk_test)
+uv run pytest -q -m model         # opt-in tests against the real embedding model
 uv run ruff check .
 uv run ruff format --check .
 uv run alembic check              # no pending model changes
