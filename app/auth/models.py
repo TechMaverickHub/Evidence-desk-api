@@ -4,10 +4,10 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Enum, ForeignKey, String, func
+from sqlalchemy import ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Base
+from app.core.db import Base, string_enum
 
 
 class Role(StrEnum):
@@ -45,17 +45,6 @@ class User(Base):
     # Stored lower-case so uniqueness and login are case-insensitive.
     email: Mapped[str] = mapped_column(String(254), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    # VARCHAR + CHECK constraint rather than a native PG enum: adding a role later is a
-    # simple constraint change instead of an ALTER TYPE migration.
-    role: Mapped[Role] = mapped_column(
-        Enum(
-            Role,
-            name="user_role",
-            native_enum=False,
-            create_constraint=True,
-            length=16,
-            values_callable=lambda roles: [role.value for role in roles],
-        )
-    )
+    role: Mapped[Role] = mapped_column(string_enum(Role, "user_role"))
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

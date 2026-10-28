@@ -3,9 +3,10 @@
 import logging
 from collections.abc import Iterator
 from datetime import datetime
+from enum import StrEnum
 from functools import lru_cache
 
-from sqlalchemy import DateTime, Engine, create_engine, text
+from sqlalchemy import DateTime, Engine, Enum, create_engine, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -22,6 +23,19 @@ class Base(DeclarativeBase):
 
     # Every `Mapped[datetime]` column is TIMESTAMPTZ, so stored times are unambiguous.
     type_annotation_map = {datetime: DateTime(timezone=True)}
+
+
+def string_enum(enum_class: type[StrEnum], name: str) -> Enum:
+    """Store a StrEnum as VARCHAR + CHECK constraint rather than a native PG enum:
+    adding a value later is a constraint change instead of an ALTER TYPE migration."""
+    return Enum(
+        enum_class,
+        name=name,
+        native_enum=False,
+        create_constraint=True,
+        length=16,
+        values_callable=lambda members: [member.value for member in members],
+    )
 
 
 # Engine and sessionmaker are created lazily (not at import time) so tests can point
