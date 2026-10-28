@@ -8,11 +8,21 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
 
 FieldErrors = dict[str, list[str]]
+
+
+class ErrorResponse(BaseModel):
+    """OpenAPI description of the envelope, used in routers' `responses=` declarations."""
+
+    error_code: str
+    message: str
+    field_errors: FieldErrors | None = None
+
 
 # Codes for errors raised by the framework itself (unknown route, wrong method, ...).
 HTTP_STATUS_ERROR_CODES = {
@@ -32,6 +42,7 @@ class AppError(Exception):
     status_code: int = 500
     error_code: str = "INTERNAL_ERROR"
     message: str = "An unexpected error occurred."
+    headers: dict[str, str] = {}
 
     def __init__(self, message: str | None = None, field_errors: FieldErrors | None = None):
         self.message = message or self.message
@@ -39,17 +50,46 @@ class AppError(Exception):
         super().__init__(self.message)
 
 
+class NotAuthenticatedError(AppError):
+    status_code = 401
+    error_code = "NOT_AUTHENTICATED"
+    message = "Missing, invalid or expired access token."
+    # Required by RFC 6750 on 401 responses for bearer-token APIs.
+    headers = {"WWW-Authenticate": "Bearer"}
+
+
+class InvalidCredentialsError(AppError):
+    status_code = 401
+    error_code = "INVALID_CREDENTIALS"
+    # Deliberately vague: must not reveal whether the email exists.
+    message = "Incorrect email or password."
+    headers = {"WWW-Authenticate": "Bearer"}
+
+
+class ForbiddenError(AppError):
+    status_code = 403
+    error_code = "FORBIDDEN"
+    message = "You do not have permission to perform this action."
+
+
+class ConflictError(AppError):
+    status_code = 409
+    error_code = "CONFLICT"
+    message = "The resource already exists."
+
+
 def error_response(
     status_code: int,
     error_code: str,
     message: str,
     field_errors: FieldErrors | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     """Single place that builds the error envelope, shared by every handler."""
     body: dict[str, object] = {"error_code": error_code, "message": message}
     if field_errors:
         body["field_errors"] = field_errors
-    return JSONResponse(status_code=status_code, content=body)
+    return JSONResponse(status_code=status_code, content=body, headers=headers)
 
 
 def _field_errors_from_validation(exc: RequestValidationError) -> FieldErrors:
@@ -62,7 +102,9 @@ def _field_errors_from_validation(exc: RequestValidationError) -> FieldErrors:
 
 
 async def _handle_app_error(request: Request, exc: AppError) -> JSONResponse:
-    return error_response(exc.status_code, exc.error_code, exc.message, exc.field_errors)
+    return error_response(
+        exc.status_code, exc.error_code, exc.message, exc.field_errors, exc.headers or None
+    )
 
 
 async def _handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:

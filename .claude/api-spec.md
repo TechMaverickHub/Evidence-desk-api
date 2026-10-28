@@ -14,11 +14,13 @@ tenants return **404**. Status column: the task that builds the endpoint.
 ## auth — `app/auth`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `auth/token` | public | OAuth2 password form (`username` = email). Returns `{access_token, token_type}`; 60 min expiry | 002 |
-| GET | `auth/me` | any | Current user, tenant, role | 002 |
-| POST | `auth/users` | admin | Create a user in the caller's tenant; cannot create a user in another tenant | 002 |
+| POST | `auth/token` | public | OAuth2 password form (`username` = email). Returns `{access_token, token_type: "bearer", expires_in}` (seconds; 60 min default). Same 401 `INVALID_CREDENTIALS` for unknown email, wrong password and inactive user | 002 ✅ |
+| GET | `auth/me` | any | `{id, email, role, tenant: {id, name}}` | 002 ✅ |
+| POST | `auth/users` | admin | `{email, password (12–128), role}` → 201 `{id, email, role, tenant_id}`. Tenant is always the admin's; a body `tenant_id` is a 422. Duplicate email (any case) → 409 | 002 ✅ |
 
-Tenants and the first admin are created by a CLI command (`uv run python -m app.auth.cli create-tenant`), not over HTTP.
+Tenants and the first admin are created by a CLI command (`uv run python -m app.auth.cli create-tenant --name <name> --admin-email <email>`, password prompted), not over HTTP.
+
+A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read from the database on every request, so deactivation takes effect immediately.
 
 ## documents — `app/documents`, `app/ingestion`
 | Method | Path | Roles | Notes | Task |

@@ -5,8 +5,9 @@ Derived from [CLAUDE.md](CLAUDE.md) and [architecture.md](architecture.md). Enfo
 ## Architecture
 - **Routers** validate input, resolve auth dependencies, call one service function and return
   a response schema. No queries, no business logic.
-- **Services** hold business logic and own the transaction. They call repositories and gateways.
-- **Repositories** run SQLAlchemy queries only. They never commit and **every tenant-owned
+- **Services** hold business logic and own the transaction (`session.commit()` on success,
+  `session.rollback()` before translating a DB error). They call repositories and gateways.
+- **Repositories** run SQLAlchemy queries only. They may `flush()` but never commit, and **every tenant-owned
   query takes `tenant_id` as a required argument** (no default, no "all tenants" path).
 - Shared helpers live in `app/core/`. Reuse them; never create a parallel helper.
 - Keep functions under about 40 lines where practical. Prefer readability over cleverness.
@@ -107,7 +108,9 @@ Guardrails against over-applying SOLID:
   Don't write tests for trivial getters or framework behaviour.
 - pytest, in `tests/` mirroring `app/` (`tests/retrieval/test_fusion.py`).
 - Unit tests for pure logic (chunking, fusion, metrics, citation validation) need no DB.
-- Integration tests use the Docker Postgres (`TEST_DATABASE_URL`) and roll back per test.
+- Integration tests use the Docker Postgres (`TEST_DATABASE_URL`) and roll back per test
+  (`db_session` fixture). Use the `make_tenant` / `make_user` fixtures and `auth_headers(user)`
+  from `tests/conftest.py`; never hand-roll users or tokens in tests.
 - The LLM is replaced by a fake client in tests; no network calls in the default test run.
 - Cover: happy path, role denial, cross-tenant access, and failure paths (timeouts, bad output).
 - Commands: `docker compose up -d postgres`, then `uv run pytest -q` and `uv run ruff check .`.

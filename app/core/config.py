@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     database_url: str
     test_database_url: str | None = None
+
+    # No default: the app must refuse to start without a real signing key.
+    # 32+ characters keeps HS256 keys out of brute-force range.
+    jwt_secret_key: str = Field(min_length=32)
+    access_token_expire_minutes: int = Field(default=60, gt=0)
 
 
 @lru_cache

@@ -1,19 +1,31 @@
-"""Shared fixtures. Tests run against TEST_DATABASE_URL, never the dev database."""
+"""Shared fixtures. Tests run against TEST_DATABASE_URL, never the dev database.
+
+Each test gets a session inside an outer transaction that is rolled back afterwards, so
+tests never see each other's data and need no cleanup code.
+"""
 
 import os
-from collections.abc import Iterator
+import uuid
+from collections.abc import Callable, Iterator
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
+from app.auth.models import Role, Tenant, User
 from app.core.config import get_settings
-from app.core.db import get_engine, get_sessionmaker
+from app.core.db import get_engine, get_session, get_sessionmaker
+from app.core.security import create_access_token, hash_password
 from app.main import create_app
+
+TEST_PASSWORD = "correct-horse-battery-staple"
 
 
 @pytest.fixture(scope="session", autouse=True)
-def use_test_database() -> None:
+def test_database() -> None:
     test_database_url = get_settings().test_database_url
     if not test_database_url:
         pytest.exit("TEST_DATABASE_URL is not set; see .env.example", returncode=2)
@@ -22,15 +34,79 @@ def use_test_database() -> None:
     get_settings.cache_clear()
     get_engine.cache_clear()
     get_sessionmaker.cache_clear()
+    # migrations/env.py reads DATABASE_URL from settings, so this migrates the test DB.
+    command.upgrade(Config("alembic.ini"), "head")
 
 
 @pytest.fixture
-def app() -> FastAPI:
+def db_session() -> Iterator[Session]:
+    connection = get_engine().connect()
+    outer_transaction = connection.begin()
+    # "create_savepoint" turns every commit/rollback inside the code under test into a
+    # savepoint operation, so the outer transaction can still undo everything.
+    session = Session(
+        bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
+    )
+    try:
+        yield session
+    finally:
+        session.close()
+        outer_transaction.rollback()
+        connection.close()
+
+
+@pytest.fixture
+def app(db_session: Session) -> FastAPI:
     # A fresh app per test keeps dependency_overrides and test-only routes isolated.
-    return create_app()
+    application = create_app()
+    application.dependency_overrides[get_session] = lambda: db_session
+    return application
 
 
 @pytest.fixture
 def client(app: FastAPI) -> Iterator[TestClient]:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture(scope="session")
+def test_password_hash() -> str:
+    # argon2 is deliberately slow; hash the shared test password once per session.
+    return hash_password(TEST_PASSWORD)
+
+
+@pytest.fixture
+def make_tenant(db_session: Session) -> Callable[..., Tenant]:
+    def _make_tenant(name: str | None = None) -> Tenant:
+        tenant = Tenant(name=name or f"tenant-{uuid.uuid4().hex[:8]}")
+        db_session.add(tenant)
+        db_session.flush()
+        return tenant
+
+    return _make_tenant
+
+
+@pytest.fixture
+def make_user(
+    db_session: Session, make_tenant: Callable[..., Tenant], test_password_hash: str
+) -> Callable[..., User]:
+    def _make_user(
+        role: Role = Role.VIEWER, tenant: Tenant | None = None, is_active: bool = True
+    ) -> User:
+        user = User(
+            tenant_id=(tenant or make_tenant()).id,
+            email=f"user-{uuid.uuid4().hex[:8]}@example.com",
+            password_hash=test_password_hash,
+            role=role,
+            is_active=is_active,
+        )
+        db_session.add(user)
+        db_session.flush()
+        return user
+
+    return _make_user
+
+
+def auth_headers(user: User) -> dict[str, str]:
+    token = create_access_token(user.id, user.tenant_id, user.role)
+    return {"Authorization": f"Bearer {token}"}

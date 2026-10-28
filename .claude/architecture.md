@@ -34,7 +34,10 @@ Gateway (app/<x>/..._client.py)   -> external systems: the LLM client, the embed
 ```
 
 - Routers never touch the session or models directly.
-- Services own the transaction (`with session.begin():`), repositories never commit.
+- Services own the transaction: they call `session.commit()` when their work succeeds and
+  `session.rollback()` before translating a DB error. Repositories may `flush()` but never commit.
+  (`with session.begin():` is not used because the auth dependency has already read from the
+  session, which auto-begins a transaction; see task 002.)
 - AI calls go through `app/generation/llm_client.py`; prompts live in `app/generation/prompts.md`.
 
 ## Repository layout

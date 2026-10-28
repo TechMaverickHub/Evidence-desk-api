@@ -7,7 +7,7 @@ later rows are the intended order and get their own task file when they come up.
 | # | Task | Modules | Week | Status |
 |---|---|---|---|---|
 | 001 | [Project setup: uv, FastAPI skeleton, Postgres + pgvector, health, errors, tests](tasks/001-project-setup.md) | core | W1 | ✅ Done; 8 tests passed |
-| 002 | Auth: tenants, users, JWT, RBAC, cross-tenant test helpers | auth, core | W1 | Not started |
+| 002 | [Auth: tenants, users, JWT, RBAC, cross-tenant test helpers](tasks/002-auth.md) | auth, core | W1 | ✅ Done; 33 tests passed |
 | 003 | Documents, jobs table, worker, chunking + embeddings, idempotent ingest, corpus loader | documents, ingestion, jobs | W1 | Not started |
 | 004 | Dense retrieval + `POST /v1/search` | retrieval | W1 | Not started |
 | 005 | Labelled benchmark v1 (dev/test) + IR metrics (P@k, R@k, MRR, nDCG@k) | evaluation | W2 | Not started |
@@ -23,4 +23,4 @@ later rows are the intended order and get their own task file when they come up.
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: write the plan for task 002 (auth). See [plan.md](plan.md).
+Next: write the plan for task 003 (documents, jobs, ingestion). See [plan.md](plan.md).

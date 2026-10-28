@@ -10,7 +10,8 @@ indexes).
 ## Conventions
 
 - **PKs:** `UUID` (`uuid4`, generated in Python).
-- **Timestamps:** `created_at` (server default `now()`), plus `updated_at` where rows change.
+- **Timestamps:** `TIMESTAMPTZ` (set once in `Base.type_annotation_map`). `created_at` has
+  server default `now()`, plus `updated_at` where rows change.
 - **Tenant column:** every tenant-owned table has `tenant_id UUID NOT NULL FK tenants`, indexed.
   `chunks.tenant_id` is denormalised from its document so retrieval filters without a join.
 - **Enums:** stored as `VARCHAR` with a `CHECK` constraint (easier to migrate than PG enums).
@@ -18,10 +19,13 @@ indexes).
 
 ## Tables
 
-### auth (task 002)
-- **tenants**: `id`, `name (unique)`, `created_at`.
-- **users**: `id`, `tenant_id FK`, `email (unique)`, `password_hash`, `role (admin|editor|viewer)`,
-  `is_active`, `created_at`.
+### auth (task 002 ✅, migration `0002_auth_tables`)
+- **tenants**: `id`, `name VARCHAR(100) unique`, `created_at`.
+- **users**: `id`, `tenant_id FK RESTRICT (indexed)`, `email VARCHAR(254) unique, stored lower-case`,
+  `password_hash (argon2id)`, `role VARCHAR(16) CHECK user_role (admin|editor|viewer)`,
+  `is_active (default true)`, `created_at`.
+- Exception to the tenant-filter rule: `get_user_by_email` (login) searches all tenants,
+  because emails are globally unique and the tenant is not known before login.
 
 ### documents and chunks (task 003)
 - **documents**: `id`, `tenant_id FK`, `source (e.g. fastapi-docs)`, `slug (stable id from the

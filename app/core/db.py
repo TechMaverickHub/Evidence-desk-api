@@ -2,9 +2,10 @@
 
 import logging
 from collections.abc import Iterator
+from datetime import datetime
 from functools import lru_cache
 
-from sqlalchemy import Engine, create_engine, text
+from sqlalchemy import DateTime, Engine, create_engine, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -18,6 +19,9 @@ CONNECT_TIMEOUT_SECONDS = 3
 
 class Base(DeclarativeBase):
     """Base class for every SQLAlchemy model; Alembic autogenerates from its metadata."""
+
+    # Every `Mapped[datetime]` column is TIMESTAMPTZ, so stored times are unambiguous.
+    type_annotation_map = {datetime: DateTime(timezone=True)}
 
 
 # Engine and sessionmaker are created lazily (not at import time) so tests can point

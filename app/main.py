@@ -3,6 +3,7 @@
 from fastapi import APIRouter, FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging, log_requests
@@ -23,6 +24,7 @@ def create_app() -> FastAPI:
     # Every feature router is mounted under /v1; new features add one line here.
     api_v1 = APIRouter(prefix="/v1")
     api_v1.include_router(health_router)
+    api_v1.include_router(auth_router)
     app.include_router(api_v1)
     return app
 
