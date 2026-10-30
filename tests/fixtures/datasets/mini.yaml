@@ -1,0 +1,47 @@
+# Tiny benchmark over tests/fixtures/corpus, for builder tests.
+questions:
+  - id: q-0001
+    query_type: factual
+    question: How do you declare a dependency in a path operation?
+    reference_answer: Add a parameter with Depends(...) to the path operation.
+    reviewed: true
+    evidence:
+      - grade: 3
+        spans:
+          - {slug: fastapi/dependencies, version: "0.115", quote: "adding a parameter with"}
+  - id: q-0002
+    query_type: exact_identifier
+    question: What does use_cache=False change?
+    reference_answer: The dependency is called again instead of reusing its result.
+    reviewed: true
+    evidence:
+      - grade: 3
+        spans:
+          - {slug: fastapi/dependencies, version: "0.115", quote: "use_cache=False", quote_only: true}
+  - id: q-0003
+    query_type: paraphrase
+    question: Why were users seeing gateway errors right after we shipped?
+    reference_answer: Workers were still starting while the health check reported ready.
+    reviewed: true
+    evidence:
+      - grade: 3
+        spans:
+          - {slug: incidents/0001, version: "1", quote: "health check already reported ready"}
+      - grade: 1
+        spans:
+          - {slug: incidents/0001, version: "1", quote: "returned 502 Bad Gateway"}
+  - id: q-0004
+    query_type: multi_passage
+    question: What were the symptoms and the root cause of INC-0001?
+    reviewed: true
+    evidence:
+      - grade: 3
+        spans:
+          - {slug: incidents/0001, version: "1", quote: "for five minutes after a deploy"}
+      - grade: 3
+        spans:
+          - {slug: incidents/0001, version: "1", quote: "Uvicorn workers were still starting"}
+  - id: q-0005
+    query_type: unanswerable
+    question: How do I configure Kafka consumer groups?
+    reviewed: true

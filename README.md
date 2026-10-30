@@ -44,5 +44,8 @@ uv run ruff format --check .
 uv run alembic check              # no pending model changes
 ```
 
+Benchmark datasets are built from a reviewed YAML source and checked against the corpus
+(`app/evaluation/cli.py` shows the usage; `stats` prints counts per split and query type).
+
 Reset the local database: `docker compose down -v` (deletes the volume; the init script
 recreates the test database on next start).

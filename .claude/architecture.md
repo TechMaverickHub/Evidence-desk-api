@@ -93,6 +93,13 @@ chunks in one transaction. On failure the worker rolls back, then marks the docu
 sentence-transformers/transformers (≈ 40 s to import torch on the dev machine). The API, the
 tests and everything else depend only on the `Embedder` / `Tokenizer` protocols.
 
+**Metrics** (task 005a, `app/evaluation/metrics.py`), all at cutoff k, over the evidence
+items each ranked chunk matches: Precision@k (relevant chunks / k), Recall@k (evidence items
+matched / items), RR@k (1 / first relevant rank; averaged into MRR@k), nDCG@k with graded
+relevance `(2^g − 1) / log2(rank + 1)`, crediting each item once (keeps nDCG ≤ 1 and stops
+repeated passages inflating scores). Unanswerable questions are excluded from retrieval
+metrics. Aggregates are reported overall and per `query_type` with counts.
+
 **Evaluation** (`POST /v1/evaluations/runs`): enqueue an `evaluate` job with a retrieval
 config and a dataset split → worker runs every query, scores it, stores per-query results and
 aggregate metrics → `GET /v1/evaluations/runs/{id}` returns them.

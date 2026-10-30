@@ -1,3 +1,8 @@
 # Shell/SQL scripts mounted into Linux containers must keep LF endings on Windows.
 *.sql text eol=lf
 *.sh  text eol=lf
+
+# Corpus files are labelled by character offsets: git must never rewrite their bytes
+# (e.g. LF -> CRLF on Windows checkout), or every evidence span would shift.
+corpus/** -text
+tests/fixtures/corpus/** -text

@@ -63,26 +63,44 @@ evaluation uses the offsets to decide whether a chunk overlaps a labelled eviden
   `retrieved JSONB (chunk ids, ranks, scores)`, `metrics JSONB`, `latency_ms`,
   `answer JSONB NULL` (filled by answer-level evaluation, task 009).
 
-## Benchmark dataset (files, not tables)
+## Benchmark dataset (files, not tables) — format built in task 005a
 
-`eval/datasets/<name>.jsonl`, one query per line, versioned in git:
+Two files per dataset, both versioned in git:
 
-```json
-{"id": "q-0042", "split": "dev", "query_type": "exact_identifier",
- "question": "What does Depends(use_cache=False) change?",
- "answerable": true,
- "reference_answer": "...",
- "evidence": [{"slug": "fastapi/dependencies", "version": "0.115",
-               "char_start": 1820, "char_end": 2210, "grade": 3}]}
+**Source** `eval/datasets/source/<name>.yaml`, written and reviewed by people:
+
+```yaml
+questions:
+  - id: q-0042                       # q-NNNN, unique
+    query_type: exact_identifier
+    question: What does use_cache=False change?
+    reference_answer: ...
+    reviewed: true                   # the builder refuses unreviewed questions
+    evidence:                        # empty only for unanswerable questions
+      - grade: 3                     # 1 related, 2 partially answers, 3 answers
+        spans:                       # alternatives: any one satisfies this item
+          - {slug: fastapi/dependencies, version: "0.115", quote: "unless `use_cache=False`"}
+          - {slug: fastapi/dependencies, version: "0.110", quote: "unless `use_cache=False`"}
 ```
 
+**Built** `eval/datasets/<name>.jsonl`, produced by `python -m app.evaluation.cli build-dataset`:
+line 1 is a header `{format: "evidencedesk-dataset/1", name, seed, dev_fraction, questions}`,
+then one question per line with `split`, `answerable` and resolved spans
+`{slug, version, char_start, char_end, quote}`. `
+` line endings; the file's SHA-256
+identifies the dataset in every run.
+
 - `query_type`: `factual | multi_passage | exact_identifier | paraphrase | version_specific | ambiguous | unanswerable`.
-- `grade`: 0–3 graded relevance (used by nDCG). Unanswerable queries have `evidence: []`.
-- Labels point at **character spans in documents, not chunk IDs**, so they survive changes
-  to chunk size and overlap. A retrieved chunk counts as relevant if it overlaps a span; its
-  grade is the highest overlapping span's grade.
-- `split` is assigned per **source document group**, so near-duplicate questions about the
-  same passage never land in both dev and test.
+- **Quotes, not offsets, are authored.** A quote must occur exactly once in its document; the
+  span becomes the enclosing paragraph (text between blank lines) unless `quote_only: true`.
+- Labels are **character spans in documents, not chunk ids**, so they survive chunking
+  changes. A chunk matches a span when same `(slug, version)` and
+  `overlap ≥ 0.5 × min(span length, chunk length)` (`relevance.MIN_OVERLAP_FRACTION`).
+- **Evidence items with alternative spans**: Recall@k counts items, and an item is satisfied by
+  any of its spans (e.g. the same paragraph in two doc versions).
+- `split` is deterministic: `sha256(seed:group)` < dev_fraction (default 0.6) → `dev`. The group is
+  the slug of the first evidence span (version-independent); unanswerable questions use their id.
+- Corpus bytes are protected from line-ending conversion by `.gitattributes` (`-text`).
 
 ## Migration discipline
 
