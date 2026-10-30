@@ -21,12 +21,19 @@ class FakeEmbedder:
     model_name = "fake-embedder"
     dimension = 384
 
-    def __init__(self, fail_on: str | None = None) -> None:
+    def __init__(
+        self, fail_on: str | None = None, query_vectors: dict[str, list[float]] | None = None
+    ) -> None:
         # Raise when a text contains `fail_on`, to test mid-document failures.
         self._fail_on = fail_on
+        # Lets search tests pin a query to a hand-made vector with known similarities.
+        self._query_vectors = query_vectors or {}
 
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
         return [self._embed(text) for text in texts]
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._query_vectors.get(text) or self._embed(text)
 
     def _embed(self, text: str) -> list[float]:
         if self._fail_on and self._fail_on in text:

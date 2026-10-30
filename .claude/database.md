@@ -41,8 +41,8 @@ indexes).
   `embedding_model (e.g. BAAI/bge-small-en-v1.5)`.
   Unique `(document_id, chunker, ordinal)`; CHECK `char_start >= 0 AND char_end > char_start`;
   index `(tenant_id, chunker)`.
-  Planned: HNSW on `embedding vector_cosine_ops` (task 004); `tsv` generated column + GIN
-  (task 007).
+  No vector index by design (exact search, see architecture.md and task 004); an HNSW index
+  is a task-015 option. Planned: `tsv` generated column + GIN (task 007).
 
 `chunker` lets several chunking strategies coexist for Experiment D without re-ingesting the
 documents. `chunk.text == documents.content[char_start:char_end]` always holds (tested); the

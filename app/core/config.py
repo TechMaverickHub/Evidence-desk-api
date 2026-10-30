@@ -25,6 +25,16 @@ class Settings(BaseSettings):
     # because chunks.embedding is vector(384).
     embedding_model_name: str = "BAAI/bge-small-en-v1.5"
     embedding_batch_size: int = Field(default=32, gt=0)
+    # BGE's recommended prefix for short queries against passages. The model card says to keep
+    # whichever setting scores better on your task, so it is configurable ("" disables it).
+    embedding_query_instruction: str = "Represent this sentence for searching relevant passages: "
+    # Load the model when the API starts, so the first search is not slow. Tests turn it off.
+    preload_embedding_model: bool = True
+
+    # The worker writes chunks with these sizes and search reads chunks with the same name,
+    # so both must come from here.
+    chunk_max_tokens: int = Field(default=300, gt=0)
+    chunk_overlap_tokens: int = Field(default=50, ge=0)
     worker_poll_seconds: float = Field(default=1.0, gt=0)
 
 

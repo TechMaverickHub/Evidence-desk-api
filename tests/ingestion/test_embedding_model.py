@@ -36,6 +36,23 @@ def test_vectors_are_384_dimensional_and_unit_length(embedder: SentenceTransform
         assert math.isclose(math.sqrt(sum(value * value for value in vector)), 1.0, rel_tol=1e-4)
 
 
+def test_query_vectors_are_unit_length_and_use_the_instruction(
+    embedder: SentenceTransformerEmbedder,
+) -> None:
+    question = "How do I disable dependency caching?"
+    embedder.query_instruction = get_settings().embedding_query_instruction
+    with_instruction = embedder.embed_query(question)
+    embedder.query_instruction = ""
+    without_instruction = embedder.embed_query(question)
+
+    assert math.isclose(
+        math.sqrt(sum(value * value for value in with_instruction)), 1.0, rel_tol=1e-4
+    )
+    assert with_instruction != without_instruction
+    # With no instruction, a query is embedded exactly like a passage.
+    assert without_instruction == pytest.approx(embedder.embed_documents([question])[0], abs=1e-5)
+
+
 def test_default_chunks_of_code_heavy_text_fit_the_model(
     embedder: SentenceTransformerEmbedder,
 ) -> None:

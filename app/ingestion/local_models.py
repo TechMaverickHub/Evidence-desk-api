@@ -13,10 +13,11 @@ from transformers import AutoTokenizer
 class SentenceTransformerEmbedder:
     """Local CPU embedding model (implements `Embedder`). Build one per process: loading is slow."""
 
-    def __init__(self, model_name: str, batch_size: int) -> None:
+    def __init__(self, model_name: str, batch_size: int, query_instruction: str = "") -> None:
         # trust_remote_code=False: never execute Python shipped inside a model repository.
         self._model = SentenceTransformer(model_name, device="cpu", trust_remote_code=False)
         self._batch_size = batch_size
+        self.query_instruction = query_instruction
         self.model_name = model_name
         self.dimension = self._model.get_embedding_dimension()
 
@@ -29,6 +30,16 @@ class SentenceTransformerEmbedder:
             show_progress_bar=False,
         )
         return vectors.tolist()
+
+    def embed_query(self, text: str) -> list[float]:
+        # The instruction is added to queries only; passages are always embedded without it.
+        vectors = self._model.encode_query(
+            [text],
+            prompt=self.query_instruction or None,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+        )
+        return vectors[0].tolist()
 
     def count_tokens(self, text: str) -> int:
         """Token count as the model sees it, including special tokens."""

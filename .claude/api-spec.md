@@ -33,7 +33,9 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 ## search — `app/retrieval`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `search` | viewer | `{query, k=10, mode: dense\|keyword\|hybrid, rerank=false, filters?: {source, version}}`. Returns ranked passages with `chunk_id`, `document`, `text`, `score` and per-stage diagnostics (`dense_rank`, `keyword_rank`, `rerank_score`, `latency_ms` per stage) | 004 (dense), 007 (keyword, hybrid), 008 (rerank) |
+| POST | `search` | viewer | `{query, k=10, mode: dense\|keyword\|hybrid, rerank=false, filters?: {source, version}}`. Returns ranked passages with `chunk_id`, `document`, `text`, `score` and per-stage diagnostics (`dense_rank`, `keyword_rank`, `rerank_score`, `latency_ms` per stage) | 004 ✅ (dense), 007 (keyword, hybrid), 008 (rerank) |
+
+**As built in task 004:** request `{query (1–1,000 chars, not blank), k (1–50, default 10), mode: "dense", filters?: {source?, version?}}`, `extra="forbid"` on both. Response `{results: [{rank, chunk_id, score (cosine similarity), text, char_start, char_end, heading_path, document: {id, source, slug, version, title}}], diagnostics: {mode, k, chunker, embedding_model, query_instruction, latency_ms: {embed_query, retrieve, total}}}`. No matches → `results: []`. Only chunks of the configured chunker and the embedder's model are searched.
 
 ## answers — `app/generation`
 | Method | Path | Roles | Notes | Task |

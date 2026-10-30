@@ -31,6 +31,8 @@ uv run python -m app.worker --once   # or without --once to keep polling for new
 ```
 
 The first worker run downloads the embedding model (~130 MB) into the Hugging Face cache.
+The API also loads it at startup so searches are fast; set `PRELOAD_EMBEDDING_MODEL=false`
+for quicker `--reload` restarts when you are not using search.
 
 ## Development
 

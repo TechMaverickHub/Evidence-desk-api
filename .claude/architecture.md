@@ -71,6 +71,13 @@ There is no `common` or `utils` package. Shared code lives in `app/core/`.
 **Search** (`POST /v1/search`): normalise query → dense top-N (pgvector, cosine) and keyword
 top-N (FTS), both filtered by `tenant_id` → RRF fusion → optional cross-encoder rerank →
 return top-k passages with per-stage scores.
+*As built (task 004): dense only.* The query is embedded with BGE's query instruction
+(`EMBEDDING_QUERY_INSTRUCTION`), then an **exact** KNN query (`ORDER BY embedding <=> q, id`)
+runs over the tenant's chunks of the configured chunker and model. There is deliberately no
+vector index: exact search keeps evaluation free of ANN recall error, and an HNSW scan filtered
+by tenant can return fewer than k rows. Measured on the dev machine: 20,000-chunk tenant
+retrieve p50 47.6 ms / p95 55.7 ms (Postgres 33 ms); 4-chunk tenant p95 7.8 ms. Revisit in
+task 015. The API loads the embedding model once at startup (`PRELOAD_EMBEDDING_MODEL`).
 
 **Answer** (`POST /v1/answers`): run search → select context within a token budget → LLM
 call with structured output `{answer, cited_chunk_ids, status}` → **server-side citation

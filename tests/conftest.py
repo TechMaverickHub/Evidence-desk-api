@@ -21,6 +21,8 @@ from app.core.db import get_engine, get_session, get_sessionmaker
 from app.core.security import create_access_token, hash_password
 from app.documents.schemas import IngestDocumentRequest
 from app.main import create_app
+from app.retrieval.deps import get_query_embedder
+from tests.fakes import FakeEmbedder
 
 TEST_PASSWORD = "correct-horse-battery-staple"
 
@@ -32,6 +34,8 @@ def test_database() -> None:
         pytest.exit("TEST_DATABASE_URL is not set; see .env.example", returncode=2)
     # Repoint the app at the test database, then drop cached objects built from the old URL.
     os.environ["DATABASE_URL"] = test_database_url
+    # Never load the real embedding model in the default test run (torch import is slow).
+    os.environ["PRELOAD_EMBEDDING_MODEL"] = "false"
     get_settings.cache_clear()
     get_engine.cache_clear()
     get_sessionmaker.cache_clear()
@@ -61,6 +65,8 @@ def app(db_session: Session) -> FastAPI:
     # A fresh app per test keeps dependency_overrides and test-only routes isolated.
     application = create_app()
     application.dependency_overrides[get_session] = lambda: db_session
+    # A lambda, not the class: FastAPI would read the class's __init__ args as request fields.
+    application.dependency_overrides[get_query_embedder] = lambda: FakeEmbedder()
     return application
 
 

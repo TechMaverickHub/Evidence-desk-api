@@ -20,6 +20,11 @@ class Tokenizer(Protocol):
     def token_offsets(self, text: str) -> list[tuple[int, int]]: ...
 
 
+def chunker_name(max_tokens: int, overlap_tokens: int) -> str:
+    """Stored on every chunk; search uses it to read only chunks of one strategy."""
+    return f"tokens-{max_tokens}-overlap-{overlap_tokens}"
+
+
 @dataclass(frozen=True)
 class Chunk:
     ordinal: int
@@ -57,7 +62,7 @@ class TokenWindowChunker:
 
     @property
     def name(self) -> str:
-        return f"tokens-{self.max_tokens}-overlap-{self.overlap_tokens}"
+        return chunker_name(self.max_tokens, self.overlap_tokens)
 
     def chunk(self, content: str) -> list[Chunk]:
         chunks: list[Chunk] = []

@@ -86,7 +86,12 @@ def build_default_handlers() -> dict[str, JobHandler]:
     from app.ingestion.local_models import HuggingFaceTokenizer, SentenceTransformerEmbedder
 
     settings = get_settings()
-    chunker = TokenWindowChunker(HuggingFaceTokenizer(settings.embedding_model_name))
+    chunker = TokenWindowChunker(
+        HuggingFaceTokenizer(settings.embedding_model_name),
+        settings.chunk_max_tokens,
+        settings.chunk_overlap_tokens,
+    )
+    # Passages only: the worker never embeds queries, so no query instruction is needed.
     embedder = SentenceTransformerEmbedder(
         settings.embedding_model_name, settings.embedding_batch_size
     )
