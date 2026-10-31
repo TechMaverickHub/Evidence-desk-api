@@ -58,7 +58,9 @@ app/
   evaluation/           dataset loader, IR metrics, run orchestration, reports
   jobs/                 job model + repository (shared by ingestion and evaluation)
 migrations/             Alembic
-corpus/                 Versioned source documents + manifest.yaml
+corpus/                 Frozen corpus: generated pages, manifest.yaml, SOURCES.md, licenses/,
+                        sources.yaml (pinned upstream tags), incidents/ (hand-written)
+tools/                  Operator tooling, never imported by the app (build_corpus.py)
 eval/datasets/          Labelled benchmark (JSONL), dev and test splits
 eval/reports/           Generated experiment reports (Markdown + JSON)
 tests/                  Mirrors app/ (tests/retrieval/test_fusion.py, ...)

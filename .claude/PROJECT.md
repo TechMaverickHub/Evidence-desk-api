@@ -32,15 +32,21 @@ job worker, observability. No UI lives here (see [UI.md](UI.md)).
 
 ## Corpus (bounded and reproducible)
 
-| Source | Notes |
-|---|---|
-| FastAPI docs | Pinned to specific releases (two versions, for version-mismatch questions) |
-| PostgreSQL docs | One or two chapters (full-text search, indexes, configuration) |
-| Python docs | A few stdlib modules (`asyncio`, `logging`, `json`) |
-| Synthetic incident reports | Small, clearly labelled as synthetic, written for this project |
+A Markdown-native "FastAPI stack" corpus (task 005b). PostgreSQL and Python docs were
+dropped from the original plan: they are DocBook XML and reStructuredText, which the
+heading-aware Markdown chunker would read as flat text.
 
-The corpus is checked into `corpus/` with a `manifest.yaml` (source, version, licence). No
-crawling of the open internet.
+| Source | Version(s) | Licence | Notes |
+|---|---|---|---|
+| FastAPI docs (tutorial, advanced, deployment, how-to) | 0.115.0 and 0.162.0 | MIT | Two versions for version-specific questions; code examples inlined |
+| Pydantic docs (concepts, errors) | v2.14.2 | MIT | Validation behaviour and error codes |
+| Starlette docs | 1.10.0 | BSD-3-Clause | Middleware, requests, lifespan |
+| Uvicorn docs | 0.54.0 | BSD-3-Clause | Workers, deployment, timeouts |
+| Synthetic incident reports | 1 | CC0-1.0 | 20 fictional incidents, labelled as synthetic |
+
+The corpus is checked into `corpus/` (generated pages, `manifest.yaml`, `SOURCES.md` with tags
+and commits, `licenses/`). `tools/build_corpus.py` rebuilds it byte-for-byte from the tags
+pinned in `corpus/sources.yaml`. No crawling of the open internet.
 
 ## Sources of truth
 

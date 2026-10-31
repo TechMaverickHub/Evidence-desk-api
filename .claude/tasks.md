@@ -11,7 +11,7 @@ later rows are the intended order and get their own task file when they come up.
 | 003 | [Documents, jobs table, worker, chunking + embeddings, idempotent ingest, corpus loader](tasks/003-ingestion.md) | documents, ingestion, jobs | W1 | ✅ Done; 70 tests + 2 model tests passed |
 | 004 | [Dense retrieval + `POST /v1/search`](tasks/004-dense-search.md) | retrieval | W1 | ✅ Done; 88 tests + 4 model tests passed |
 | 005a | [Evaluation foundations: IR metrics, span relevance, dataset format + builder](tasks/005a-eval-foundations.md) | evaluation | W2 | ✅ Done; 120 tests passed |
-| 005b | Corpus v1 snapshot (frozen, licences, manifest, build script) | corpus | W2 | Not started |
+| 005b | [Corpus v1 snapshot (frozen, licences, manifest, build script)](tasks/005b-corpus-v1.md) | corpus, tools | W2 | ✅ Done; 136 tests passed; 285 documents |
 | 005c | Labelled benchmark v1 (~150 questions, LLM-drafted, human-reviewed, dev/test) | evaluation | W2 | Not started |
 | 006 | Evaluation runs (API, CLI, worker) + baseline report (Exp. A) | evaluation | W2 | Not started |
 | 007 | Keyword search (FTS) + RRF hybrid (Exp. B) | retrieval | W2 | Not started |
@@ -25,4 +25,4 @@ later rows are the intended order and get their own task file when they come up.
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: write the plan for task 005b (corpus v1 snapshot). Task 005 is split into 005a/b/c; see [005a](tasks/005a-eval-foundations.md) for why. See [plan.md](plan.md).
+Next: write the plan for task 005c (labelled benchmark v1). Task 005 is split into 005a/b/c; see [005a](tasks/005a-eval-foundations.md) for why. See [plan.md](plan.md).

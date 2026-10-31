@@ -36,6 +36,9 @@ torch = { index = "pytorch-cpu" }
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Corpus files are labelled by character offsets: ruff (which also formats code blocks
+# inside Markdown) must never rewrite them.
+extend-exclude = ["corpus", "tests/fixtures/corpus"]
 
 [tool.ruff.lint]
 # E/F: pycodestyle + pyflakes, I: import sorting, B: bugbear, UP: modern syntax,

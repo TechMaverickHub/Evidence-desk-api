@@ -1,0 +1,54 @@
+# Pinned upstream sources for corpus v1 (task 005b). Rebuild with:
+#   uv run python -m tools.build_corpus fetch   # network: downloads into .cache/corpus-src/
+#   uv run python -m tools.build_corpus build   # offline: regenerates corpus/ from the cache
+#
+# Globs are matched against paths relative to `root` with fnmatch, where `*` also matches "/".
+# A new tag means new evidence labels, so changing a version is a corpus v2 task.
+
+sources:
+  - name: fastapi
+    source: fastapi-docs
+    repo: fastapi/fastapi
+    licence: MIT
+    versions: ["0.115.0", "0.162.0"]
+    root: docs/en/docs
+    include: ["tutorial/*.md", "advanced/*.md", "deployment/*.md", "how-to/*.md"]
+    # Includes FastAPI's own package source (fastapi/openapi/docs.py), not a docs_src example;
+    # excluded rather than widening the downloads beyond docs pages and docs_src files.
+    exclude: ["how-to/configure-swagger-ui.md"]
+    # FastAPI pages pull example code from this folder; the build inlines it.
+    code_root: docs_src
+
+  - name: pydantic
+    source: pydantic-docs
+    repo: pydantic/pydantic
+    licence: MIT
+    versions: ["v2.14.2"]
+    root: docs
+    include: ["concepts/*.md", "errors/*.md"]
+    exclude: []
+
+  - name: starlette
+    source: starlette-docs
+    repo: Kludex/starlette
+    licence: BSD-3-Clause
+    versions: ["1.10.0"]
+    root: docs
+    include: ["*.md"]
+    exclude: ["release-notes.md"]
+
+  - name: uvicorn
+    source: uvicorn-docs
+    repo: Kludex/uvicorn
+    licence: BSD-3-Clause
+    versions: ["0.54.0"]
+    root: docs
+    include: ["*.md"]
+    exclude: ["release-notes.md"]
+
+# Hand-written, clearly synthetic incident reports (no download).
+incidents:
+  source: synthetic-incidents
+  folder: incidents
+  version: "1"
+  licence: CC0-1.0

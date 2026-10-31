@@ -96,6 +96,8 @@ Guardrails against over-applying SOLID:
   instead of, deterministic metrics.
 
 ## Data
+- `corpus/` and `tests/fixtures/corpus/` are generated or frozen bytes: never edit or format them by
+  hand (they are excluded from ruff and stored with `-text`). Regenerate with `tools/build_corpus.py`.
 - Schema changes only through models + Alembic revisions. `uv run alembic check` before handover.
 
 ## Dependencies

@@ -44,6 +44,11 @@ uv run ruff format --check .
 uv run alembic check              # no pending model changes
 ```
 
+The evaluation corpus in `corpus/` is generated; rebuild it from the pinned upstream tags with
+`uv run python -m tools.build_corpus fetch` (network, ~2.5 MB of text into `.cache/`) and then
+`uv run python -m tools.build_corpus build` (offline, byte-for-byte reproducible). Load it with
+`uv run python -m app.ingestion.cli load-corpus --tenant <name> --manifest corpus/manifest.yaml`.
+
 Benchmark datasets are built from a reviewed YAML source and checked against the corpus
 (`app/evaluation/cli.py` shows the usage; `stats` prints counts per split and query type).
 
