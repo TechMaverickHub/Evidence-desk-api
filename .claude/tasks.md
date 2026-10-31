@@ -12,7 +12,7 @@ later rows are the intended order and get their own task file when they come up.
 | 004 | [Dense retrieval + `POST /v1/search`](tasks/004-dense-search.md) | retrieval | W1 | ✅ Done; 88 tests + 4 model tests passed |
 | 005a | [Evaluation foundations: IR metrics, span relevance, dataset format + builder](tasks/005a-eval-foundations.md) | evaluation | W2 | ✅ Done; 120 tests passed |
 | 005b | [Corpus v1 snapshot (frozen, licences, manifest, build script)](tasks/005b-corpus-v1.md) | corpus, tools | W2 | ✅ Done; 136 tests passed; 285 documents |
-| 005c | Labelled benchmark v1 (~150 questions, LLM-drafted, human-reviewed, dev/test) | evaluation | W2 | Not started |
+| 005c | [Labelled benchmark v1 (~150 questions, LLM-drafted, human-reviewed, dev/test)](tasks/005c-benchmark-v1.md) | evaluation | W2 | ✅ Done; 144 tests passed; 150 reviewed questions (80 dev / 70 test) |
 | 006 | Evaluation runs (API, CLI, worker) + baseline report (Exp. A) | evaluation | W2 | Not started |
 | 007 | Keyword search (FTS) + RRF hybrid (Exp. B) | retrieval | W2 | Not started |
 | 008 | Cross-encoder reranking (Exp. C) | retrieval | W3 | Not started |
@@ -25,4 +25,4 @@ later rows are the intended order and get their own task file when they come up.
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: write the plan for task 005c (labelled benchmark v1). Task 005 is split into 005a/b/c; see [005a](tasks/005a-eval-foundations.md) for why. See [plan.md](plan.md).
+Next: write the plan for task 006 (evaluation runs + baseline report, Experiment A). Task 005 is split into 005a/b/c; see [005a](tasks/005a-eval-foundations.md) for why. See [plan.md](plan.md).

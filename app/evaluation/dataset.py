@@ -6,6 +6,7 @@ ambiguous. Runs consume the JSONL, identified by its SHA-256.
 """
 
 import hashlib
+import re
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -20,6 +21,15 @@ from app.ingestion.cli import CorpusError, read_manifest
 
 FORMAT = "evidencedesk-dataset/1"
 DEFAULT_DEV_FRACTION = 0.6
+
+# Words too common to say anything about copying (kept short on purpose).
+_STOP_WORDS_TEXT = (
+    "a an and are as at be been by can could do does for from had has have how i if in is "
+    "it my not of on or should that the there they this to was we were what when where "
+    "which why will with would you your"
+)
+_STOP_WORDS = frozenset(_STOP_WORDS_TEXT.split())
+_WORD = re.compile(r"[a-z0-9_]+")
 
 QueryType = Literal[
     "factual",
@@ -68,6 +78,8 @@ class SourceQuestion(BaseModel):
     question: str = Field(min_length=1)
     reference_answer: str | None = None
     reviewed: bool = False
+    # Free text for reviewers, e.g. the terms searched to confirm an unanswerable question.
+    notes: str | None = None
     evidence: list[SourceEvidence] = Field(default_factory=list)
 
 
@@ -100,6 +112,11 @@ class BuiltQuestion(BaseModel):
     question: str
     reference_answer: str | None
     answerable: bool
+    reviewed: bool
+    notes: str | None
+    # Share of the question's content words that also appear in its evidence (None when
+    # unanswerable). High values mean the question copies the passage, favouring keyword search.
+    word_overlap: float | None
     evidence: list[BuiltEvidence]
 
     def evidence_items(self) -> list[EvidenceItem]:
@@ -137,13 +154,20 @@ def build_dataset(
     name: str,
     seed: str,
     dev_fraction: float = DEFAULT_DEV_FRACTION,
+    require_reviewed: bool = True,
 ) -> Dataset:
+    """Build the dataset. `require_reviewed=False` is only for rendering review sheets."""
     source = _read_source(source_path)
-    documents = _read_corpus(manifest_path)
-    problems = _check_questions(source.questions)
+    documents = read_corpus_texts(manifest_path)
+    problems = _check_questions(source.questions, require_reviewed)
     built = []
     for question in source.questions:
         evidence = _resolve_evidence(question, documents, problems)
+        evidence_text = " ".join(
+            documents[(s.slug, s.version)][s.char_start : s.char_end]
+            for item in evidence
+            for s in item.spans
+        )
         built.append(
             BuiltQuestion(
                 id=question.id,
@@ -152,6 +176,9 @@ def build_dataset(
                 question=question.question,
                 reference_answer=question.reference_answer,
                 answerable=bool(question.evidence),
+                reviewed=question.reviewed,
+                notes=question.notes,
+                word_overlap=word_overlap(question.question, evidence_text) if evidence else None,
                 evidence=evidence,
             )
         )
@@ -167,6 +194,15 @@ def assign_split(question: SourceQuestion, seed: str, dev_fraction: float) -> st
     group_key = question.evidence[0].spans[0].slug if question.evidence else question.id
     digest = hashlib.sha256(f"{seed}:{group_key}".encode()).hexdigest()
     return "dev" if int(digest[:8], 16) / 0x1_0000_0000 < dev_fraction else "test"
+
+
+def word_overlap(question: str, evidence_text: str) -> float:
+    """Fraction of the question's content words (stop words removed) found in the evidence."""
+    question_words = set(_WORD.findall(question.lower())) - _STOP_WORDS
+    if not question_words:
+        return 0.0
+    evidence_words = set(_WORD.findall(evidence_text.lower()))
+    return round(len(question_words & evidence_words) / len(question_words), 3)
 
 
 def paragraph_span(content: str, start: int, end: int) -> tuple[int, int]:
@@ -185,8 +221,8 @@ def _read_source(path: Path) -> SourceDataset:
         raise DatasetError([f"Invalid source {path}: {exc}"]) from exc
 
 
-def _read_corpus(manifest_path: Path) -> dict[tuple[str, str], str]:
-    # Same reader as the corpus loader, so offsets refer to exactly the ingested text.
+def read_corpus_texts(manifest_path: Path) -> dict[tuple[str, str], str]:
+    """Document text by (slug, version), read exactly as the corpus loader reads it."""
     try:
         requests = read_manifest(manifest_path)
     except CorpusError as exc:
@@ -194,14 +230,14 @@ def _read_corpus(manifest_path: Path) -> dict[tuple[str, str], str]:
     return {(request.slug, request.version): request.content for request in requests}
 
 
-def _check_questions(questions: Sequence[SourceQuestion]) -> list[str]:
+def _check_questions(questions: Sequence[SourceQuestion], require_reviewed: bool) -> list[str]:
     problems = [
         f"duplicate id {question_id}"
         for question_id, count in Counter(question.id for question in questions).items()
         if count > 1
     ]
     for question in questions:
-        if not question.reviewed:
+        if require_reviewed and not question.reviewed:
             problems.append(f"{question.id}: not reviewed")
         is_unanswerable = question.query_type == "unanswerable"
         if is_unanswerable == bool(question.evidence):

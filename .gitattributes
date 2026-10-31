@@ -6,3 +6,6 @@
 # (e.g. LF -> CRLF on Windows checkout), or every evidence span would shift.
 corpus/** -text
 tests/fixtures/corpus/** -text
+
+# The built benchmark is identified by its SHA-256; keep its bytes (LF) exactly as built.
+eval/datasets/*.jsonl -text

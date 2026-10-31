@@ -11,6 +11,7 @@ from app.evaluation.dataset import (
     build_dataset,
     load_dataset,
     paragraph_span,
+    word_overlap,
     write_dataset,
 )
 
@@ -163,3 +164,51 @@ def test_built_question_converts_to_relevance_labels() -> None:
 
     assert [item.grade for item in items] == [3, 1]
     assert items[0].spans[0].slug == "incidents/0001"
+
+
+def test_draft_mode_builds_unreviewed_questions_but_strict_mode_refuses(tmp_path: Path) -> None:
+    source = _write_source(tmp_path, [_question(reviewed=False)])
+
+    draft = build_dataset(source, MANIFEST, name="d", seed="s", require_reviewed=False)
+
+    assert draft.questions[0].reviewed is False
+    with pytest.raises(DatasetError, match="not reviewed"):
+        _build(source)
+
+
+def test_notes_are_carried_into_the_built_dataset(tmp_path: Path) -> None:
+    unanswerable = _question(
+        query_type="unanswerable", evidence=[], notes="searched: kafka, consumer group"
+    )
+
+    (built,) = _build(_write_source(tmp_path, [unanswerable])).questions
+
+    assert built.notes == "searched: kafka, consumer group"
+    assert built.word_overlap is None
+
+
+@pytest.mark.parametrize(
+    ("question", "evidence", "expected"),
+    [
+        # Content words: declare, dependency, path, operation -> 3 of 4 in the evidence.
+        (
+            "How do I declare a dependency in a path operation?",
+            "Declare a dependency by path",
+            0.75,
+        ),
+        ("What is the TIMEOUT?", "timeout settings", 1.0),
+        ("Why were users seeing gateway errors?", "Workers were still starting", 0.0),
+        ("How is it?", "anything", 0.0),  # only stop words
+    ],
+)
+def test_word_overlap_ignores_stop_words_and_case(
+    question: str, evidence: str, expected: float
+) -> None:
+    assert word_overlap(question, evidence) == expected
+
+
+def test_built_questions_report_their_overlap() -> None:
+    first = _build().questions[0]
+
+    assert first.word_overlap is not None
+    assert 0.0 < first.word_overlap <= 1.0

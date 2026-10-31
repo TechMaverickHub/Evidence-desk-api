@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from app.evaluation import cli
 
@@ -35,3 +36,22 @@ def test_build_problems_exit_non_zero(tmp_path: Path, capsys: pytest.CaptureFixt
     assert exit_code == 1
     assert "Invalid source" in capsys.readouterr().err
     assert not Path("x.jsonl").exists()
+
+
+def test_review_sheet_shows_unreviewed_questions_with_exact_evidence(tmp_path: Path) -> None:
+    draft = yaml.safe_load(MINI.read_text(encoding="utf-8"))
+    draft["questions"][1]["reviewed"] = False  # q-0002 becomes a draft
+    source = tmp_path / "draft.yaml"
+    source.write_text(yaml.safe_dump(draft), encoding="utf-8")
+    out = tmp_path / "sheet.md"
+
+    exit_code = cli.main(
+        ["review-sheet", "--source", str(source), "--manifest", str(MANIFEST), "--out", str(out)]
+    )
+
+    sheet = out.read_text(encoding="utf-8")
+    assert exit_code == 0
+    assert "## q-0002 · exact_identifier" in sheet
+    assert "## q-0001" not in sheet  # reviewed questions are left out by default
+    assert "> use_cache=False" in sheet  # the exact labelled text, quote_only span
+    assert "`fastapi/dependencies@0.115`" in sheet

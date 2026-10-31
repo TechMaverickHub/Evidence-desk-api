@@ -63,7 +63,10 @@ evaluation uses the offsets to decide whether a chunk overlaps a labelled eviden
   `retrieved JSONB (chunk ids, ranks, scores)`, `metrics JSONB`, `latency_ms`,
   `answer JSONB NULL` (filled by answer-level evaluation, task 009).
 
-## Benchmark dataset (files, not tables) — format built in task 005a
+## Benchmark dataset (files, not tables) — format built in task 005a, v1 labelled in 005c
+
+Current dataset: `evidencedesk-v1` (150 reviewed questions, 80 dev / 70 test); provenance,
+guidelines and limitations in [eval/datasets/README.md](../eval/datasets/README.md).
 
 Two files per dataset, both versioned in git:
 
@@ -76,6 +79,7 @@ questions:
     question: What does use_cache=False change?
     reference_answer: ...
     reviewed: true                   # the builder refuses unreviewed questions
+    notes: ...                       # optional: readings, absence searches
     evidence:                        # empty only for unanswerable questions
       - grade: 3                     # 1 related, 2 partially answers, 3 answers
         spans:                       # alternatives: any one satisfies this item
@@ -86,7 +90,9 @@ questions:
 **Built** `eval/datasets/<name>.jsonl`, produced by `python -m app.evaluation.cli build-dataset`:
 line 1 is a header `{format: "evidencedesk-dataset/1", name, seed, dev_fraction, questions}`,
 then one question per line with `split`, `answerable` and resolved spans
-`{slug, version, char_start, char_end, quote}`. `
+`{slug, version, char_start, char_end, quote}`, plus `reviewed`, `notes` and `word_overlap`
+(share of the question's content words found in its evidence; a drafting-bias measure).
+`
 ` line endings; the file's SHA-256
 identifies the dataset in every run.
 
