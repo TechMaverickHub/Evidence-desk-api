@@ -7,7 +7,7 @@ behaviour only after the retrieval system is shown to work.
 
 ```
 W1 Foundation    001 setup ✅ → 002 auth ✅ → 003 ingestion ✅ → 004 dense search ✅
-W2 Measurement   005a metrics ✅ → 005b corpus ✅ → 005c benchmark ✅ → 006 eval runs + baseline (Exp. A)   <- NEXT → 007 hybrid (Exp. B)
+W2 Measurement   005a metrics ✅ → 005b corpus ✅ → 005c benchmark ✅ → 006a runner + baseline (Exp. A) ✅ → 006b runs API   <- NEXT → 007 hybrid (Exp. B)
 W3 RAG quality   008 rerank (Exp. C) → 009 grounded answers + abstention → 010 chunking (Exp. D)
 W4 Reliability   011 timeouts/retries/failure tests (security tests ship with 002–004)
 W5 Operations    012 tracing + cost → 013 Docker + CI + eval gate → 014 dashboard (separate repo)
@@ -32,7 +32,7 @@ cutting any experiment.
 
 | ID | Change | Compare against | Primary metrics | Task |
 |---|---|---|---|---|
-| A | Dense baseline (fixed chunker, k, model) | — | R@5, nDCG@10, MRR, p95 | 006 |
+| A | Dense baseline (fixed chunker, k, model) | — | R@5, nDCG@10, MRR, p95 | 006a ✅ (nDCG@10 0.529 dev / 0.551 test) |
 | B | Dense + FTS fused with RRF | A | Same, split by `exact_identifier` vs `paraphrase` | 007 |
 | C | Hybrid top-50 → cross-encoder → top-10 | B | nDCG@10 gain vs added p95 | 008 |
 | D | Chunk size / overlap / top-k / context budget | best of B/C | R@5, context precision, answer correctness | 010 |

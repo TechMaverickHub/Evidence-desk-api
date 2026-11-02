@@ -1,6 +1,6 @@
 # Task 006a — Evaluation runner, reports and the dense baseline (Experiment A)
 
-**Status:** 🔨 Implemented; test run and final reports pending the code commit
+**Status:** ✅ Done
 **Week:** W2 · **Modules:** `app/evaluation`, `eval/configs/`, `eval/reports/` ·
 **Branch:** `task/006a-eval-runner` (off `task/005c-benchmark-v1`)
 
@@ -228,9 +228,9 @@ Model-backed runs are not part of the default test suite (the `model` marker, as
 - [x] `ruff check`, `ruff format --check`, full test suite clean
 - [x] Tenant `eval-corpus-v1` loaded; corpus check passes
 - [x] Experiment A: dev A/B run, choice recorded
-- [ ] One test run and final reports from the committed tree
-- [ ] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md) (CLI line), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
-- [ ] Propose commit message, commit after confirmation
+- [x] One test run and final reports from the committed tree (`cf8441e`)
+- [x] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md) (CLI line), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
+- [x] Propose commit message, commit after confirmation
 
 ---
 
@@ -256,7 +256,7 @@ A run works like this:
 - a paired bootstrap 95 % interval on the mean delta
 
 Corpus v1 was loaded into the `eval-corpus-v1` tenant: 285 documents, 5,005 chunks, 0
-failed jobs. Experiment A was run on dev.
+failed jobs. Experiment A was run on dev, then once on test.
 
 166 tests pass (22 new).
 
@@ -331,10 +331,11 @@ None (006b). New CLI commands, `run` and `compare`, are listed in
 - By word overlap @10, split at the median of 0.32:
   - below the median (35 questions): R@10 0.586, nDCG@10 0.459
   - at or above it (35 questions): R@10 0.786, nDCG@10 0.600
-- Latency for 80 queries, service level: total p50 70.0 ms, p95 85.0 ms (embedding the
-  query: p50 32.3 ms; retrieval: p50 37.6 ms).
-- A repeated run gave identical metrics and rankings. Latency varied between runs: p95
-  85.0 ms vs 91.7 ms.
+- Latency for 80 queries, service level, in the committed run: total p50 56.9 ms,
+  p95 78.2 ms.
+- Three runs of this configuration gave identical metrics and rankings. Latency
+  varied between runs: total p95 from 78.2 ms to 91.7 ms. Latency is a per-machine,
+  per-run figure, not a stable metric.
 
 **Query-instruction A/B (dev, without instruction minus with instruction):**
 - **Overall:**
@@ -351,26 +352,57 @@ worse on every overall metric, although no interval excludes 0, so this is a wea
 preference, not a demonstrated difference. Keeping the instruction is also the model
 card's recommendation and the current default, so nothing in the API changes.
 
+**Experiment A baseline on test** (`dense-baseline`, run once with `--allow-test`; 70
+questions, of which 65 are answerable). This is the reference that 007 is compared
+against on test.
+
+| query_type | n | R@5 | R@10 | MRR@10 | nDCG@10 |
+|---|---|---|---|---|---|
+| **all** | 65 | 0.649 | 0.746 | 0.559 | 0.551 |
+| factual | 18 | 0.944 | 0.944 | 0.824 | 0.805 |
+| version_specific | 7 | 0.929 | 0.929 | 0.648 | 0.675 |
+| exact_identifier | 12 | 0.542 | 0.708 | 0.507 | 0.504 |
+| paraphrase | 13 | 0.462 | 0.615 | 0.301 | 0.373 |
+| ambiguous | 6 | 0.444 | 0.667 | 0.496 | 0.363 |
+| multi_passage | 9 | 0.389 | 0.500 | 0.444 | 0.389 |
+
+Also on test:
+- By word overlap @10, split at the median of 0.44: below it, nDCG@10 0.489 (32
+  questions); at or above it, 0.610 (33 questions).
+- Latency: total p50 57.1 ms, p95 79.4 ms (70 queries).
+- Top-1 similarity: answerable questions mean 0.817, min 0.682; unanswerable questions
+  mean 0.737, max 0.840.
+
 **Findings for 007–010:**
-- **Paraphrase questions are the weak spot** (R@5 0.208). Questions that share fewer words
-  with their evidence score lower overall: 0.459 vs 0.600 nDCG@10. Reranking (008) is the
-  natural test.
-- **Exact identifiers already score R@5 0.944 with dense search alone.** Hybrid search
-  (007) has little headroom there; its effect should be read per type.
+- **The overall numbers agree across splits; the per-type numbers do not.**
+  - Overall: nDCG@10 is 0.529 on dev and 0.551 on test.
+  - Exact identifiers: R@5 0.944 on dev but 0.542 on test.
+  - Factual: R@5 0.625 on dev but 0.944 on test.
+  - Ambiguous: 0 on dev but 0.444 on test.
+
+  With 4–18 questions per type, and splits grouped by page, a type's score depends
+  heavily on which pages landed in which split. Per-type conclusions need both splits,
+  or more questions (benchmark v2). The dev-only reading that "exact identifiers leave
+  hybrid search little headroom" did **not** hold on test.
+- **Word overlap is the consistent signal.** On both splits, questions sharing fewer
+  words with their evidence score lower: nDCG@10 0.459 vs 0.600 on dev, 0.489 vs 0.610
+  on test. Paraphrase is weak on both splits (nDCG@10 0.259 dev, 0.373 test). Reranking
+  (008) and hybrid search (007) should be read against this.
 - **Several misses retrieve the right incident but the wrong section.** q-0023, q-0063 and
   q-0071 get the incident's title, symptoms or timeline chunks, while the labelled root
   cause or fix is not in the top 10. Heading-aware chunking makes each short incident
   section its own chunk, which is an Experiment D (010) question.
-- **Ambiguous questions get 0 recall** (4 questions). Their evidence is one reading per
-  item, so a vague query finds neither.
-- **Top-1 similarity separates poorly:**
-  - answerable questions: mean 0.810, min 0.648
-  - unanswerable questions: mean 0.725, max 0.775
+- **Ambiguous questions score 0 on dev (4 questions) but R@10 0.667 on test (6).** The
+  groups are too small to read either way.
+- **Top-1 similarity separates poorly.** The ranges overlap on both splits: on dev,
+  answerable questions go as low as 0.648 and unanswerable ones as high as 0.775; on
+  test, 0.682 and 0.840. A raw similarity threshold will not be enough for abstention
+  (009).
 
-  A raw similarity threshold will not be enough for abstention (009).
-
-**Test run:** pending. It runs once, from the committed tree, after the code commit (see
-the checklist).
+**Provenance:**
+- All committed reports were generated from commit `cf8441e` with a clean tree.
+- The code was committed first and the reports separately, so each report records the
+  exact code that produced it. This was approved as an exception to one commit per task.
 
 ### Future Work
 - 006b: persisted runs, the `evaluate` worker job, `/v1/evaluations/runs`.
