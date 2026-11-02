@@ -35,7 +35,7 @@ def ingest_document(
     - Same slug and version, different content: 409, because versions are immutable.
     - Same content but the last attempt failed: queue a new job (manual retry).
     """
-    content_hash = hashlib.sha256(request.content.encode()).hexdigest()
+    content_hash = compute_content_hash(request.content)
     existing = repository.get_document_by_slug(session, tenant_id, request.slug, request.version)
     if existing is not None:
         return _resubmit(session, existing, content_hash)
@@ -50,6 +50,11 @@ def ingest_document(
         if existing is None:
             raise
         return _resubmit(session, existing, content_hash)
+
+
+def compute_content_hash(content: str) -> str:
+    """The stored `content_hash`; the evaluation runner recomputes it to verify the corpus."""
+    return hashlib.sha256(content.encode()).hexdigest()
 
 
 def get_document(session: Session, tenant_id: uuid.UUID, document_id: uuid.UUID) -> Document:

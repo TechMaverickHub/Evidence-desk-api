@@ -55,13 +55,15 @@ app/
                         pipeline (chunk → embed → store), cli (corpus loader)
   retrieval/            dense search, keyword search, RRF fusion, reranker, retrieval config
   generation/           prompt loading, LLM client, citation validation, abstention
-  evaluation/           dataset loader, IR metrics, run orchestration, reports
+  evaluation/           dataset builder, IR metrics, span relevance, runner, run records,
+                        reports + comparison, provenance (git, environment)
   jobs/                 job model + repository (shared by ingestion and evaluation)
 migrations/             Alembic
 corpus/                 Frozen corpus: generated pages, manifest.yaml, SOURCES.md, licenses/,
                         sources.yaml (pinned upstream tags), incidents/ (hand-written)
 tools/                  Operator tooling, never imported by the app (build_corpus.py)
 eval/datasets/          Labelled benchmark (JSONL), dev and test splits
+eval/configs/           Retrieval configurations for evaluation runs (YAML)
 eval/reports/           Generated experiment reports (Markdown + JSON)
 tests/                  Mirrors app/ (tests/retrieval/test_fusion.py, ...)
 ```
@@ -102,7 +104,25 @@ relevance `(2^g − 1) / log2(rank + 1)`, crediting each item once (keeps nDCG �
 repeated passages inflating scores). Unanswerable questions are excluded from retrieval
 metrics. Aggregates are reported overall and per `query_type` with counts.
 
-**Evaluation** (`POST /v1/evaluations/runs`): enqueue an `evaluate` job with a retrieval
+**Evaluation run** (task 006a, CLI `python -m app.evaluation.cli run`):
+1. **Corpus check.** The tenant must hold exactly the manifest's documents, with the
+   same content hash and chunks of the configured chunker and model. Otherwise the run
+   stops: labels are character offsets, so a single changed byte invalidates them.
+2. **Questions.** Each question of the split goes through `retrieval.service.search`,
+   the code `/v1/search` serves, after one unmeasured warm-up query.
+3. **Scoring.** Hits are matched to evidence spans and scored at each cutoff.
+   Unanswerable questions are run but not scored; their top-1 similarity is reported
+   for task 009.
+4. **Record.** `eval/reports/<config>-<split>.json` holds the dataset hash, config,
+   effective settings, git SHA and dirty flag, environment, aggregates per
+   `query_type` and per word-overlap band, latency p50/p95 and every question's hits.
+   The `.md` report is rendered from it.
+5. **Compare.** `compare` reports per-type deltas, per-question wins, ties and losses,
+   and a paired bootstrap 95 % interval.
+6. **Test split.** `--split test` requires `--allow-test`, and the failure listing is
+   produced for dev only.
+
+**Evaluation API** (task 006b, `POST /v1/evaluations/runs`): enqueue an `evaluate` job with a retrieval
 config and a dataset split → worker runs every query, scores it, stores per-query results and
 aggregate metrics → `GET /v1/evaluations/runs/{id}` returns them.
 

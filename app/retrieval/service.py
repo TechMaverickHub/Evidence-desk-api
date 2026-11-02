@@ -34,8 +34,7 @@ def search(
     source: str | None = None,
     version: str | None = None,
 ) -> SearchOutcome:
-    settings = get_settings()
-    chunker = chunker_name(settings.chunk_max_tokens, settings.chunk_overlap_tokens)
+    chunker = configured_chunker()
     started = time.perf_counter()
 
     query_vector = embedder.embed_query(query)
@@ -61,6 +60,12 @@ def search(
     # The query text is deliberately not logged.
     logger.info("search", extra={"fields": {"k": k, "results": len(hits), **latency_ms}})
     return SearchOutcome(hits, chunker, embedder.model_name, latency_ms)
+
+
+def configured_chunker() -> str:
+    """The chunker whose chunks search reads; the worker writes chunks with the same settings."""
+    settings = get_settings()
+    return chunker_name(settings.chunk_max_tokens, settings.chunk_overlap_tokens)
 
 
 def _ms(start: float, end: float) -> float:

@@ -1,0 +1,6 @@
+# Experiment A variant: the same dense retrieval, queries embedded without an instruction.
+name: dense-no-instruction
+retriever: dense
+depth: 10
+cutoffs: [5, 10]
+query_instruction: ""

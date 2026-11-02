@@ -1,0 +1,5 @@
+# Experiment A baseline: dense retrieval with BGE's query instruction (the setting default).
+name: dense-baseline
+retriever: dense
+depth: 10
+cutoffs: [5, 10]

@@ -45,11 +45,13 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 ## evaluations — `app/evaluation`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `evaluations/runs` | admin | `{dataset, split: dev\|test, config}`. 202 + `{run_id, job_id}` | 006 |
-| GET | `evaluations/runs` | viewer | List runs with aggregate metrics | 006 |
-| GET | `evaluations/runs/{id}` | viewer | Aggregate metrics, per-`query_type` breakdown, and per-query results (`?include=results`) | 006 |
+| POST | `evaluations/runs` | admin | `{dataset, split: dev\|test, config}`. 202 + `{run_id, job_id}` | 006b |
+| GET | `evaluations/runs` | viewer | List runs with aggregate metrics | 006b |
+| GET | `evaluations/runs/{id}` | viewer | Aggregate metrics, per-`query_type` breakdown, and per-query results (`?include=results`) | 006b |
 
-Evaluations can also run from the CLI without the API: `uv run python -m app.evaluation.cli run --split dev --config configs/hybrid.yaml`.
+Evaluations run from the CLI today (task 006a; the endpoints above are 006b):
+`uv run python -m app.evaluation.cli run --config eval/configs/dense-baseline.yaml --dataset eval/datasets/evidencedesk-v1.jsonl --split dev --tenant eval-corpus-v1` (`--split test` also needs `--allow-test`), and
+`uv run python -m app.evaluation.cli compare <base.json> <candidate.json>`. Reports are written to `eval/reports/`.
 
 ## Error envelope
 
