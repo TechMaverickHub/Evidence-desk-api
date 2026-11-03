@@ -1,6 +1,6 @@
 # Task 009a — Grounded answers: `POST /v1/answers` with validated citations and abstention
 
-**Status:** 🔨 Code done; manual Groq check pending the commit
+**Status:** ✅ Done
 **Week:** W3 · **Modules:** `app/generation` (new), `app/core` (errors, settings) ·
 **Branch:** `task/009a-grounded-answers` (off `task/008-rerank`)
 
@@ -209,21 +209,150 @@ tests/fakes.py                     + ScriptedLLMClient
 - [x] `answer_question` + service tests (retry policy, abstention, logging)
 - [x] Router/schemas/deps + API tests (roles, isolation, no key)
 - [x] `ruff check`, `ruff format --check`, full test suite clean
-- [ ] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
-- [ ] Commit after confirmation
-- [ ] Manual check with your `GROQ_API_KEY` (about 10 dev questions); results in the handover
+- [x] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
+- [x] Commit after confirmation
+- [x] Manual check with your `GROQ_API_KEY` (about 10 dev questions); results in the handover
 
 ---
 
 ## Handover
 
-*(Filled in after implementation.)*
-
 ### Summary
+`POST /v1/answers` (viewer) answers a question from the tenant's documents, or returns
+`insufficient_evidence`. It works like this:
+1. Retrieve with dense search, reranking the top 20 (Experiment C).
+2. Label the top 5 chunks `[1]`–`[5]`.
+3. Call Groq `openai/gpt-oss-20b` with a strict JSON schema.
+4. Check the reply on the server: every citation must be a passage that was sent, and an
+   answer needs at least one.
+5. Allow at most one corrective retry.
+
+Malformed output ends in 502. An unsupported answer becomes `insufficient_evidence`. With
+no retrieved passages, the LLM is not called.
+
+Prompts live in `app/generation/prompts.md`. Code is in `0817f5c`. 247 tests pass (39 new)
+with a scripted fake LLM.
+
+A live check of 10 dev questions on the real API and Groq: 8 answered, all checked by hand
+against the reference answers and correct, and 2 unanswerable questions correctly
+abstained. One answerable question abstained because retrieval missed its evidence.
+
 ### Architecture Notes
+- **Modules in `app/generation`:**
+
+  | Module | Role |
+  |---|---|
+  | `prompts.md` + `prompts.py` | Sections `system`, `user`, `retry`; checked at startup |
+  | `llm_client.py` | `LLMClient` protocol and the `GroqClient` gateway; the only `groq` import |
+  | `citations.py` | Labelling, delimiting, `check_reply` |
+  | `service.py` | Orchestration, retry policy, metadata logging |
+  | `schemas.py` | `ModelAnswer` is both the strict JSON schema sent to Groq and the Pydantic validator, so the two can't drift |
+
+- **Retry policy.** `InvalidReplyError.kind` decides what happens after the one retry:
+  - `format` (bad JSON or schema, or the provider rejected the output with a 400) → 502
+  - `unsupported` (no citations, an unknown label, an empty answer) → `insufficient_evidence`
+
+  The retry message states the problem, using the `## retry` prompt.
+- **Passages.** Each goes in a `<passage id source="slug@version">` block, so the model can
+  see document versions. A passage can't open or close a block of its own.
+- **Dependencies.** `get_llm_client` returns `None` without a key, so only answers return
+  503. The test fixture always overrides it, and a test never builds `GroqClient`.
+- **Logging.** One line per LLM call: model, attempt, outcome, tokens, latency. The test
+  checks captured records and finds neither the question nor passage text.
+
 ### Deviations from the plan
+- **A real logging bug fixed in `migrations/env.py`.** The tests migrate in-process, and
+  Alembic's `fileConfig()` disabled every existing logger. That silently dropped all app
+  logs in tests, so the "no prompt text in logs" test would have passed vacuously. Now
+  `disable_existing_loggers=False`.
+- **A blank `GROQ_API_KEY` counts as unset** (validator), because `.env.example` ships
+  `GROQ_API_KEY=` empty.
+- **The schema description is stripped** from what is sent to Groq; it was a code
+  docstring, not a prompt.
+- **The key was written by me, at your request.** The plan said you would put the key in
+  `.env`. On your instruction I wrote the line into `.env` (git-ignored), without echoing
+  it in any output. It appeared in the chat when you pasted it, so **rotate this key** in
+  the Groq console.
+- **The live check needed two attempts to find the key.**
+  - **First attempt:** 10 × 401 `AuthenticationError`.
+  - **Cause:** a user-level Windows environment variable `GROQ_API_KEY` held a stale value.
+    This session inherited it, and environment variables override `.env` in
+    pydantic-settings.
+  - **Fix for the check:** the server was started with that variable removed from its own
+    environment (`env -u GROQ_API_KEY`), so `.env` loads.
+  - **Still to do on your side:** update or remove the Windows variable, or every new
+    terminal will keep overriding `.env`.
+
 ### Database Changes
+None.
+
 ### API Changes
+- **Added:** `POST /v1/answers`. See [api-spec.md](../api-spec.md) for the request and
+  response, the 502/503 codes, the data sent to Groq, and the guarantees.
+- **New settings:** `GROQ_API_KEY`, `LLM_MODEL`, `LLM_TIMEOUT_SECONDS`, `LLM_MAX_RETRIES`,
+  `LLM_MAX_COMPLETION_TOKENS` and `ANSWER_CONTEXT_CHUNKS`.
+- **New dependency:** `groq` 1.7.0.
+
 ### Evaluation Results
+Not a metric run; that is 009b. A manual end-to-end check:
+- **Setup:** tenant `eval-corpus-v1`, real models, `openai/gpt-oss-20b`, Groq free tier.
+- **Questions:** 10 `dev` questions, the first of each type in dataset order:
+
+  | Type | Questions |
+  |---|---|
+  | factual | 2 |
+  | exact_identifier | 2 |
+  | paraphrase | 2 |
+  | multi_passage | 1 |
+  | version_specific | 1 |
+  | unanswerable | 2 |
+
+| id | type | status | citations (on evidence) | answer vs reference |
+|---|---|---|---|---|
+| q-0001 | factual | answered | 2 (2) | correct |
+| q-0006 | factual | answered | 3 (2) | correct |
+| q-0002 | exact_identifier | answered | 3 (2) | correct; adds a detail from an incident passage |
+| q-0007 | exact_identifier | answered | 3 (3) | correct (`['GET']`) |
+| q-0036 | paraphrase | insufficient_evidence | — | abstained: retrieval missed (no evidence in the top 5) |
+| q-0037 | paraphrase | answered | 2 (2) | correct |
+| q-0062 | multi_passage | answered | 2 (1) | correct (`--forwarded-allow-ips`, default 127.0.0.1 and ::1) |
+| q-0076 | version_specific | answered | 1 (1) | correct (0.135.0, EventSource) |
+| q-0111 | unanswerable | insufficient_evidence | — | correct abstention |
+| q-0112 | unanswerable | insufficient_evidence | — | correct abstention |
+
+- **Correctness** was judged by me against the reference answers. Answer metrics come
+  in 009b.
+- **Citation validity:** every returned citation was a sent passage, which the server
+  guarantees. 18 of 21 citations overlap a labelled evidence span; the other 3 cite related
+  passages.
+- **Calls:** every question needed exactly one LLM call. None needed the corrective retry.
+- **Tokens per call:** prompt 1,135–1,690, completion 88–402. The completion count includes
+  gpt-oss reasoning, well under the 2,048 cap.
+- **Latency:** the LLM step went from 0.85 s to 11.8 s across the run, and the total from
+  2.6 s to 13.4 s.
+  - The growth is **rate limiting:** Groq returned **8 × 429**, and the SDK retried each one
+    with backoff. All 10 requests ended with HTTP 200.
+  - Requests were sent back to back, so free-tier limits dominate. A paced evaluation (009b)
+    must expect this.
+- **Security:** the key never appears in the server log (checked: 0 matches).
+
 ### Future Work
+- **009b:** answer metrics over the benchmark and an abstention threshold calibrated on
+  dev. Pace requests (or use a concurrency limit) to stay within Groq rate limits.
+- **011:**
+  - Report a misconfigured or invalid key (401/403) as a distinct, non-retryable error,
+    instead of the "temporarily unavailable" message.
+  - Failure-scenario tests for timeouts and 429 storms.
+- **Retrieval misses cause abstention** (q-0036). Recall improvements (010) translate
+  directly into answered questions.
+
 ### Modified Files
+| File | Why |
+|---|---|
+| `app/generation/*` (new) | Prompts, gateway, citation checks, service, schemas, router, deps |
+| `app/core/errors.py`, `app/core/config.py`, `.env.example` | LLM errors and settings (placeholder only) |
+| `app/main.py` | Router; prompts loaded at startup |
+| `migrations/env.py` | Keep existing loggers during in-process migrations |
+| `pyproject.toml`, `uv.lock` | `groq` |
+| `tests/generation/*` (new), `tests/fakes.py`, `tests/conftest.py` | Scripted LLM, no LLM by default, risk-based tests |
+| `.claude/{architecture,api-spec,tasks,plan}.md`, this file | Docs |
