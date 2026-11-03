@@ -112,6 +112,8 @@ The gateway is `CrossEncoderReranker` in `local_models.py`
   `PRELOAD_RERANKER`.
 - **CLI and worker:** they build it only for configs with `rerank: true`.
 - **Cost:** about 1.8 s per 20 pairs on the dev machine's CPU (4 torch threads).
+- **Experiment C:** reranking the dense top 20 gave nDCG@10 +0.060 (dev) and +0.058 (test).
+  It is recommended for answer generation, while search keeps `rerank=false` by default.
 
 **Answer** (`POST /v1/answers`): run search → select context within a token budget → LLM
 call with structured output `{answer, cited_chunk_ids, status}` → **server-side citation

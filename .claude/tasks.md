@@ -16,7 +16,7 @@ later rows are the intended order and get their own task file when they come up.
 | 006a | [Evaluation runner, reports, run comparison + dense baseline (Exp. A)](tasks/006a-eval-runner-baseline.md) | evaluation | W2 | ✅ Done; 166 tests passed; dense baseline nDCG@10 0.529 dev / 0.551 test |
 | 006b | [Persisted evaluation runs: tables, worker job, `/v1/evaluations/runs` API](tasks/006b-evaluation-runs-api.md) | evaluation | W2 | ✅ Done; 178 tests passed; API run reproduces the committed dev report |
 | 007 | [Keyword search (FTS) + RRF hybrid (Exp. B)](tasks/007-keyword-hybrid-search.md) | retrieval | W2 | ✅ Done; 193 tests; hybrid not adopted (test nDCG@10 Δ −0.038, CI [−0.117, +0.045]) |
-| 008 | [Cross-encoder reranking (Exp. C)](tasks/008-cross-encoder-rerank.md) | retrieval | W3 | 🔨 Code done (208 tests); Experiment C reports pending |
+| 008 | [Cross-encoder reranking (Exp. C)](tasks/008-cross-encoder-rerank.md) | retrieval | W3 | ✅ Done; 208 tests; rerank top 20: nDCG@10 +0.060 dev / +0.058 test, ~1.9 s p50 |
 | 009 | Grounded answers: structured output, citation validation, abstention, answer evaluation | generation, evaluation | W3 | Not started |
 | 010 | Chunking and context-budget experiments (Exp. D) | ingestion, evaluation | W3 | Not started |
 | 011 | Reliability: LLM timeouts, bounded retries, failure-scenario tests | generation, ingestion | W4 | Not started |
@@ -26,4 +26,4 @@ later rows are the intended order and get their own task file when they come up.
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: approve [task 008](tasks/008-cross-encoder-rerank.md). Task 006 is split into 006a/b; see [006a](tasks/006a-eval-runner-baseline.md) for why.
+Next: write the plan for task 009 (grounded answers: structured output, citation validation, abstention, answer evaluation). Task 006 is split into 006a/b; see [006a](tasks/006a-eval-runner-baseline.md) for why.
