@@ -1,0 +1,5 @@
+# Experiment B: Postgres full-text search alone (terms ORed, ranked by ts_rank_cd).
+name: keyword
+retriever: keyword
+depth: 10
+cutoffs: [5, 10]

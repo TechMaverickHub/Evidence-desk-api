@@ -1,9 +1,10 @@
 """Request and response models for search."""
 
 import uuid
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.retrieval.service import SearchMode
 
 MAX_QUERY_CHARS = 1000
 MAX_K = 50
@@ -22,8 +23,8 @@ class SearchRequest(BaseModel):
 
     query: str = Field(min_length=1, max_length=MAX_QUERY_CHARS)
     k: int = Field(default=10, ge=1, le=MAX_K)
-    # Only dense retrieval exists so far; task 007 adds "keyword" and "hybrid".
-    mode: Literal["dense"] = "dense"
+    # dense: vectors; keyword: Postgres full-text search; hybrid: both, fused with RRF.
+    mode: SearchMode = "dense"
     filters: SearchFilters = Field(default_factory=SearchFilters)
 
     @field_validator("query")
@@ -46,7 +47,16 @@ class SearchResult(BaseModel):
     rank: int
     chunk_id: uuid.UUID
     score: float = Field(
-        description="Cosine similarity between query and chunk (higher is closer)."
+        description=(
+            "Higher is better. dense: cosine similarity; keyword: ts_rank_cd; "
+            "hybrid: reciprocal rank fusion score."
+        )
+    )
+    dense_rank: int | None = Field(
+        default=None, description="Rank in the dense candidate list, if the chunk was in it."
+    )
+    keyword_rank: int | None = Field(
+        default=None, description="Rank in the keyword candidate list, if the chunk was in it."
     )
     text: str
     char_start: int

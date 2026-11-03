@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.auth.models import Tenant
 from app.documents import service as documents_service
 from app.documents.models import DocumentChunk
-from app.retrieval.repository import dense_search
+from app.retrieval.repository import SearchScope, dense_search
 from tests.conftest import ingest_request
 
 CHUNKER = "test-chunker"
@@ -59,9 +59,8 @@ def _add_chunk(
 
 
 def _search(session: Session, tenant: Tenant, k: int = 10, **filters: str) -> list:
-    return dense_search(
-        session, tenant.id, QUERY, chunker=CHUNKER, embedding_model=MODEL, k=k, **filters
-    )
+    scope = SearchScope(tenant.id, chunker=CHUNKER, embedding_model=MODEL, **filters)
+    return dense_search(session, scope, QUERY, k)
 
 
 def test_results_are_ranked_by_cosine_similarity_with_exact_scores(

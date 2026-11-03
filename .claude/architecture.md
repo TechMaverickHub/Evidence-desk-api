@@ -83,6 +83,20 @@ by tenant can return fewer than k rows. Measured on the dev machine: 20,000-chun
 retrieve p50 47.6 ms / p95 55.7 ms (Postgres 33 ms); 4-chunk tenant p95 7.8 ms. Revisit in
 task 015. The API loads the embedding model once at startup (`PRELOAD_EMBEDDING_MODEL`).
 
+*As built (task 007): modes `dense | keyword | hybrid`.* `service.RETRIEVERS` maps each
+mode to a function, and every mode reads the same chunks: one `SearchScope` covers
+tenant, chunker, model and filters.
+- **keyword:** `chunks.tsv` is a stored `to_tsvector('english', text)` with a GIN index.
+  The query is `plainto_tsquery` with its terms ORed: AND matched 0 chunks for typical
+  questions, and `websearch_to_tsquery` reads a leading `-` as NOT. Results are ranked by
+  `ts_rank_cd`, then chunk id. A query of only stop words returns `[]`.
+- **hybrid:** the top 50 from dense and the top 50 from keyword are fused with RRF
+  (k = 60, `retrieval/fusion.py`; ranks only, ties by best rank, then id), then cut to k.
+- Each hit carries `dense_rank` and `keyword_rank`. Stage latencies are `embed_query`,
+  `dense`, `keyword`, `fuse` and `total`.
+- The default mode stays `dense`. Experiment B (task 007) measured hybrid below dense on
+  dev; see the task file.
+
 **Answer** (`POST /v1/answers`): run search → select context within a token budget → LLM
 call with structured output `{answer, cited_chunk_ids, status}` → **server-side citation
 check** (every cited ID must be in the supplied context, else `status = insufficient_evidence`

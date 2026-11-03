@@ -9,6 +9,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.evaluation.metrics import MetricSummary, QueryScores
+from app.retrieval.fusion import DEFAULT_RRF_K
+from app.retrieval.service import DEFAULT_FUSION_DEPTH
 
 RUN_FORMAT = "evidencedesk-run/1"
 
@@ -19,9 +21,12 @@ class RunConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$")
-    retriever: Literal["dense"] = "dense"
+    retriever: Literal["dense", "keyword", "hybrid"] = "dense"
     # Chunks retrieved per question; metrics are computed at each cutoff up to this depth.
     depth: int = Field(default=10, ge=1, le=50)
+    # Hybrid only: candidates per retriever before fusion, and the RRF constant.
+    fusion_depth: int = Field(default=DEFAULT_FUSION_DEPTH, ge=1, le=200)
+    rrf_k: int = Field(default=DEFAULT_RRF_K, ge=1)
     cutoffs: list[int] = Field(default=[5, 10], min_length=1)
     # None uses the EMBEDDING_QUERY_INSTRUCTION setting; "" sends queries without one.
     query_instruction: str | None = None

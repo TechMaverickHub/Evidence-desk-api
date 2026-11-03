@@ -35,7 +35,7 @@ def test_paraphrased_question_finds_the_incident(
         tenant.id,
         get_query_embedder(),
         "Why did the load balancer return 502 after a deploy?",
-        k=3,
+        service.SearchOptions(k=3),
     )
 
     assert outcome.hits[0].slug == "incidents/0001"

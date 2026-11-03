@@ -34,15 +34,13 @@ def search(
     session: SessionDep,
     embedder: Annotated[Embedder, Depends(get_query_embedder)],
 ) -> SearchResponse:
-    outcome = service.search(
-        session,
-        current_user.tenant_id,
-        embedder,
-        payload.query,
-        payload.k,
+    options = service.SearchOptions(
+        k=payload.k,
+        mode=payload.mode,
         source=payload.filters.source,
         version=payload.filters.version,
     )
+    outcome = service.search(session, current_user.tenant_id, embedder, payload.query, options)
     return SearchResponse(
         results=[_to_result(rank, hit) for rank, hit in enumerate(outcome.hits, start=1)],
         diagnostics=SearchDiagnostics(
@@ -61,6 +59,8 @@ def _to_result(rank: int, hit: SearchHit) -> SearchResult:
         rank=rank,
         chunk_id=hit.chunk_id,
         score=hit.score,
+        dense_rank=hit.dense_rank,
+        keyword_rank=hit.keyword_rank,
         text=hit.text,
         char_start=hit.char_start,
         char_end=hit.char_end,

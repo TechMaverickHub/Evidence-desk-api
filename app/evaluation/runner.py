@@ -42,7 +42,7 @@ from app.evaluation.records import (
 from app.evaluation.relevance import MIN_OVERLAP_FRACTION, EvidenceItem, Span, match_evidence
 from app.ingestion.embedding import Embedder
 from app.retrieval.repository import SearchHit
-from app.retrieval.service import configured_chunker, search
+from app.retrieval.service import SearchOptions, configured_chunker, search
 
 
 class RunError(Exception):
@@ -169,13 +169,23 @@ def run_evaluation(
     if not questions:
         raise RunError("The split has no questions")
     # One unmeasured query first: the first call pays one-off costs that would skew p95.
-    search(session, tenant_id, embedder, questions[0].question, k=config.depth)
+    options = search_options(config)
+    search(session, tenant_id, embedder, questions[0].question, options)
 
     records = []
     for question in questions:
-        outcome = search(session, tenant_id, embedder, question.question, k=config.depth)
+        outcome = search(session, tenant_id, embedder, question.question, options)
         records.append(score_question(question, outcome.hits, config.cutoffs, outcome.latency_ms))
     return summarise(records, config.cutoffs)
+
+
+def search_options(config: RunConfig) -> SearchOptions:
+    return SearchOptions(
+        k=config.depth,
+        mode=config.retriever,
+        fusion_depth=config.fusion_depth,
+        rrf_k=config.rrf_k,
+    )
 
 
 def score_question(

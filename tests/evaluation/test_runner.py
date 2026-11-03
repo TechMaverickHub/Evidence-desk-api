@@ -16,11 +16,12 @@ from app.evaluation.runner import (
     percentile,
     run_evaluation,
     score_question,
+    search_options,
     summarise,
     verify_corpus,
 )
 from app.retrieval.repository import SearchHit
-from app.retrieval.service import configured_chunker
+from app.retrieval.service import SearchOptions, configured_chunker
 from tests.fakes import FakeEmbedder
 
 MODEL = FakeEmbedder.model_name
@@ -226,9 +227,25 @@ def test_run_scores_answerable_questions_through_the_search_service(
     assert by_id["q-0001"].scores[5].reciprocal_rank == 1.0
     assert by_id["q-0005"].scores is None
     assert results.metrics[10]["all"].count == 4
-    assert set(results.latency_ms) == {"embed_query", "retrieve", "total"}
+    assert set(results.latency_ms) == {"embed_query", "dense", "total"}
 
 
 def test_run_refuses_an_empty_split(db_session: Session) -> None:
     with pytest.raises(RunError, match="no questions"):
         run_evaluation(db_session, uuid.uuid4(), FakeEmbedder(), [], RunConfig(name="t"))
+
+
+def test_a_hybrid_config_reaches_the_search_service(
+    db_session: Session,
+    make_tenant: Callable[..., Tenant],
+    load_fixture_corpus,
+    mini_dataset: Dataset,
+) -> None:
+    tenant = make_tenant()
+    load_fixture_corpus(tenant)
+    config = RunConfig(name="t", retriever="hybrid", fusion_depth=20, rrf_k=10)
+
+    results = run_evaluation(db_session, tenant.id, FakeEmbedder(), mini_dataset.questions, config)
+
+    assert set(results.latency_ms) == {"embed_query", "dense", "keyword", "fuse", "total"}
+    assert search_options(config) == SearchOptions(k=10, mode="hybrid", fusion_depth=20, rrf_k=10)

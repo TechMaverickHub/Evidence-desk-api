@@ -57,7 +57,7 @@ def test_search_returns_ranked_results_with_diagnostics(
     assert diagnostics["chunker"] == "tokens-300-overlap-50"
     assert diagnostics["embedding_model"] == "fake-embedder"
     assert diagnostics["mode"] == "dense"
-    assert set(diagnostics["latency_ms"]) == {"embed_query", "retrieve", "total"}
+    assert set(diagnostics["latency_ms"]) == {"embed_query", "dense", "total"}
     assert all(value >= 0 for value in diagnostics["latency_ms"].values())
 
 
@@ -98,7 +98,7 @@ def test_search_requires_authentication(client: TestClient) -> None:
         ({"query": "x" * 1001}, "query"),
         ({"query": "caching", "k": 0}, "k"),
         ({"query": "caching", "k": 51}, "k"),
-        ({"query": "caching", "mode": "hybrid"}, "mode"),
+        ({"query": "caching", "mode": "fuzzy"}, "mode"),
         ({"query": "caching", "tenant_id": "00000000-0000-0000-0000-000000000000"}, "tenant_id"),
         ({"query": "caching", "filters": {"tenant_id": "x"}}, "filters.tenant_id"),
     ],
@@ -110,3 +110,30 @@ def test_invalid_requests_are_rejected(
 
     assert response.status_code == 422
     assert bad_field in response.json()["field_errors"]
+
+
+@pytest.mark.parametrize(
+    ("mode", "stages", "rank_field"),
+    [
+        ("keyword", {"keyword", "total"}, "keyword_rank"),
+        ("hybrid", {"embed_query", "dense", "keyword", "fuse", "total"}, "dense_rank"),
+    ],
+)
+def test_keyword_and_hybrid_modes_report_their_ranks_and_stages(
+    client: TestClient,
+    ingested_tenant: Tenant,
+    make_user: Callable[..., User],
+    mode: str,
+    stages: set[str],
+    rank_field: str,
+) -> None:
+    headers = auth_headers(make_user(tenant=ingested_tenant))
+
+    body = client.post(
+        "/v1/search", json={"query": "caching word3", "mode": mode}, headers=headers
+    ).json()
+
+    assert body["diagnostics"]["mode"] == mode
+    assert set(body["diagnostics"]["latency_ms"]) == stages
+    assert len(body["results"]) == 2
+    assert all(result[rank_field] in {1, 2} for result in body["results"])

@@ -6,14 +6,25 @@ from enum import StrEnum
 from typing import Any
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import (
+    CheckConstraint,
+    Computed,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base, string_enum
 
 # Output size of BAAI/bge-small-en-v1.5. A model with another size needs a migration.
 EMBEDDING_DIMENSION = 384
+# Stemming + English stop words for the keyword index; queries must use the same config.
+TEXT_SEARCH_CONFIG = "english"
 
 
 class DocumentStatus(StrEnum):
@@ -55,6 +66,7 @@ class DocumentChunk(Base):
         UniqueConstraint("document_id", "chunker", "ordinal", name="uq_chunks_document_chunker"),
         CheckConstraint("char_start >= 0 AND char_end > char_start", name="ck_chunks_offsets"),
         Index("ix_chunks_tenant_chunker", "tenant_id", "chunker"),
+        Index("ix_chunks_tsv", "tsv", postgresql_using="gin"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
@@ -71,3 +83,10 @@ class DocumentChunk(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSION))
     # Makes vectors from different models detectable instead of silently compared.
     embedding_model: Mapped[str] = mapped_column(String(100))
+    # Keyword index (task 007): computed by Postgres on write, so search never re-parses text.
+    # deferred: never loaded with a chunk; only the keyword query reads it.
+    tsv: Mapped[str] = mapped_column(
+        TSVECTOR,
+        Computed(f"to_tsvector('{TEXT_SEARCH_CONFIG}', text)", persisted=True),
+        deferred=True,
+    )

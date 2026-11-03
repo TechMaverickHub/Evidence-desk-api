@@ -1,0 +1,7 @@
+# Experiment B: dense + keyword fused with Reciprocal Rank Fusion (literature defaults, not tuned).
+name: hybrid-rrf
+retriever: hybrid
+depth: 10
+cutoffs: [5, 10]
+fusion_depth: 50
+rrf_k: 60

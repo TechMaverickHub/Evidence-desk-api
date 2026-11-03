@@ -4,7 +4,7 @@ PostgreSQL 16 with the `vector` extension, managed **only** through SQLAlchemy m
 Alembic migrations. Raw SQL appears only inside migrations (extension, generated columns,
 indexes).
 
-> Status: auth, documents, chunks, jobs and evaluation tables exist (migrations 0001–0004).
+> Status: auth, documents, chunks, jobs and evaluation tables exist (migrations 0001–0005).
 > Each table lists the task that created it. Update this file when a migration lands.
 
 ## Conventions
@@ -42,7 +42,10 @@ indexes).
   Unique `(document_id, chunker, ordinal)`; CHECK `char_start >= 0 AND char_end > char_start`;
   index `(tenant_id, chunker)`.
   No vector index by design (exact search, see architecture.md and task 004); an HNSW index
-  is a task-015 option. Planned: `tsv` generated column + GIN (task 007).
+  is a task-015 option.
+  `tsv TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', text)) STORED` + GIN index
+  `ix_chunks_tsv` (task 007, migration `0005_chunk_tsv`). Postgres fills it on write; the
+  ORM defers it so it is never loaded with a chunk.
 
 `chunker` lets several chunking strategies coexist for Experiment D without re-ingesting the
 documents. `chunk.text == documents.content[char_start:char_end]` always holds (tested); the
