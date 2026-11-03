@@ -20,6 +20,7 @@ from app.core.config import get_settings
 from app.core.db import get_engine, get_session, get_sessionmaker
 from app.core.security import create_access_token, hash_password
 from app.documents.schemas import IngestDocumentRequest
+from app.generation.deps import get_llm_client
 from app.main import create_app
 from app.retrieval.deps import get_query_embedder, get_reranker_provider
 from tests.fakes import FakeEmbedder, FakeReranker
@@ -69,6 +70,8 @@ def app(db_session: Session) -> FastAPI:
     application.dependency_overrides[get_query_embedder] = lambda: FakeEmbedder()
     # The provider is called only for rerank requests; it returns a fake, never the model.
     application.dependency_overrides[get_reranker_provider] = lambda: FakeReranker
+    # No LLM unless a test scripts one: a real GROQ_API_KEY in .env must never be used.
+    application.dependency_overrides[get_llm_client] = lambda: None
     return application
 
 

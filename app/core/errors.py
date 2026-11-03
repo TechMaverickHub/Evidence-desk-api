@@ -85,6 +85,22 @@ class ConflictError(AppError):
     message = "The resource already exists."
 
 
+class LLMUnavailableError(AppError):
+    """The provider timed out, rate-limited us, failed, or is not configured."""
+
+    status_code = 503
+    error_code = "LLM_UNAVAILABLE"
+    message = "The answer service is temporarily unavailable. Try again later."
+
+
+class LLMInvalidOutputError(AppError):
+    """The model's reply was not valid structured output, even after one corrective retry."""
+
+    status_code = 502
+    error_code = "LLM_INVALID_OUTPUT"
+    message = "The model returned an invalid answer. Try again."
+
+
 class InvalidInputError(AppError):
     """Input that passes the schema but fails a check needing the server's state
     (e.g. a dataset name that doesn't exist). Same code as schema validation errors."""

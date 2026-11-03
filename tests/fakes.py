@@ -5,6 +5,8 @@ import math
 import re
 from collections.abc import Sequence
 
+from app.generation.llm_client import LLMReply, Messages
+
 _WORD = re.compile(r"\S+")
 
 
@@ -61,3 +63,22 @@ class FakeReranker:
             self._scores.get(text, float(len(words & set(text.lower().split()))))
             for text in passages
         ]
+
+
+class ScriptedLLMClient:
+    """Returns scripted replies in order (a string is the reply content, an exception is
+    raised) and records every message list it was sent."""
+
+    model_name = "fake-llm"
+
+    def __init__(self, *replies: str | Exception) -> None:
+        self._replies = list(replies)
+        self.calls: list[list[dict[str, str]]] = []
+
+    def complete_json(self, messages: Messages, schema: dict, schema_name: str) -> LLMReply:
+        self.calls.append([dict(message) for message in messages])
+        reply = self._replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return LLMReply(reply, self.model_name, prompt_tokens=100, completion_tokens=20,
+                        latency_ms=5.0)  # fmt: skip

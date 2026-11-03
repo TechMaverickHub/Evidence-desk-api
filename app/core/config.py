@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,10 +44,29 @@ class Settings(BaseSettings):
     chunk_overlap_tokens: int = Field(default=50, ge=0)
     worker_poll_seconds: float = Field(default=1.0, gt=0)
 
+    # Answer generation (task 009a). No default key: without one, /v1/answers returns 503
+    # and everything else still works.
+    groq_api_key: SecretStr | None = None
+    # A Groq production model that supports strict json_schema output (constrained decoding).
+    llm_model: str = "openai/gpt-oss-20b"
+    llm_timeout_seconds: float = Field(default=30.0, gt=0)
+    # The SDK retries timeouts, 429s and 5xx with backoff; 011 adds failure-scenario tests.
+    llm_max_retries: int = Field(default=2, ge=0, le=5)
+    # gpt-oss spends completion tokens on reasoning too, so this must leave room for the JSON.
+    llm_max_completion_tokens: int = Field(default=2048, gt=0)
+    # Top chunks sent as context (each <= 300 tokens); the budget is Experiment D (010).
+    answer_context_chunks: int = Field(default=5, ge=1, le=20)
+
     # Evaluation runs started over the API read datasets by name from this directory and
     # verify the tenant's documents against this corpus manifest (task 006b).
     eval_datasets_dir: Path = Path("eval/datasets")
     eval_corpus_manifest: Path = Path("corpus/manifest.yaml")
+
+    @field_validator("groq_api_key", mode="before")
+    @classmethod
+    def blank_key_means_unset(cls, value: object) -> object:
+        # "GROQ_API_KEY=" in .env (as in .env.example) must mean "not configured".
+        return None if isinstance(value, str) and not value.strip() else value
 
 
 @lru_cache

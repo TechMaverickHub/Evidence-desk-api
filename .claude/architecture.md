@@ -54,7 +54,8 @@ app/
   ingestion/            chunking (pure), embedding protocol, local_models (torch gateways),
                         pipeline (chunk → embed → store), cli (corpus loader)
   retrieval/            dense search, keyword search, RRF fusion, reranker, retrieval config
-  generation/           prompt loading, LLM client, citation validation, abstention
+  generation/           prompts.md + loader, LLM gateway (Groq), citation checks, answer
+                        service, /v1/answers
   evaluation/           dataset builder, IR metrics, span relevance, runner, run records,
                         reports + comparison, provenance (git, environment)
   jobs/                 job model + repository (shared by ingestion and evaluation)
@@ -119,6 +120,29 @@ The gateway is `CrossEncoderReranker` in `local_models.py`
 call with structured output `{answer, cited_chunk_ids, status}` → **server-side citation
 check** (every cited ID must be in the supplied context, else `status = insufficient_evidence`
 or a 502 `LLM_INVALID_OUTPUT` after one retry) → response with citations.
+
+*As built (task 009a):*
+1. **Retrieval.** Defaults to dense with the top 20 reranked (Experiment C); the top
+   `ANSWER_CONTEXT_CHUNKS` = 5 chunks become the context.
+2. **No hits** → `insufficient_evidence` with no LLM call.
+3. **Context.** Passages are labelled `[1]..[n]` in
+   `<passage id source="slug@version">` blocks. Delimiters inside passage text are
+   neutralised, and the system prompt says passages are untrusted data.
+4. **LLM call.** `GroqClient` (`openai/gpt-oss-20b`) with a strict `json_schema`
+   generated from `generation.schemas.ModelAnswer` (`{status, answer, citations: int[]}`),
+   at temperature 0.
+5. **Checks.** `generation.citations.check_reply` validates the reply with Pydantic, then
+   checks that an answer has at least one citation, every label was sent, and the
+   answer isn't empty. Labels map back to chunks server-side.
+6. **One corrective retry**, using the `## retry` prompt. If the reply is still invalid:
+   - a format problem → 502
+   - an unsupported answer → `insufficient_evidence`
+7. **Prompts** live in `app/generation/prompts.md`, loaded and checked at startup.
+8. **The gateway** translates timeouts, connection errors, 401/403, 429 and 5xx to
+   `LLM_UNAVAILABLE`, and a 400 to an invalid-output attempt. The SDK retries with
+   backoff (`LLM_MAX_RETRIES`).
+9. **No `GROQ_API_KEY`** → 503 for answers only.
+10. **Logs** carry metadata only: model, attempt, outcome, tokens, latency.
 
 **Ingest** (`POST /v1/documents/ingest`): store the document (idempotent on slug + version +
 content hash) → enqueue an `ingest` job → worker chunks, embeds and replaces the document's

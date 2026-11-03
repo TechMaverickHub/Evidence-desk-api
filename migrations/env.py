@@ -17,7 +17,9 @@ config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Keep loggers that already exist: the tests migrate in-process, and the default
+    # (disable_existing_loggers=True) would silence every app logger imported before this.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Each feature's models module is imported above so autogenerate sees its tables.
 target_metadata = Base.metadata

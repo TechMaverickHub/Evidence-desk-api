@@ -12,6 +12,8 @@ from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging, log_requests
 from app.documents.router import router as documents_router
 from app.evaluation.router import router as evaluations_router
+from app.generation.prompts import load_prompts
+from app.generation.router import router as answers_router
 from app.health.router import router as health_router
 from app.jobs.router import router as jobs_router
 from app.retrieval.deps import get_query_embedder, get_reranker
@@ -20,6 +22,8 @@ from app.retrieval.router import router as search_router
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    # A broken prompts.md fails the startup, not the first answer request.
+    load_prompts()
     # Loading the embedding model takes about a minute on the dev machine; do it once at
     # startup rather than inside the first search request.
     if get_settings().preload_embedding_model:
@@ -49,6 +53,7 @@ def create_app() -> FastAPI:
     api_v1.include_router(jobs_router)
     api_v1.include_router(search_router)
     api_v1.include_router(evaluations_router)
+    api_v1.include_router(answers_router)
     app.include_router(api_v1)
     return app
 

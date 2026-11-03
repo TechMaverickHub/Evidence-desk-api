@@ -59,7 +59,17 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 ## answers — `app/generation`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `answers` | viewer | `{question, retrieval?: same options as search}`. Returns `{status: answered\|insufficient_evidence, answer, citations: [{chunk_id, document, snippet}], retrieval, usage: {prompt_tokens, completion_tokens, model}, latency_ms}` | 009 |
+| POST | `answers` | viewer | `{question (1–1,000 chars), retrieval?: {mode=dense, rerank=true, filters?}}`, `extra="forbid"`. Returns `{status: answered\|insufficient_evidence, answer, citations: [{chunk_id, document, heading_path, char_start, char_end, snippet}], retrieval: {mode, rerank, context_chunk_ids}, usage: {model, prompt_tokens, completion_tokens, llm_calls}, latency_ms: {retrieval, llm, total}}`. 502 `LLM_INVALID_OUTPUT` (invalid output after one retry); 503 `LLM_UNAVAILABLE` (provider failure, or no `GROQ_API_KEY`) | 009a ✅ |
+
+**Data sent to the LLM provider:** the question and up to `ANSWER_CONTEXT_CHUNKS` (5)
+retrieved passages go to Groq. That is fine for public documentation. A tenant with
+private documents would be sending them to a third party.
+
+**Guarantees:**
+- Every returned citation is one of the passages sent.
+- `answered` always has at least one citation.
+- Unsupported or malformed model output is never returned.
+- With no retrieved passages, there is no LLM call.
 
 ## evaluations — `app/evaluation`
 | Method | Path | Roles | Notes | Task |
