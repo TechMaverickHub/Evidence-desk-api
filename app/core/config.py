@@ -1,6 +1,7 @@
 """Application settings, read once from environment variables and `.env`."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -36,6 +37,11 @@ class Settings(BaseSettings):
     chunk_max_tokens: int = Field(default=300, gt=0)
     chunk_overlap_tokens: int = Field(default=50, ge=0)
     worker_poll_seconds: float = Field(default=1.0, gt=0)
+
+    # Evaluation runs started over the API read datasets by name from this directory and
+    # verify the tenant's documents against this corpus manifest (task 006b).
+    eval_datasets_dir: Path = Path("eval/datasets")
+    eval_corpus_manifest: Path = Path("corpus/manifest.yaml")
 
 
 @lru_cache

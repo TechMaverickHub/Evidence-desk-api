@@ -4,8 +4,8 @@ PostgreSQL 16 with the `vector` extension, managed **only** through SQLAlchemy m
 Alembic migrations. Raw SQL appears only inside migrations (extension, generated columns,
 indexes).
 
-> Status: **planned**. Each table lists the task that creates it. Update this file when a
-> migration lands.
+> Status: auth, documents, chunks, jobs and evaluation tables exist (migrations 0001–0004).
+> Each table lists the task that created it. Update this file when a migration lands.
 
 ## Conventions
 
@@ -55,13 +55,24 @@ evaluation uses the offsets to decide whether a chunk overlaps a labelled eviden
   `finished_at`. Index `(status, created_at)`.
   The worker claims with `SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1`.
 
-### evaluation (task 006)
-- **evaluation_runs**: `id`, `tenant_id FK`, `created_by FK users`, `dataset_name`,
-  `dataset_sha256`, `split (dev|test)`, `config JSONB (retriever, k, chunker, rerank, models)`,
-  `git_sha`, `status`, `metrics JSONB (aggregate + per query_type)`, `created_at`, `finished_at`.
-- **evaluation_results**: `id`, `run_id FK CASCADE`, `query_id`, `query_type`,
-  `retrieved JSONB (chunk ids, ranks, scores)`, `metrics JSONB`, `latency_ms`,
-  `answer JSONB NULL` (filled by answer-level evaluation, task 009).
+### evaluation (task 006b ✅, migration `0004_evaluation_runs`)
+- **evaluation_runs**:
+  - Set when the run is queued: `id`, `tenant_id FK RESTRICT`, `created_by FK users RESTRICT`,
+    `job_id FK jobs RESTRICT unique`, `dataset_name VARCHAR(64)`, `dataset_sha256`,
+    `split (dev|test)` CHECK `dataset_split`, `config JSONB` (the `RunConfig`), `created_at`.
+  - Filled by the worker on success (null before that, or if the run failed):
+    `effective JSONB`, `git_sha`, `git_dirty`, `environment JSONB`, `corpus_documents`,
+    `summary JSONB {metrics, overlap_bands, latency_ms}`, `executed_at`.
+  - Index `(tenant_id, created_at)`.
+  - **No status column.** Status, error and timings are the job's (`job_id`), so the two
+    can't disagree.
+- **evaluation_results**: `id`, `run_id FK CASCADE`, `position` (dataset order),
+  `question_id`, `query_type`, `question TEXT`, `answerable`, `word_overlap`, `hits JSONB`
+  (rank, slug, version, offsets, heading, score, matched items), `scores JSONB` (cutoff →
+  P/R/RR/nDCG; null if unanswerable), `latency_ms JSONB`. Index `(run_id, position)`.
+  - No tenant column: queries scope results through their run's `tenant_id`.
+  - No `answer` column yet: task 009 adds it with its own migration.
+- A stored run converts back to the 006a run record (`service.stored_run_report`, tested).
 
 ## Benchmark dataset (files, not tables) — format built in task 005a, v1 labelled in 005c
 

@@ -122,9 +122,15 @@ metrics. Aggregates are reported overall and per `query_type` with counts.
 6. **Test split.** `--split test` requires `--allow-test`, and the failure listing is
    produced for dev only.
 
-**Evaluation API** (task 006b, `POST /v1/evaluations/runs`): enqueue an `evaluate` job with a retrieval
-config and a dataset split → worker runs every query, scores it, stores per-query results and
-aggregate metrics → `GET /v1/evaluations/runs/{id}` returns them.
+**Evaluation API** (task 006b):
+1. `POST /v1/evaluations/runs` (admin) validates the dataset name, records the dataset file's
+   hash, and stores an `evaluation_runs` row with an `evaluate` job.
+2. The worker refuses a dataset that changed since then. Otherwise it runs the same
+   `runner.execute_run` as the CLI, with an embedder copy carrying the run's query
+   instruction that shares the loaded model (`for_queries`).
+3. The handler does not commit. The run summary, the result rows and the job's success
+   commit together, so a failed run has no partial results.
+4. `GET /v1/evaluations/runs[/{id}]` reads runs; status and errors come from the job.
 
 ## Access control
 

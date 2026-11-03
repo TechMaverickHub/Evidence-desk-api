@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging, log_requests
 from app.documents.router import router as documents_router
+from app.evaluation.router import router as evaluations_router
 from app.health.router import router as health_router
 from app.jobs.router import router as jobs_router
 from app.retrieval.deps import get_query_embedder
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     api_v1.include_router(documents_router)
     api_v1.include_router(jobs_router)
     api_v1.include_router(search_router)
+    api_v1.include_router(evaluations_router)
     app.include_router(api_v1)
     return app
 

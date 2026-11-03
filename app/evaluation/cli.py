@@ -29,9 +29,15 @@ from app.evaluation.dataset import (
     read_corpus_texts,
     write_dataset,
 )
-from app.evaluation.records import RunConfig, RunReport
+from app.evaluation.records import RunReport
 from app.evaluation.report import ComparisonError, render_comparison, render_run
-from app.evaluation.runner import RunError, execute_run, load_run_config
+from app.evaluation.runner import (
+    RunError,
+    effective_query_instruction,
+    execute_run,
+    load_run_config,
+    tenant_id_by_name,
+)
 from app.ingestion.embedding import Embedder
 
 # Long spans are cut in the review sheet so a batch stays readable; the build keeps them whole.
@@ -156,12 +162,12 @@ def _run(args: argparse.Namespace) -> int:
     config = load_run_config(args.config)
     dataset = load_dataset(args.dataset)
     corpus_texts = read_corpus_texts(args.manifest)
-    query_instruction = _query_instruction(config)
+    query_instruction = effective_query_instruction(config)
     embedder = build_query_embedder(query_instruction)
     with get_sessionmaker()() as session:
         report = execute_run(
             session,
-            args.tenant,
+            tenant_id_by_name(session, args.tenant),
             embedder,
             config,
             dataset,
@@ -174,12 +180,6 @@ def _run(args: argparse.Namespace) -> int:
     _write(json_path.with_suffix(".md"), render_run(report))
     _print_summary(report, json_path)
     return 0
-
-
-def _query_instruction(config: RunConfig) -> str:
-    if config.query_instruction is not None:
-        return config.query_instruction
-    return get_settings().embedding_query_instruction
 
 
 def _compare(args: argparse.Namespace) -> int:

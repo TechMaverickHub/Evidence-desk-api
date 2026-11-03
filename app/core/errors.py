@@ -85,6 +85,15 @@ class ConflictError(AppError):
     message = "The resource already exists."
 
 
+class InvalidInputError(AppError):
+    """Input that passes the schema but fails a check needing the server's state
+    (e.g. a dataset name that doesn't exist). Same code as schema validation errors."""
+
+    status_code = 422
+    error_code = "VALIDATION_ERROR"
+    message = "The request is invalid."
+
+
 def error_response(
     status_code: int,
     error_code: str,

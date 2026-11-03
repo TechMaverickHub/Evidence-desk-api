@@ -19,6 +19,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.auth.repository import get_tenant_by_name
+from app.core.config import get_settings
 from app.documents.models import DocumentStatus
 from app.documents.service import compute_content_hash
 from app.evaluation import provenance, repository
@@ -55,9 +56,24 @@ def load_run_config(path: Path) -> RunConfig:
         raise RunError(f"Invalid run config {path}: {exc}") from exc
 
 
+def effective_query_instruction(config: RunConfig) -> str:
+    """The config's instruction, or the EMBEDDING_QUERY_INSTRUCTION setting when it has none."""
+    if config.query_instruction is not None:
+        return config.query_instruction
+    return get_settings().embedding_query_instruction
+
+
+def tenant_id_by_name(session: Session, tenant_name: str) -> uuid.UUID:
+    """The CLI names tenants; the worker already has the id from the job."""
+    tenant = get_tenant_by_name(session, tenant_name)
+    if tenant is None:
+        raise RunError(f"Unknown tenant '{tenant_name}'")
+    return tenant.id
+
+
 def execute_run(
     session: Session,
-    tenant_name: str,
+    tenant_id: uuid.UUID,
     embedder: Embedder,
     config: RunConfig,
     dataset: Dataset,
@@ -69,15 +85,12 @@ def execute_run(
 
     `query_instruction` is the one the embedder was built with; it is recorded, not applied.
     """
-    tenant = get_tenant_by_name(session, tenant_name)
-    if tenant is None:
-        raise RunError(f"Unknown tenant '{tenant_name}'")
     chunker = configured_chunker()
     document_count = verify_corpus(
-        session, tenant.id, corpus_texts, chunker=chunker, embedding_model=embedder.model_name
+        session, tenant_id, corpus_texts, chunker=chunker, embedding_model=embedder.model_name
     )
     questions = [question for question in dataset.questions if question.split == split]
-    results = run_evaluation(session, tenant.id, embedder, questions, config)
+    results = run_evaluation(session, tenant_id, embedder, questions, config)
     header = RunHeader(
         run_name=f"{config.name}-{split}",
         created_at=datetime.now(UTC),

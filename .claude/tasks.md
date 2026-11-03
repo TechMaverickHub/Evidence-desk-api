@@ -14,7 +14,7 @@ later rows are the intended order and get their own task file when they come up.
 | 005b | [Corpus v1 snapshot (frozen, licences, manifest, build script)](tasks/005b-corpus-v1.md) | corpus, tools | W2 | ✅ Done; 136 tests passed; 285 documents |
 | 005c | [Labelled benchmark v1 (~150 questions, LLM-drafted, human-reviewed, dev/test)](tasks/005c-benchmark-v1.md) | evaluation | W2 | ✅ Done; 144 tests passed; 150 reviewed questions (80 dev / 70 test) |
 | 006a | [Evaluation runner, reports, run comparison + dense baseline (Exp. A)](tasks/006a-eval-runner-baseline.md) | evaluation | W2 | ✅ Done; 166 tests passed; dense baseline nDCG@10 0.529 dev / 0.551 test |
-| 006b | Persisted evaluation runs: tables, worker job, `/v1/evaluations/runs` API | evaluation | W2 | Not started |
+| 006b | [Persisted evaluation runs: tables, worker job, `/v1/evaluations/runs` API](tasks/006b-evaluation-runs-api.md) | evaluation | W2 | ✅ Done; 178 tests passed; API run reproduces the committed dev report |
 | 007 | Keyword search (FTS) + RRF hybrid (Exp. B) | retrieval | W2 | Not started |
 | 008 | Cross-encoder reranking (Exp. C) | retrieval | W3 | Not started |
 | 009 | Grounded answers: structured output, citation validation, abstention, answer evaluation | generation, evaluation | W3 | Not started |
@@ -26,4 +26,4 @@ later rows are the intended order and get their own task file when they come up.
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: write the plan for task 006b (persisted evaluation runs, worker job, API), or 007 if the API can wait. Task 006 is split into 006a/b; see [006a](tasks/006a-eval-runner-baseline.md) for why. Task 005 is split into 005a/b/c; see [005a](tasks/005a-eval-foundations.md) for why. See [plan.md](plan.md).
+Next: write the plan for task 007 (keyword search + RRF hybrid, Experiment B). Task 006 is split into 006a/b; see [006a](tasks/006a-eval-runner-baseline.md) for why.

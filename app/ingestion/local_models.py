@@ -4,6 +4,7 @@ Kept apart from the rest of `app.ingestion` because importing sentence-transform
 takes tens of seconds; only the worker and the corpus loader import this module.
 """
 
+import copy
 from collections.abc import Sequence
 
 from sentence_transformers import SentenceTransformer
@@ -20,6 +21,13 @@ class SentenceTransformerEmbedder:
         self.query_instruction = query_instruction
         self.model_name = model_name
         self.dimension = self._model.get_embedding_dimension()
+
+    def for_queries(self, query_instruction: str) -> "SentenceTransformerEmbedder":
+        """A copy with another query instruction that shares the loaded model, so an
+        evaluation run can choose its instruction without loading the model again."""
+        embedder = copy.copy(self)
+        embedder.query_instruction = query_instruction
+        return embedder
 
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
         # Normalised vectors make cosine similarity equal to the dot product.

@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.db import get_sessionmaker
 from app.core.logging import configure_logging
+from app.evaluation.service import QueryEmbedderFactory, run_evaluation_job
 from app.ingestion.chunking import TokenWindowChunker
 from app.ingestion.embedding import Embedder
 from app.ingestion.pipeline import mark_document_failed, run_ingest_job
@@ -27,18 +28,35 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class JobHandler:
-    # Does the work and commits it.
+    # Does the work. It may commit it; otherwise the worker's success commit includes it.
     run: Callable[[Session, Job], None]
     # Runs after the work was rolled back, to record domain-level failure state.
     on_failure: Callable[[Session, Job], None]
 
 
-def build_handlers(chunker: TokenWindowChunker, embedder: Embedder) -> dict[str, JobHandler]:
-    """One entry per job kind; new kinds (e.g. evaluation runs) are added here."""
+def build_handlers(
+    chunker: TokenWindowChunker,
+    embedder: Embedder,
+    query_embedder_for: QueryEmbedderFactory | None = None,
+) -> dict[str, JobHandler]:
+    """One entry per job kind; new kinds are added here.
+
+    `query_embedder_for` gives evaluation runs an embedder with their query instruction.
+    Without it (tests with a fake embedder) the passage embedder is used as is.
+    """
     return {
         JobKind.INGEST: JobHandler(
             run=partial(run_ingest_job, chunker=chunker, embedder=embedder),
             on_failure=mark_document_failed,
+        ),
+        JobKind.EVALUATE: JobHandler(
+            run=partial(
+                run_evaluation_job,
+                query_embedder_for=query_embedder_for or (lambda _instruction: embedder),
+            ),
+            # Results are written only on success, so a failed run has nothing to undo;
+            # the job's status and error are the run's failure state.
+            on_failure=lambda _session, _job: None,
         ),
     }
 
@@ -95,7 +113,7 @@ def build_default_handlers() -> dict[str, JobHandler]:
     embedder = SentenceTransformerEmbedder(
         settings.embedding_model_name, settings.embedding_batch_size
     )
-    return build_handlers(chunker, embedder)
+    return build_handlers(chunker, embedder, query_embedder_for=embedder.for_queries)
 
 
 def _record_failure(

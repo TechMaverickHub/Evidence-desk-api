@@ -10,6 +10,7 @@ from app.auth import models as auth_models  # noqa: F401
 from app.core.config import get_settings
 from app.core.db import Base
 from app.documents import models as document_models  # noqa: F401
+from app.evaluation import models as evaluation_models  # noqa: F401
 from app.jobs import models as job_models  # noqa: F401
 
 config = context.config

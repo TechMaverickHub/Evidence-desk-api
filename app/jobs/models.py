@@ -21,6 +21,7 @@ class JobStatus(StrEnum):
 
 class JobKind(StrEnum):
     INGEST = "ingest"
+    EVALUATE = "evaluate"
 
 
 class Job(Base):

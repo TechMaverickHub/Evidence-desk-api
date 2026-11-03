@@ -45,11 +45,13 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 ## evaluations — `app/evaluation`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `evaluations/runs` | admin | `{dataset, split: dev\|test, config}`. 202 + `{run_id, job_id}` | 006b |
-| GET | `evaluations/runs` | viewer | List runs with aggregate metrics | 006b |
-| GET | `evaluations/runs/{id}` | viewer | Aggregate metrics, per-`query_type` breakdown, and per-query results (`?include=results`) | 006b |
+| POST | `evaluations/runs` | admin | `{dataset (^[a-z0-9][a-z0-9-]{0,63}$, a file in EVAL_DATASETS_DIR), split: dev\|test, config: RunConfig {name, retriever: dense, depth 1–50, cutoffs, query_instruction?}, allow_test=false}`, `extra="forbid"`. 202 + `{run_id, job_id}`. 422 for an unknown dataset (`field_errors.dataset`), a split with no questions, or `split: test` without `allow_test: true` | 006b ✅ |
+| GET | `evaluations/runs` | viewer | `{items: [{id, job_id, status, dataset_name, split, config_name, created_at, finished_at, overall}], total, limit, offset}`, newest first; filters `dataset`, `split`; `limit` 1–100. `overall` = the `all` metrics row at the largest cutoff, null until succeeded | 006b ✅ |
+| GET | `evaluations/runs/{id}` | viewer | `{id, job_id, created_by, created_at, run: {status, error, started_at, finished_at}, dataset: {name, sha256, split}, config, executed_at, effective, git: {sha, dirty}, environment, corpus_documents, summary: {metrics, overlap_bands, latency_ms}, results}`. Provenance and `summary` are null until the run succeeds. `results` (per-question hits and scores) only with `?include=results` | 006b ✅ |
 
-Evaluations run from the CLI today (task 006a; the endpoints above are 006b):
+A run evaluates the caller's tenant, which must hold the corpus in `EVAL_CORPUS_MANIFEST`. If it doesn't, the job fails with the corpus check's error, visible in `run.error`. Runs are executed by the worker (`evaluate` job). The status comes from the job, so `GET jobs/{job_id}` works too.
+
+Evaluations also run from the CLI (task 006a), which is how committed reports are produced:
 `uv run python -m app.evaluation.cli run --config eval/configs/dense-baseline.yaml --dataset eval/datasets/evidencedesk-v1.jsonl --split dev --tenant eval-corpus-v1` (`--split test` also needs `--allow-test`), and
 `uv run python -m app.evaluation.cli compare <base.json> <candidate.json>`. Reports are written to `eval/reports/`.
 
@@ -63,7 +65,7 @@ Every non-2xx response:
 
 | Code | HTTP | When |
 |---|---|---|
-| `VALIDATION_ERROR` | 422 | Request body / query fails validation (`field_errors` set) |
+| `VALIDATION_ERROR` | 422 | Request body / query fails validation, or a value fails a server-side check such as an unknown dataset (`field_errors` set; `InvalidInputError`) |
 | `NOT_AUTHENTICATED` | 401 | Missing, invalid or expired token |
 | `INVALID_CREDENTIALS` | 401 | Wrong email or password at `auth/token` |
 | `FORBIDDEN` | 403 | Role too low for the endpoint |
