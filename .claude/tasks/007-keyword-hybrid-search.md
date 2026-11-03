@@ -1,6 +1,6 @@
 # Task 007 — Keyword search (Postgres FTS) + RRF hybrid (Experiment B)
 
-**Status:** 🔨 Code done; Experiment B reports pending the code commit
+**Status:** ✅ Done (Experiment B: hybrid not adopted)
 **Week:** W2 · **Modules:** `app/retrieval`, `app/evaluation` (config), migrations ·
 **Branch:** `task/007-keyword-hybrid` (off `task/006b-evaluation-runs-api`)
 
@@ -180,22 +180,154 @@ eval/reports/*                             generated (second commit)
 - [x] `SearchOptions` / `RETRIEVERS` / stage timings; API modes + tests
 - [x] `RunConfig` retriever/fusion fields; configs
 - [x] `ruff check`, `ruff format --check`, full test suite clean
-- [ ] Commit 1 (code) after confirmation
-- [ ] Experiment B: dev runs + comparisons, choice recorded, one test run + comparison
-- [ ] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md), [database.md](../database.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
-- [ ] Commit 2 (reports + handover) after confirmation
+- [x] Commit 1 (code) after confirmation
+- [x] Experiment B: dev runs + comparisons, choice recorded, one test run + comparison
+- [x] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md), [database.md](../database.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
+- [x] Commit 2 (reports + handover) after confirmation
 
 ---
 
 ## Handover
 
-*(Filled in after implementation.)*
-
 ### Summary
+Keyword retrieval (Postgres full-text search) and hybrid retrieval (dense plus keyword,
+fused with Reciprocal Rank Fusion) now exist:
+- in `POST /v1/search` (`mode: keyword | hybrid`)
+- in evaluation configs (`retriever: keyword | hybrid`)
+
+Migration `0005` adds `chunks.tsv` with a GIN index; existing chunks were filled in place.
+193 tests pass, plus the real-model test.
+
+**Experiment B: hybrid did not beat the dense baseline.**
+- **Dev:** significantly worse (nDCG@10 −0.078, 95 % CI [−0.144, −0.014]).
+- **Test:** −0.038, CI [−0.117, +0.045]; not a demonstrated difference.
+
+The API default stays `dense`. Code is in `860c49b`, and all reports were generated from
+that clean commit.
+
 ### Architecture Notes
+- **Keyword query:**
+  - `plainto_tsquery('english', q)` with `' & '` rewritten to `' | '`, then `@@` on
+    `chunks.tsv`, ranked by `ts_rank_cd`, ties broken by chunk id.
+  - The rewrite only touches the tsquery's own output (the user text is a bound
+    parameter), and `&` inside quoted lexemes such as URLs is left alone (checked).
+  - `websearch_to_tsquery` was rejected because it turns `--timeout-keep-alive` into a
+    negation.
+- **Fusion:** `retrieval/fusion.py` is a pure function. It uses ranks only, and breaks ties
+  by best single rank, then id.
+- **Dispatch:**
+  - `service.RETRIEVERS` maps `dense`, `keyword` and `hybrid` to functions; a `_Search`
+    context records each stage's latency.
+  - `SearchOptions` is the one input shape for the API and the evaluation runner.
+  - Reranking (008) can wrap a retriever without touching the others.
+- **One scope for both retrievers:** `SearchScope` (tenant, chunker, model, source,
+  version), so they always search the same chunks.
+- **`chunks.tsv` is deferred in the ORM**, so it is never loaded with a chunk.
+
 ### Deviations from the plan
+- **The search tests use the new signatures:** the dense-search helper and the real-model
+  test now pass `SearchScope` / `SearchOptions`. Their assertions are unchanged, apart
+  from the stage rename `retrieve` → `dense` that the plan announced.
+- **A smoke run before commit 1.** I ran keyword and hybrid on dev into the scratchpad to
+  catch problems against the real corpus. Its numbers were identical to the committed
+  clean-tree runs, and no configuration was changed after seeing them.
+- **Otherwise as planned:** two configurations, literature defaults, one test run.
+
 ### Database Changes
+Migration `0005_chunk_tsv`:
+- `chunks.tsv TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', text)) STORED`
+- GIN index `ix_chunks_tsv`
+
+Postgres computed the column for all 5,005 existing chunks during the migration, which
+took about 6 s including Alembic startup. `alembic check` is clean, and downgrade followed
+by upgrade worked.
+
 ### API Changes
+`POST /v1/search`:
+- `mode` accepts `keyword` and `hybrid`.
+- Results carry `dense_rank` and `keyword_rank`. `score` means cosine (dense), `ts_rank_cd`
+  (keyword) or the RRF score (hybrid).
+- **Breaking:** the latency stage `retrieve` is renamed `dense`, alongside the new
+  `keyword` and `fuse` stages. There was no consumer yet.
+
+Details are in [api-spec.md](../api-spec.md).
+
 ### Evaluation Results
+**Setup:** dataset `evidencedesk-v1` (sha256 `b77c981f…cbcf9920`), corpus v1 in tenant
+`eval-corpus-v1`, chunker `tokens-300-overlap-50`, `BAAI/bge-small-en-v1.5` with the query
+instruction, depth 10, git `860c49b` (clean). Same machine as 006a.
+
+**Configurations** (fixed before any run):
+- `keyword`: FTS alone
+- `hybrid-rrf`: dense top-50 and keyword top-50, RRF k = 60
+
+**Dev (70 answerable questions), against `dense-baseline-dev`:**
+
+| config | R@5 | R@10 | MRR@10 | nDCG@10 | Δ nDCG@10 (95 % CI) | wins / ties / losses |
+|---|---|---|---|---|---|---|
+| dense (baseline) | 0.621 | 0.686 | 0.552 | 0.529 | — | — |
+| keyword | 0.412 | 0.481 | 0.316 | 0.314 | −0.215 [−0.296, −0.136] | 11 / 20 / 39 |
+| hybrid-rrf | 0.543 | 0.626 | 0.458 | 0.451 | −0.078 [−0.144, −0.014] | 15 / 30 / 25 |
+
+**Hybrid vs dense per type** (nDCG@10, dev → test; n dev / test):
+
+| query_type | dev | test |
+|---|---|---|
+| exact_identifier (18 / 12) | 0.759 → 0.645 (−0.114) | 0.504 → 0.738 (**+0.233**) |
+| paraphrase (12 / 13) | 0.259 → 0.154 (−0.105) | 0.373 → 0.220 (−0.153) |
+| version_specific (13 / 7) | 0.764 → 0.590 (−0.174) | 0.675 → 0.430 (−0.245) |
+| factual (12 / 18) | 0.488 → 0.421 (−0.067) | 0.805 → 0.693 (−0.111) |
+| multi_passage (11 / 9) | 0.410 → 0.440 (+0.030) | 0.389 → 0.393 (+0.005) |
+| ambiguous (4 / 6) | 0.000 → 0.139 (+0.139) | 0.363 → 0.430 (+0.066) |
+
+**Test (65 answerable questions), one run of `hybrid-rrf` against `dense-baseline-test`:**
+- nDCG@10 0.551 → 0.513, Δ −0.038, CI [−0.117, +0.045], wins/ties/losses 14 / 28 / 23
+- R@5 0.649 → 0.595, Δ −0.054, CI [−0.174, +0.067]
+
+**Latency** (service level, 70 test queries): hybrid total p50 173 ms, p95 309 ms, against
+dense p50 57 ms, p95 79 ms.
+- Keyword is the slowest stage: p95 198 ms in the hybrid run, and 113 ms on its own on dev.
+- ORed terms match thousands of chunks, and every one is ranked.
+
+**Decision:** do not adopt hybrid. Dense stays the API default and the baseline for 008.
+- On dev, hybrid is significantly worse. On test, the overall difference is not
+  demonstrated, and hybrid costs about 3× the latency.
+- The acceptance criterion in [plan.md](../plan.md), "hybrid improves R@5 or nDCG@10 over
+  dense on the test split", is **not met**.
+
+**Why (from per-question hits):**
+- **`ts_rank_cd` has no inverse document frequency.** With ORed terms, chunks dense in
+  common words (*validation*, *error*, *default*) outrank the chunk holding the rare,
+  decisive term (`extra_forbidden`). Keyword-only nDCG@10 is 0.314.
+- **RRF weights both lists equally,** so a weak keyword list pushes good dense hits down.
+  That is why paraphrase and version-specific questions are hurt on **both** splits.
+- **Exact identifiers flip by split, consistent with 006a.** Where dense already does well
+  (dev, 0.759), keyword adds noise. Where dense struggles (test, 0.504), keyword recovers
+  the identifier chunk (+0.233). This is the one signal that a *better* lexical ranker, or
+  routing identifier-shaped queries, could pay off. With 12–18 questions per type it is
+  indicative only.
+
 ### Future Work
+- **A real BM25 ranker with IDF**, e.g. a Postgres BM25 extension or an in-process index,
+  before hybrid is tried again.
+- **Weighted fusion or query routing** (lexical weight only when the query contains an
+  identifier pattern such as `--flag`, `snake_case` or `Error` types), decided on dev, and
+  tested once.
+- **Label the "Top-1 similarity" section with the retriever's score type.** For keyword and
+  hybrid runs it currently shows `ts_rank_cd` or RRF scores, which are not similarities.
+- **Keyword latency:** cap candidates before ranking, or rank with a cheaper function.
+- Heading-path weighting and a `simple` text-search configuration, as listed in the plan.
+
 ### Modified Files
+| File | Why |
+|---|---|
+| `migrations/versions/0005_chunk_tsv.py`, `app/documents/models.py` | Generated `tsv` column + GIN index; `TEXT_SEARCH_CONFIG` |
+| `app/retrieval/fusion.py` | RRF |
+| `app/retrieval/repository.py` | `SearchScope`, shared scoping, `keyword_search`, `any_term_query`, ranks on `SearchHit` |
+| `app/retrieval/service.py` | `SearchOptions`, `RETRIEVERS`, hybrid, stage timings |
+| `app/retrieval/schemas.py`, `app/retrieval/router.py` | Modes, ranks, score description |
+| `app/evaluation/records.py`, `app/evaluation/runner.py` | `RunConfig` retriever/fusion fields; `search_options` |
+| `tests/retrieval/test_fusion.py`, `test_keyword_search.py` (new); `test_search_api.py`, `test_dense_search.py`, `test_search_model.py`, `tests/evaluation/test_runner.py` | Risk-based tests; new signatures |
+| `eval/configs/keyword.yaml`, `hybrid-rrf.yaml` | Experiment B configurations |
+| `eval/reports/*keyword*`, `*hybrid-rrf*` | Run records and comparisons (dev ×2, test ×1) |
+| `.claude/{architecture,api-spec,database,tasks,plan}.md`, this file | Docs |

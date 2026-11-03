@@ -94,8 +94,9 @@ tenant, chunker, model and filters.
   (k = 60, `retrieval/fusion.py`; ranks only, ties by best rank, then id), then cut to k.
 - Each hit carries `dense_rank` and `keyword_rank`. Stage latencies are `embed_query`,
   `dense`, `keyword`, `fuse` and `total`.
-- The default mode stays `dense`. Experiment B (task 007) measured hybrid below dense on
-  dev; see the task file.
+- The default mode stays `dense`. Experiment B (task 007) did not adopt hybrid: it was
+  significantly worse on dev, and on test −0.038 nDCG@10 (CI includes 0) at about 3× the
+  latency. `ts_rank_cd` has no IDF.
 
 **Answer** (`POST /v1/answers`): run search → select context within a token budget → LLM
 call with structured output `{answer, cited_chunk_ids, status}` → **server-side citation
