@@ -39,6 +39,8 @@ from app.evaluation.runner import (
     tenant_id_by_name,
 )
 from app.ingestion.embedding import Embedder
+from app.retrieval.deps import get_reranker
+from app.retrieval.reranking import Reranker
 
 # Long spans are cut in the review sheet so a batch stays readable; the build keeps them whole.
 REVIEW_SPAN_CHARS = 1200
@@ -154,6 +156,11 @@ def build_query_embedder(query_instruction: str) -> Embedder:
     )
 
 
+def build_reranker() -> Reranker:
+    """The real cross-encoder; tests replace this function with a fake."""
+    return get_reranker()
+
+
 def _run(args: argparse.Namespace) -> int:
     if args.split == "test" and not args.allow_test:
         # Tuning happens on dev; a test run should be a deliberate, recorded act.
@@ -164,6 +171,8 @@ def _run(args: argparse.Namespace) -> int:
     corpus_texts = read_corpus_texts(args.manifest)
     query_instruction = effective_query_instruction(config)
     embedder = build_query_embedder(query_instruction)
+    # Only reranking configs pay for loading the cross-encoder.
+    reranker = build_reranker() if config.rerank else None
     with get_sessionmaker()() as session:
         report = execute_run(
             session,
@@ -174,6 +183,7 @@ def _run(args: argparse.Namespace) -> int:
             args.split,
             corpus_texts,
             query_instruction,
+            reranker,
         )
     json_path = args.out_dir / f"{report.header.run_name}.json"
     _write(json_path, report.model_dump_json(indent=1) + "\n")

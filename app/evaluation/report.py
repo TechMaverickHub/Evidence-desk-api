@@ -34,7 +34,7 @@ def render_run(report: RunReport) -> str:
         lines += [f"## Retrieval metrics @{k}", "", *_metric_table(rows, k, _row_order(rows)), ""]
     lines += _overlap_section(report)
     lines += _latency_section(report)
-    lines += _unanswerable_section(report.results.questions)
+    lines += _unanswerable_section(report.results.questions, report.header.effective.score_kind)
     if report.header.dataset.split == "dev":
         lines += _misses_section(report)
     return "\n".join(lines)
@@ -54,6 +54,8 @@ def _run_header(report: RunReport) -> list[str]:
         f"- **Embedding model:** `{effective.embedding_model}`",
         f"- **Query instruction:** `{effective.query_instruction!r}`",
         f"- **Span match:** overlap ≥ {effective.min_overlap_fraction} × the shorter range",
+        f"- **Hit score:** `{effective.score_kind}`"
+        + (f" (reranker `{effective.reranker_model}`)" if effective.reranker_model else ""),
         f"- **Corpus:** {header.corpus_documents} documents verified against `corpus/`",
         f"- **Git:** `{header.git.sha}`{dirty[header.git.dirty]}",
         f"- **Environment:** {', '.join(f'{k} {v}' for k, v in header.environment.items())}",
@@ -108,13 +110,13 @@ def _latency_section(report: RunReport) -> list[str]:
     return [*lines, ""]
 
 
-def _unanswerable_section(questions: Sequence[QuestionRecord]) -> list[str]:
+def _unanswerable_section(questions: Sequence[QuestionRecord], kind: str) -> list[str]:
     unanswerable = [_top_score(q) for q in questions if not q.answerable]
     answerable = [_top_score(q) for q in questions if q.answerable]
     if not unanswerable or not answerable:
         return []
     return [
-        "## Top-1 similarity (input for abstention, task 009)",
+        f"## Top-1 score: {kind} (input for abstention, task 009)",
         "",
         "| questions | n | mean | min | max |",
         "|---|---|---|---|---|",

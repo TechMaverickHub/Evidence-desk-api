@@ -21,8 +21,8 @@ from app.core.db import get_engine, get_session, get_sessionmaker
 from app.core.security import create_access_token, hash_password
 from app.documents.schemas import IngestDocumentRequest
 from app.main import create_app
-from app.retrieval.deps import get_query_embedder
-from tests.fakes import FakeEmbedder
+from app.retrieval.deps import get_query_embedder, get_reranker_provider
+from tests.fakes import FakeEmbedder, FakeReranker
 
 TEST_PASSWORD = "correct-horse-battery-staple"
 
@@ -67,6 +67,8 @@ def app(db_session: Session) -> FastAPI:
     application.dependency_overrides[get_session] = lambda: db_session
     # A lambda, not the class: FastAPI would read the class's __init__ args as request fields.
     application.dependency_overrides[get_query_embedder] = lambda: FakeEmbedder()
+    # The provider is called only for rerank requests; it returns a fake, never the model.
+    application.dependency_overrides[get_reranker_provider] = lambda: FakeReranker
     return application
 
 

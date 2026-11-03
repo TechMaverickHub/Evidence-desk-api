@@ -1,7 +1,7 @@
-"""Search orchestration: pick a retriever by mode, run it, time each stage.
+"""Search orchestration: pick a retriever by mode, optionally rerank, time each stage.
 
-Modes are entries in `RETRIEVERS`, not branches: a new retriever (or reranking, task 008)
-is a new function, and callers keep passing the same `SearchOptions`.
+Modes are entries in `RETRIEVERS`, not branches: a new retriever is a new function.
+Reranking (task 008) is a step after any retriever, so the retrievers never change.
 """
 
 import logging
@@ -20,6 +20,7 @@ from app.ingestion.embedding import Embedder
 from app.retrieval import repository
 from app.retrieval.fusion import DEFAULT_RRF_K, fuse_rankings_rrf
 from app.retrieval.repository import SearchHit, SearchScope
+from app.retrieval.reranking import Reranker, rerank_hits
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,8 @@ SearchMode = Literal["dense", "keyword", "hybrid"]
 # Candidates each retriever contributes before fusion; deeper lists let a chunk ranked
 # low by one retriever still win when the other ranks it highly.
 DEFAULT_FUSION_DEPTH = 50
+# Candidates re-scored by the cross-encoder; each costs one model forward pass.
+DEFAULT_RERANK_DEPTH = 50
 
 
 @dataclass(frozen=True)
@@ -35,6 +38,8 @@ class SearchOptions:
     mode: SearchMode = "dense"
     fusion_depth: int = DEFAULT_FUSION_DEPTH
     rrf_k: int = DEFAULT_RRF_K
+    rerank: bool = False
+    rerank_depth: int = DEFAULT_RERANK_DEPTH
     source: str | None = None
     version: str | None = None
 
@@ -44,7 +49,7 @@ class SearchOutcome:
     hits: list[SearchHit]
     chunker: str
     embedding_model: str
-    # Stage name -> milliseconds: embed_query, dense, keyword, fuse (as used), and total.
+    # Stage name -> milliseconds: embed_query, dense, keyword, fuse, rerank (as used), total.
     latency_ms: dict[str, float]
 
 
@@ -72,7 +77,10 @@ def search(
     embedder: Embedder,
     query: str,
     options: SearchOptions,
+    reranker: Reranker | None = None,
 ) -> SearchOutcome:
+    if options.rerank and reranker is None:
+        raise ValueError("Reranking was requested but no reranker was provided")
     scope = SearchScope(
         tenant_id=tenant_id,
         chunker=configured_chunker(),
@@ -83,15 +91,22 @@ def search(
     )
     run = _Search(session, scope, embedder, query, options)
     started = time.perf_counter()
-    hits = RETRIEVERS[options.mode](run, options.k)
+    hits = _ranked_hits(run, reranker)
     run.latency_ms["total"] = _ms(started, time.perf_counter())
     # The query text is deliberately not logged.
-    logger.info(
-        "search",
-        extra={"fields": {"mode": options.mode, "k": options.k, "results": len(hits)}
-               | run.latency_ms},
-    )  # fmt: skip
+    fields = {"mode": options.mode, "rerank": options.rerank, "k": options.k}
+    logger.info("search", extra={"fields": fields | {"results": len(hits)} | run.latency_ms})
     return SearchOutcome(hits, scope.chunker, scope.embedding_model, run.latency_ms)
+
+
+def _ranked_hits(run: _Search, reranker: Reranker | None) -> list[SearchHit]:
+    options = run.options
+    if not options.rerank:
+        return RETRIEVERS[options.mode](run, options.k)
+    # The reranker reorders a deeper candidate list, then cuts it to k.
+    candidates = RETRIEVERS[options.mode](run, max(options.k, options.rerank_depth))
+    with run.timed("rerank"):
+        return rerank_hits(reranker, run.query, candidates, options.k)
 
 
 def configured_chunker() -> str:

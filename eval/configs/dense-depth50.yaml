@@ -1,0 +1,5 @@
+# Experiment C ceiling: dense top 50, so R@50 shows what a reranker of the top 50 could reach.
+name: dense-depth50
+retriever: dense
+depth: 50
+cutoffs: [10, 50]

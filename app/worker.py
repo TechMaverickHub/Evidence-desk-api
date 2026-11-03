@@ -22,6 +22,8 @@ from app.ingestion.embedding import Embedder
 from app.ingestion.pipeline import mark_document_failed, run_ingest_job
 from app.jobs import repository as jobs_repository
 from app.jobs.models import Job, JobKind, JobStatus
+from app.retrieval.deps import get_reranker
+from app.retrieval.reranking import Reranker
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +40,13 @@ def build_handlers(
     chunker: TokenWindowChunker,
     embedder: Embedder,
     query_embedder_for: QueryEmbedderFactory | None = None,
+    load_reranker: Callable[[], Reranker] | None = None,
 ) -> dict[str, JobHandler]:
     """One entry per job kind; new kinds are added here.
 
     `query_embedder_for` gives evaluation runs an embedder with their query instruction.
     Without it (tests with a fake embedder) the passage embedder is used as is.
+    `load_reranker` is called only by runs whose config reranks.
     """
     return {
         JobKind.INGEST: JobHandler(
@@ -53,6 +57,7 @@ def build_handlers(
             run=partial(
                 run_evaluation_job,
                 query_embedder_for=query_embedder_for or (lambda _instruction: embedder),
+                load_reranker=load_reranker,
             ),
             # Results are written only on success, so a failed run has nothing to undo;
             # the job's status and error are the run's failure state.
@@ -113,7 +118,10 @@ def build_default_handlers() -> dict[str, JobHandler]:
     embedder = SentenceTransformerEmbedder(
         settings.embedding_model_name, settings.embedding_batch_size
     )
-    return build_handlers(chunker, embedder, query_embedder_for=embedder.for_queries)
+    # get_reranker is cached and lazy: the cross-encoder loads on the first run that reranks.
+    return build_handlers(
+        chunker, embedder, query_embedder_for=embedder.for_queries, load_reranker=get_reranker
+    )
 
 
 def _record_failure(

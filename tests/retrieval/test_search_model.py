@@ -39,3 +39,20 @@ def test_paraphrased_question_finds_the_incident(
     )
 
     assert outcome.hits[0].slug == "incidents/0001"
+
+
+def test_the_cross_encoder_prefers_the_relevant_passage() -> None:
+    from app.retrieval.deps import get_reranker
+
+    reranker = get_reranker()
+
+    relevant, unrelated = reranker.score(
+        "How long does Uvicorn keep an idle connection open?",
+        [
+            "--timeout-keep-alive: close Keep-Alive connections if no new data is received "
+            "within this timeout. Default: 5 seconds.",
+            "Pydantic models validate the types of their fields.",
+        ],
+    )
+
+    assert relevant > unrelated

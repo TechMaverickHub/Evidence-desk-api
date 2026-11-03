@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     # Load the model when the API starts, so the first search is not slow. Tests turn it off.
     preload_embedding_model: bool = True
 
+    # Cross-encoder for optional second-stage ranking (task 008). Loaded on first use unless
+    # preloaded, so APIs that never rerank don't pay for it.
+    reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L6-v2"
+    reranker_batch_size: int = Field(default=32, gt=0)
+    preload_reranker: bool = False
+
     # The worker writes chunks with these sizes and search reads chunks with the same name,
     # so both must come from here.
     chunk_max_tokens: int = Field(default=300, gt=0)

@@ -1,0 +1,7 @@
+# Experiment C: dense top 20 re-scored by the cross-encoder, top 10 kept.
+name: dense-rerank20
+retriever: dense
+depth: 10
+cutoffs: [5, 10]
+rerank: true
+rerank_depth: 20

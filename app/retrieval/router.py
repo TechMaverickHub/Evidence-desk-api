@@ -1,5 +1,6 @@
 """HTTP endpoint for searching the caller's documents."""
 
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -9,8 +10,9 @@ from app.core.deps import CurrentUserDep, SessionDep
 from app.core.errors import ErrorResponse
 from app.ingestion.embedding import Embedder
 from app.retrieval import service
-from app.retrieval.deps import get_query_embedder
+from app.retrieval.deps import get_query_embedder, get_reranker_provider
 from app.retrieval.repository import SearchHit
+from app.retrieval.reranking import Reranker
 from app.retrieval.schemas import (
     DocumentRef,
     SearchDiagnostics,
@@ -33,14 +35,19 @@ def search(
     current_user: CurrentUserDep,
     session: SessionDep,
     embedder: Annotated[Embedder, Depends(get_query_embedder)],
+    reranker_provider: Annotated[Callable[[], Reranker], Depends(get_reranker_provider)],
 ) -> SearchResponse:
     options = service.SearchOptions(
         k=payload.k,
         mode=payload.mode,
+        rerank=payload.rerank,
         source=payload.filters.source,
         version=payload.filters.version,
     )
-    outcome = service.search(session, current_user.tenant_id, embedder, payload.query, options)
+    reranker = reranker_provider() if payload.rerank else None
+    outcome = service.search(
+        session, current_user.tenant_id, embedder, payload.query, options, reranker
+    )
     return SearchResponse(
         results=[_to_result(rank, hit) for rank, hit in enumerate(outcome.hits, start=1)],
         diagnostics=SearchDiagnostics(
@@ -49,6 +56,7 @@ def search(
             chunker=outcome.chunker,
             embedding_model=outcome.embedding_model,
             query_instruction=bool(get_settings().embedding_query_instruction),
+            reranker_model=reranker.model_name if reranker else None,
             latency_ms=outcome.latency_ms,
         ),
     )
@@ -61,6 +69,8 @@ def _to_result(rank: int, hit: SearchHit) -> SearchResult:
         score=hit.score,
         dense_rank=hit.dense_rank,
         keyword_rank=hit.keyword_rank,
+        rerank_score=hit.rerank_score,
+        first_stage_rank=hit.first_stage_rank,
         text=hit.text,
         char_start=hit.char_start,
         char_end=hit.char_end,

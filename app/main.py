@@ -14,7 +14,7 @@ from app.documents.router import router as documents_router
 from app.evaluation.router import router as evaluations_router
 from app.health.router import router as health_router
 from app.jobs.router import router as jobs_router
-from app.retrieval.deps import get_query_embedder
+from app.retrieval.deps import get_query_embedder, get_reranker
 from app.retrieval.router import router as search_router
 
 
@@ -24,6 +24,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     # startup rather than inside the first search request.
     if get_settings().preload_embedding_model:
         get_query_embedder()
+    if get_settings().preload_reranker:
+        get_reranker()
     yield
 
 

@@ -22,7 +22,7 @@ from app.jobs.models import JobKind
 from app.worker import build_handlers, process_next_job
 from tests.conftest import auth_headers
 from tests.evaluation.conftest import MANIFEST, MINI
-from tests.fakes import FakeEmbedder, WhitespaceTokenizer
+from tests.fakes import FakeEmbedder, FakeReranker, WhitespaceTokenizer
 
 RUNS = "/v1/evaluations/runs"
 
@@ -249,3 +249,41 @@ def test_a_stored_run_converts_back_to_the_same_record(
         stored, repository.list_results(db_session, admin.tenant_id, run.id)
     )
     assert rebuilt == report
+
+
+@pytest.mark.usefixtures("datasets_dir")
+def test_the_worker_loads_the_reranker_only_for_reranking_runs(
+    client: TestClient,
+    db_session: Session,
+    make_user: Callable[..., User],
+    load_fixture_corpus: Callable[[Tenant], None],
+    mini_dataset: Dataset,
+) -> None:
+    admin = make_user(Role.ADMIN)
+    load_fixture_corpus(db_session.get(Tenant, admin.tenant_id))
+    headers = auth_headers(admin)
+    split = _split_with_questions(mini_dataset)
+    plain = _body(split, allow_test=True)
+    reranked = _body(split, allow_test=True, config={"name": "rr", "rerank": True})
+    plain_id = client.post(RUNS, json=plain, headers=headers).json()["run_id"]
+    reranked_id = client.post(RUNS, json=reranked, headers=headers).json()["run_id"]
+    loads: list[str] = []
+
+    def load_reranker() -> FakeReranker:
+        loads.append("loaded")
+        return FakeReranker()
+
+    settings = get_settings()
+    chunker = TokenWindowChunker(
+        WhitespaceTokenizer(), settings.chunk_max_tokens, settings.chunk_overlap_tokens
+    )
+    handlers = build_handlers(chunker, FakeEmbedder(), load_reranker=load_reranker)
+    while process_next_job(db_session, handlers):
+        pass
+
+    assert loads == ["loaded"]
+    plain_run = client.get(f"{RUNS}/{plain_id}", headers=headers).json()
+    reranked_run = client.get(f"{RUNS}/{reranked_id}", headers=headers).json()
+    assert plain_run["effective"]["score_kind"] == "cosine"
+    assert reranked_run["effective"]["score_kind"] == "cross_encoder"
+    assert "rerank" in reranked_run["summary"]["latency_ms"]

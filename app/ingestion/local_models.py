@@ -1,4 +1,4 @@
-"""Gateways to the local Hugging Face models: the embedding model and its tokenizer.
+"""Gateways to the local Hugging Face models: embedder, tokenizer and reranker.
 
 Kept apart from the rest of `app.ingestion` because importing sentence-transformers/torch
 takes tens of seconds; only the worker and the corpus loader import this module.
@@ -7,7 +7,7 @@ takes tens of seconds; only the worker and the corpus loader import this module.
 import copy
 from collections.abc import Sequence
 
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import CrossEncoder, SentenceTransformer
 from transformers import AutoTokenizer
 
 
@@ -56,6 +56,25 @@ class SentenceTransformerEmbedder:
     @property
     def max_tokens(self) -> int:
         return self._model.max_seq_length
+
+
+class CrossEncoderReranker:
+    """Local CPU cross-encoder (implements retrieval's `Reranker`). Build one per process."""
+
+    def __init__(self, model_name: str, batch_size: int) -> None:
+        # trust_remote_code=False: never execute Python shipped inside a model repository.
+        self._model = CrossEncoder(model_name, device="cpu", trust_remote_code=False)
+        self._batch_size = batch_size
+        self.model_name = model_name
+
+    def score(self, query: str, passages: Sequence[str]) -> list[float]:
+        # Raw model outputs: only their order is used; 009 studies their values.
+        scores = self._model.predict(
+            [(query, passage) for passage in passages],
+            batch_size=self._batch_size,
+            show_progress_bar=False,
+        )
+        return [float(score) for score in scores]
 
 
 class HuggingFaceTokenizer:

@@ -27,11 +27,15 @@ class SearchHit:
     slug: str
     version: str
     title: str
-    # Meaning depends on the retriever: cosine similarity, ts_rank_cd, or RRF score.
+    # Meaning depends on the stage: cosine similarity, ts_rank_cd, RRF score, or the
+    # cross-encoder score when reranked.
     score: float
     # 1-based position in each retriever's own ranking; None when it didn't return the chunk.
     dense_rank: int | None = None
     keyword_rank: int | None = None
+    # Set only when reranked: the model's score and the hit's position before reranking.
+    rerank_score: float | None = None
+    first_stage_rank: int | None = None
 
 
 @dataclass(frozen=True)

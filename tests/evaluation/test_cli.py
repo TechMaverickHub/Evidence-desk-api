@@ -9,7 +9,7 @@ from app.auth.models import Tenant
 from app.evaluation import cli
 from app.evaluation.dataset import Dataset, write_dataset
 from app.evaluation.records import RunReport
-from tests.fakes import FakeEmbedder
+from tests.fakes import FakeEmbedder, FakeReranker
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
 MANIFEST = FIXTURES / "corpus" / "manifest.yaml"
@@ -146,3 +146,18 @@ def test_run_against_an_unknown_tenant_fails_cleanly(
 
     assert cli.main([*args, "--allow-test"]) == 1
     assert "Unknown tenant" in capsys.readouterr().err
+
+
+def test_a_reranking_config_builds_the_reranker(
+    run_setup: dict[str, str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(cli, "build_reranker", lambda: FakeReranker())
+    config = tmp_path / "rerank.yaml"
+    config.write_text("name: rr\nrerank: true\nrerank_depth: 5\n", encoding="utf-8")
+    args = _run_args({**run_setup, "config": str(config)}, "test")
+
+    assert cli.main([*args, "--allow-test"]) == 0
+
+    record = RunReport.model_validate_json((Path(run_setup["out"]) / "rr-test.json").read_bytes())
+    assert record.header.effective.reranker_model == "fake-reranker"
+    assert record.header.config.rerank_depth == 5

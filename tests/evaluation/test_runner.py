@@ -10,9 +10,10 @@ from sqlalchemy.orm import Session
 from app.auth.models import Tenant
 from app.documents.models import DocumentChunk
 from app.evaluation.dataset import BuiltEvidence, BuiltQuestion, BuiltSpan, Dataset
-from app.evaluation.records import RunConfig
+from app.evaluation.records import RunConfig, score_kind
 from app.evaluation.runner import (
     RunError,
+    execute_run,
     percentile,
     run_evaluation,
     score_question,
@@ -22,7 +23,7 @@ from app.evaluation.runner import (
 )
 from app.retrieval.repository import SearchHit
 from app.retrieval.service import SearchOptions, configured_chunker
-from tests.fakes import FakeEmbedder
+from tests.fakes import FakeEmbedder, FakeReranker
 
 MODEL = FakeEmbedder.model_name
 
@@ -70,7 +71,7 @@ def _question(evidence: list[tuple[int, int, int]], query_type: str = "factual")
 
 def test_config_rejects_unknown_keys_and_cutoffs_beyond_depth() -> None:
     with pytest.raises(ValidationError):
-        RunConfig.model_validate({"name": "a", "rerank": True})
+        RunConfig.model_validate({"name": "a", "temperature": 0.2})
     with pytest.raises(ValidationError, match="between 1 and depth"):
         RunConfig(name="a", depth=5, cutoffs=[10])
     assert RunConfig(name="a", cutoffs=[10, 5, 5]).cutoffs == [5, 10]
@@ -249,3 +250,59 @@ def test_a_hybrid_config_reaches_the_search_service(
 
     assert set(results.latency_ms) == {"embed_query", "dense", "keyword", "fuse", "total"}
     assert search_options(config) == SearchOptions(k=10, mode="hybrid", fusion_depth=20, rrf_k=10)
+
+
+@pytest.mark.parametrize(
+    ("config", "kind"),
+    [
+        (RunConfig(name="a"), "cosine"),
+        (RunConfig(name="a", retriever="keyword"), "ts_rank_cd"),
+        (RunConfig(name="a", retriever="hybrid"), "rrf"),
+        (RunConfig(name="a", retriever="hybrid", rerank=True), "cross_encoder"),
+    ],
+)
+def test_score_kind_names_what_hit_scores_mean(config: RunConfig, kind: str) -> None:
+    assert score_kind(config) == kind
+
+
+def test_a_reranking_config_without_a_reranker_fails_clearly(
+    db_session: Session,
+    make_tenant: Callable[..., Tenant],
+    mini_dataset: Dataset,
+    corpus_texts: dict,
+) -> None:
+    config = RunConfig(name="t", rerank=True)
+
+    with pytest.raises(RunError, match="no reranker was provided"):
+        execute_run(
+            db_session, make_tenant().id, FakeEmbedder(), config, mini_dataset, "dev",
+            corpus_texts, "",
+        )  # fmt: skip
+
+
+def test_a_reranked_run_records_its_model_and_rerank_stage(
+    db_session: Session,
+    make_tenant: Callable[..., Tenant],
+    load_fixture_corpus,
+    mini_dataset: Dataset,
+    corpus_texts: dict,
+) -> None:
+    tenant = make_tenant()
+    load_fixture_corpus(tenant)
+    reranker = FakeReranker()
+    split = mini_dataset.questions[0].split
+    config = RunConfig(name="t", rerank=True, rerank_depth=20)
+
+    report = execute_run(
+        db_session, tenant.id, FakeEmbedder(), config, mini_dataset, split, corpus_texts, "",
+        reranker,
+    )  # fmt: skip
+
+    assert report.header.effective.score_kind == "cross_encoder"
+    assert report.header.effective.reranker_model == "fake-reranker"
+    assert "rerank" in report.results.latency_ms
+    assert reranker.calls
+    first_hits = report.results.questions[0].hits
+    assert [hit.score for hit in first_hits] == sorted(
+        (hit.score for hit in first_hits), reverse=True
+    )

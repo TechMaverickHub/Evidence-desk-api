@@ -43,6 +43,7 @@ from app.evaluation.schemas import (
 from app.ingestion.embedding import Embedder
 from app.jobs import repository as jobs_repository
 from app.jobs.models import Job, JobKind
+from app.retrieval.reranking import Reranker
 
 QueryEmbedderFactory = Callable[[str], Embedder]
 
@@ -74,7 +75,10 @@ def create_run(session: Session, user: CurrentUser, request: CreateRunRequest) -
 
 
 def run_evaluation_job(
-    session: Session, job: Job, query_embedder_for: QueryEmbedderFactory
+    session: Session,
+    job: Job,
+    query_embedder_for: QueryEmbedderFactory,
+    load_reranker: Callable[[], Reranker] | None = None,
 ) -> None:
     """Job handler. Does not commit: the worker's success commit stores the results and
     the job's status together, so a run is never half-written."""
@@ -86,6 +90,7 @@ def run_evaluation_job(
         raise RunError(f"Dataset '{run.dataset_name}' changed after the run was queued")
     config = RunConfig.model_validate(run.config)
     instruction = effective_query_instruction(config)
+    reranker = load_reranker() if config.rerank and load_reranker else None
     report = execute_run(
         session,
         job.tenant_id,
@@ -95,6 +100,7 @@ def run_evaluation_job(
         run.split,
         read_corpus_texts(get_settings().eval_corpus_manifest),
         instruction,
+        reranker,
     )
     store_report(session, run, report)
 

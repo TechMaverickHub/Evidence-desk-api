@@ -98,6 +98,21 @@ tenant, chunker, model and filters.
   significantly worse on dev, and on test −0.038 nDCG@10 (CI includes 0) at about 3× the
   latency. `ts_rank_cd` has no IDF.
 
+*As built (task 008): optional reranking.* With `rerank: true`:
+- the chosen retriever returns `max(k, rerank_depth)` candidates (API: 50)
+- `retrieval/reranking.rerank_hits` scores each `(query, chunk text)` pair with the
+  `Reranker` protocol, sorts by score (ties keep the first-stage order) and cuts to k
+- each hit keeps `first_stage_rank` and gets `rerank_score`, which also becomes `score`
+- stage `rerank` is timed
+
+The gateway is `CrossEncoderReranker` in `local_models.py`
+(`cross-encoder/ms-marco-MiniLM-L6-v2`, `trust_remote_code=False`, CPU).
+- **API:** the reranker is loaded lazily. The router receives a provider
+  (`get_reranker_provider`) and calls it only for rerank requests, or at startup with
+  `PRELOAD_RERANKER`.
+- **CLI and worker:** they build it only for configs with `rerank: true`.
+- **Cost:** about 1.8 s per 20 pairs on the dev machine's CPU (4 torch threads).
+
 **Answer** (`POST /v1/answers`): run search → select context within a token budget → LLM
 call with structured output `{answer, cited_chunk_ids, status}` → **server-side citation
 check** (every cited ID must be in the supplied context, else `status = insufficient_evidence`

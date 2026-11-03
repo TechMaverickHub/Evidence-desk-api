@@ -25,6 +25,8 @@ class SearchRequest(BaseModel):
     k: int = Field(default=10, ge=1, le=MAX_K)
     # dense: vectors; keyword: Postgres full-text search; hybrid: both, fused with RRF.
     mode: SearchMode = "dense"
+    # Re-score the top candidates with the cross-encoder (task 008); slower, often better.
+    rerank: bool = False
     filters: SearchFilters = Field(default_factory=SearchFilters)
 
     @field_validator("query")
@@ -49,7 +51,7 @@ class SearchResult(BaseModel):
     score: float = Field(
         description=(
             "Higher is better. dense: cosine similarity; keyword: ts_rank_cd; "
-            "hybrid: reciprocal rank fusion score."
+            "hybrid: reciprocal rank fusion score; with rerank: the cross-encoder score."
         )
     )
     dense_rank: int | None = Field(
@@ -57,6 +59,12 @@ class SearchResult(BaseModel):
     )
     keyword_rank: int | None = Field(
         default=None, description="Rank in the keyword candidate list, if the chunk was in it."
+    )
+    rerank_score: float | None = Field(
+        default=None, description="Cross-encoder score (raw model output); null unless reranked."
+    )
+    first_stage_rank: int | None = Field(
+        default=None, description="Position before reranking; null unless reranked."
     )
     text: str
     char_start: int
@@ -71,6 +79,7 @@ class SearchDiagnostics(BaseModel):
     chunker: str
     embedding_model: str
     query_instruction: bool
+    reranker_model: str | None
     latency_ms: dict[str, float]
 
 

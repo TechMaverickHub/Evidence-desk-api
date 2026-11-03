@@ -38,10 +38,12 @@ from app.evaluation.records import (
     RunHeader,
     RunReport,
     RunResults,
+    score_kind,
 )
 from app.evaluation.relevance import MIN_OVERLAP_FRACTION, EvidenceItem, Span, match_evidence
 from app.ingestion.embedding import Embedder
 from app.retrieval.repository import SearchHit
+from app.retrieval.reranking import Reranker
 from app.retrieval.service import SearchOptions, configured_chunker, search
 
 
@@ -80,17 +82,20 @@ def execute_run(
     split: str,
     corpus_texts: dict[tuple[str, str], str],
     query_instruction: str,
+    reranker: Reranker | None = None,
 ) -> RunReport:
     """Verify the tenant's corpus, score every question of the split, and record provenance.
 
     `query_instruction` is the one the embedder was built with; it is recorded, not applied.
     """
+    if config.rerank and reranker is None:
+        raise RunError(f"Config '{config.name}' reranks, but no reranker was provided")
     chunker = configured_chunker()
     document_count = verify_corpus(
         session, tenant_id, corpus_texts, chunker=chunker, embedding_model=embedder.model_name
     )
     questions = [question for question in dataset.questions if question.split == split]
-    results = run_evaluation(session, tenant_id, embedder, questions, config)
+    results = run_evaluation(session, tenant_id, embedder, questions, config, reranker)
     header = RunHeader(
         run_name=f"{config.name}-{split}",
         created_at=datetime.now(UTC),
@@ -101,6 +106,8 @@ def execute_run(
             embedding_model=embedder.model_name,
             query_instruction=query_instruction,
             min_overlap_fraction=MIN_OVERLAP_FRACTION,
+            score_kind=score_kind(config),
+            reranker_model=reranker.model_name if config.rerank else None,
         ),
         git=provenance.git_state(),
         environment=provenance.environment(repository.postgres_version(session)),
@@ -165,16 +172,17 @@ def run_evaluation(
     embedder: Embedder,
     questions: Sequence[BuiltQuestion],
     config: RunConfig,
+    reranker: Reranker | None = None,
 ) -> RunResults:
     if not questions:
         raise RunError("The split has no questions")
     # One unmeasured query first: the first call pays one-off costs that would skew p95.
     options = search_options(config)
-    search(session, tenant_id, embedder, questions[0].question, options)
+    search(session, tenant_id, embedder, questions[0].question, options, reranker)
 
     records = []
     for question in questions:
-        outcome = search(session, tenant_id, embedder, question.question, options)
+        outcome = search(session, tenant_id, embedder, question.question, options, reranker)
         records.append(score_question(question, outcome.hits, config.cutoffs, outcome.latency_ms))
     return summarise(records, config.cutoffs)
 
@@ -185,6 +193,8 @@ def search_options(config: RunConfig) -> SearchOptions:
         mode=config.retriever,
         fusion_depth=config.fusion_depth,
         rrf_k=config.rrf_k,
+        rerank=config.rerank,
+        rerank_depth=config.rerank_depth,
     )
 
 

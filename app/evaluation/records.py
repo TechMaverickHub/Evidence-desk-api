@@ -10,9 +10,16 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.evaluation.metrics import MetricSummary, QueryScores
 from app.retrieval.fusion import DEFAULT_RRF_K
-from app.retrieval.service import DEFAULT_FUSION_DEPTH
+from app.retrieval.service import DEFAULT_FUSION_DEPTH, DEFAULT_RERANK_DEPTH
 
 RUN_FORMAT = "evidencedesk-run/1"
+
+ScoreKind = Literal["cosine", "ts_rank_cd", "rrf", "cross_encoder"]
+_SCORE_KIND_BY_RETRIEVER: dict[str, ScoreKind] = {
+    "dense": "cosine",
+    "keyword": "ts_rank_cd",
+    "hybrid": "rrf",
+}
 
 
 class RunConfig(BaseModel):
@@ -27,6 +34,9 @@ class RunConfig(BaseModel):
     # Hybrid only: candidates per retriever before fusion, and the RRF constant.
     fusion_depth: int = Field(default=DEFAULT_FUSION_DEPTH, ge=1, le=200)
     rrf_k: int = Field(default=DEFAULT_RRF_K, ge=1)
+    # Re-score this many first-stage candidates with the cross-encoder (task 008).
+    rerank: bool = False
+    rerank_depth: int = Field(default=DEFAULT_RERANK_DEPTH, ge=1, le=200)
     cutoffs: list[int] = Field(default=[5, 10], min_length=1)
     # None uses the EMBEDDING_QUERY_INSTRUCTION setting; "" sends queries without one.
     query_instruction: str | None = None
@@ -37,6 +47,11 @@ class RunConfig(BaseModel):
             raise ValueError(f"every cutoff must be between 1 and depth ({self.depth})")
         self.cutoffs = sorted(set(self.cutoffs))
         return self
+
+
+def score_kind(config: "RunConfig") -> ScoreKind:
+    """Reranking replaces the retriever's score with the cross-encoder's."""
+    return "cross_encoder" if config.rerank else _SCORE_KIND_BY_RETRIEVER[config.retriever]
 
 
 class MetricRow(BaseModel):
@@ -133,6 +148,9 @@ class EffectiveSettings(BaseModel):
     embedding_model: str
     query_instruction: str
     min_overlap_fraction: float
+    # What hit scores mean in this run; records written before task 008 were all cosine.
+    score_kind: ScoreKind = "cosine"
+    reranker_model: str | None = None
 
 
 class GitState(BaseModel):

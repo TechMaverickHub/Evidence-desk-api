@@ -42,3 +42,22 @@ class FakeEmbedder:
         raw = [seed[i % len(seed)] - 127.5 + i % 7 for i in range(self.dimension)]
         norm = math.sqrt(sum(value * value for value in raw))
         return [value / norm for value in raw]
+
+
+class FakeReranker:
+    """Scores a passage by how many of the query's words it contains; records every call."""
+
+    model_name = "fake-reranker"
+
+    def __init__(self, scores: dict[str, float] | None = None) -> None:
+        # Pin exact scores per passage text when a test needs a known order.
+        self._scores = scores or {}
+        self.calls: list[tuple[str, list[str]]] = []
+
+    def score(self, query: str, passages: Sequence[str]) -> list[float]:
+        self.calls.append((query, list(passages)))
+        words = set(query.lower().split())
+        return [
+            self._scores.get(text, float(len(words & set(text.lower().split()))))
+            for text in passages
+        ]
