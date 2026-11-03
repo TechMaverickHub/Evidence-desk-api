@@ -62,7 +62,9 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 | POST | `answers` | viewer | `{question (1–1,000 chars), retrieval?: {mode=dense, rerank=true, filters?}}`, `extra="forbid"`. Returns `{status: answered\|insufficient_evidence, answer, citations: [{chunk_id, document, heading_path, char_start, char_end, snippet}], retrieval: {mode, rerank, context_chunk_ids}, usage: {model, prompt_tokens, completion_tokens, llm_calls}, latency_ms: {retrieval, llm, total}}`. 502 `LLM_INVALID_OUTPUT` (invalid output after one retry); 503 `LLM_UNAVAILABLE` (provider failure, or no `GROQ_API_KEY`) | 009a ✅ |
 
 **Data sent to the LLM provider:** the question and up to `ANSWER_CONTEXT_CHUNKS` (5)
-retrieved passages go to Groq. That is fine for public documentation. A tenant with
+retrieved passages go to Groq. (Task 009b: `retrieval` also returns `top_score` and
+`score_kind`; with `ANSWER_MIN_RERANK_SCORE` set, a reranked top score below it returns
+`insufficient_evidence` without an LLM call.) That is fine for public documentation. A tenant with
 private documents would be sending them to a third party.
 
 **Guarantees:**
@@ -83,6 +85,23 @@ A run evaluates the caller's tenant, which must hold the corpus in `EVAL_CORPUS_
 Evaluations also run from the CLI (task 006a), which is how committed reports are produced:
 `uv run python -m app.evaluation.cli run --config eval/configs/dense-baseline.yaml --dataset eval/datasets/evidencedesk-v1.jsonl --split dev --tenant eval-corpus-v1` (`--split test` also needs `--allow-test`), and
 `uv run python -m app.evaluation.cli compare <base.json> <candidate.json>`. Reports are written to `eval/reports/`.
+
+Answer evaluation (task 009b) is CLI only. It calls Groq: paced, and resumable after
+interruption.
+
+```bash
+uv run python -m app.evaluation.cli answer-run --config eval/configs/answers-rerank20.yaml --dataset eval/datasets/evidencedesk-v1.jsonl --split dev --tenant eval-corpus-v1
+```
+
+```bash
+uv run python -m app.evaluation.cli answer-judge eval/reports/answers-rerank20-dev.json --dataset eval/datasets/evidencedesk-v1.jsonl --tenant eval-corpus-v1
+```
+
+```bash
+uv run python -m app.evaluation.cli answer-report eval/reports/answers-rerank20-dev.json --dataset eval/datasets/evidencedesk-v1.jsonl --sheet .cache/review/judge-dev.md
+```
+
+`answer-report` also takes `--agreement 18/20` and `--gate T`.
 
 ## Error envelope
 

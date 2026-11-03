@@ -2,7 +2,7 @@
 
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 
 import pytest
 from fastapi import FastAPI
@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.auth.models import Tenant, User
+from app.core.config import get_settings
 from app.core.errors import LLMUnavailableError
 from app.generation.deps import get_llm_client
 from app.generation.llm_client import LLMOutputRejectedError
@@ -194,3 +195,44 @@ def test_invalid_requests_are_rejected(
 
 def test_answers_require_authentication(client: TestClient) -> None:
     assert client.post(ANSWERS, json={"question": QUESTION}).status_code == 401
+
+
+@pytest.fixture
+def gate(monkeypatch: pytest.MonkeyPatch) -> Iterator[Callable[[str], None]]:
+    def _set(threshold: str) -> None:
+        monkeypatch.setenv("ANSWER_MIN_RERANK_SCORE", threshold)
+        get_settings.cache_clear()
+
+    yield _set
+    get_settings.cache_clear()
+
+
+def test_the_response_reports_the_top_score_and_its_kind(ask: Callable) -> None:
+    _, body, _ = ask(_reply())
+
+    # FakeReranker scores by shared words; the best context chunk shares several.
+    assert body["retrieval"]["top_score"] > 0
+    assert body["retrieval"]["score_kind"] == "cross_encoder"
+
+
+def test_a_top_score_below_the_gate_abstains_without_an_llm_call(
+    ask: Callable, gate: Callable[[str], None]
+) -> None:
+    gate("100")
+
+    status, body, llm = ask()
+
+    assert status == 200
+    assert body["status"] == "insufficient_evidence"
+    assert llm.calls == []
+    assert body["usage"]["llm_calls"] == 0
+
+
+def test_a_top_score_at_or_above_the_gate_is_answered(
+    ask: Callable, gate: Callable[[str], None]
+) -> None:
+    gate("-100")
+
+    status, body, _ = ask(_reply())
+
+    assert (status, body["status"]) == (200, "answered")

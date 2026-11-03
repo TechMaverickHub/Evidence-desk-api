@@ -121,3 +121,37 @@ def list_results(
             .order_by(EvaluationResult.position)
         )
     )
+
+
+# --- Chunks by id (task 009b) -----------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ChunkRef:
+    chunk_id: uuid.UUID
+    slug: str
+    version: str
+    char_start: int
+    char_end: int
+    text: str
+
+
+def chunks_by_id(
+    session: Session, tenant_id: uuid.UUID, chunk_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, ChunkRef]:
+    """Offsets and text of the given chunks, scoped to the tenant (answer runs and judging)."""
+    if not chunk_ids:
+        return {}
+    rows = session.execute(
+        select(
+            DocumentChunk.id,
+            Document.slug,
+            Document.version,
+            DocumentChunk.char_start,
+            DocumentChunk.char_end,
+            DocumentChunk.text,
+        )
+        .join(Document, Document.id == DocumentChunk.document_id)
+        .where(DocumentChunk.tenant_id == tenant_id, DocumentChunk.id.in_(chunk_ids))
+    )
+    return {row[0]: ChunkRef(*row) for row in rows}

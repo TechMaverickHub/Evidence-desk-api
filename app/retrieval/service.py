@@ -25,6 +25,12 @@ from app.retrieval.reranking import Reranker, rerank_hits
 logger = logging.getLogger(__name__)
 
 SearchMode = Literal["dense", "keyword", "hybrid"]
+ScoreKind = Literal["cosine", "ts_rank_cd", "rrf", "cross_encoder"]
+_SCORE_KIND_BY_MODE: dict[str, ScoreKind] = {
+    "dense": "cosine",
+    "keyword": "ts_rank_cd",
+    "hybrid": "rrf",
+}
 # Candidates each retriever contributes before fusion; deeper lists let a chunk ranked
 # low by one retriever still win when the other ranks it highly.
 DEFAULT_FUSION_DEPTH = 50
@@ -107,6 +113,11 @@ def _ranked_hits(run: _Search, reranker: Reranker | None) -> list[SearchHit]:
     candidates = RETRIEVERS[options.mode](run, max(options.k, options.rerank_depth))
     with run.timed("rerank"):
         return rerank_hits(reranker, run.query, candidates, options.k)
+
+
+def score_kind(mode: SearchMode, rerank: bool) -> ScoreKind:
+    """What a hit's `score` means; reranking replaces the retriever's score."""
+    return "cross_encoder" if rerank else _SCORE_KIND_BY_MODE[mode]
 
 
 def configured_chunker() -> str:

@@ -13,6 +13,11 @@ REQUIRED_PLACEHOLDERS = {
     "user": {"question", "passages"},
     "retry": {"problem"},
 }
+JUDGE_PLACEHOLDERS = {
+    "judge_system": set(),
+    "judge_correctness": {"question", "reference", "answer"},
+    "judge_faithfulness": {"answer", "passages"},
+}
 _SECTION = re.compile(r"^## (\w+)\s*$", re.MULTILINE)
 _PLACEHOLDER = re.compile(r"{(\w+)}")
 
@@ -34,20 +39,48 @@ class AnswerPrompts:
         return self.retry.format(problem=problem)
 
 
+@dataclass(frozen=True)
+class JudgePrompts:
+    """Grading prompts for answer evaluation (task 009b)."""
+
+    judge_system: str
+    judge_correctness: str
+    judge_faithfulness: str
+
+    def correctness_message(self, question: str, reference: str, answer: str) -> str:
+        return self.judge_correctness.format(question=question, reference=reference, answer=answer)
+
+    def faithfulness_message(self, answer: str, passages: str) -> str:
+        return self.judge_faithfulness.format(answer=answer, passages=passages)
+
+
 def parse_prompts(markdown: str) -> AnswerPrompts:
-    sections = _sections(markdown)
-    for name, placeholders in REQUIRED_PLACEHOLDERS.items():
-        if name not in sections:
-            raise PromptError(f"prompts.md has no '## {name}' section")
-        missing = placeholders - set(_PLACEHOLDER.findall(sections[name]))
-        if missing:
-            raise PromptError(f"'## {name}' is missing placeholders: {sorted(missing)}")
-    return AnswerPrompts(**{name: sections[name] for name in REQUIRED_PLACEHOLDERS})
+    return AnswerPrompts(**_checked_sections(markdown, REQUIRED_PLACEHOLDERS))
+
+
+def parse_judge_prompts(markdown: str) -> JudgePrompts:
+    return JudgePrompts(**_checked_sections(markdown, JUDGE_PLACEHOLDERS))
 
 
 @lru_cache
 def load_prompts() -> AnswerPrompts:
     return parse_prompts(PROMPTS_PATH.read_text(encoding="utf-8"))
+
+
+@lru_cache
+def load_judge_prompts() -> JudgePrompts:
+    return parse_judge_prompts(PROMPTS_PATH.read_text(encoding="utf-8"))
+
+
+def _checked_sections(markdown: str, required: dict[str, set[str]]) -> dict[str, str]:
+    sections = _sections(markdown)
+    for name, placeholders in required.items():
+        if name not in sections:
+            raise PromptError(f"prompts.md has no '## {name}' section")
+        missing = placeholders - set(_PLACEHOLDER.findall(sections[name]))
+        if missing:
+            raise PromptError(f"'## {name}' is missing placeholders: {sorted(missing)}")
+    return {name: sections[name] for name in required}
 
 
 def _sections(markdown: str) -> dict[str, str]:

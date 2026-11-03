@@ -36,7 +36,7 @@ from app.generation.schemas import (
 from app.ingestion.embedding import Embedder
 from app.retrieval.reranking import Reranker
 from app.retrieval.schemas import DocumentRef
-from app.retrieval.service import SearchOptions, search
+from app.retrieval.service import SearchOptions, score_kind, search
 
 logger = logging.getLogger(__name__)
 
@@ -73,14 +73,25 @@ def answer_question(
     outcome = search(session, tenant_id, embedder, request.question, options, reranker)
     passages = label_passages(outcome.hits)
     usage = _Usage()
-    # Nothing retrieved: nothing could support an answer, so don't pay for an LLM call.
-    checked = _ask(llm, prompts, request.question, passages, usage) if passages else _ABSTAIN
+    # Nothing retrieved, or too weak a best match: don't pay for an LLM call.
+    checked = (
+        _ask(llm, prompts, request.question, passages, usage)
+        if passages and not _below_gate(outcome.hits[0].score, options)
+        else _ABSTAIN
+    )
     latency_ms = {
         "retrieval": outcome.latency_ms["total"],
         "llm": round(usage.llm_ms, 2),
         "total": round((time.perf_counter() - started) * 1000, 2),
     }
     return _response(checked, passages, options, usage, latency_ms)
+
+
+def _below_gate(top_score: float, options: SearchOptions) -> bool:
+    """The optional abstention gate (task 009b). It compares cross-encoder scores only,
+    because that is the scale it was calibrated on."""
+    threshold = get_settings().answer_min_rerank_score
+    return threshold is not None and options.rerank and top_score < threshold
 
 
 def _search_options(request: AnswerRequest) -> SearchOptions:
@@ -169,6 +180,8 @@ def _response(
             mode=options.mode,
             rerank=options.rerank,
             context_chunk_ids=[passage.hit.chunk_id for passage in passages],
+            top_score=passages[0].hit.score if passages else None,
+            score_kind=score_kind(options.mode, options.rerank),
         ),
         usage=AnswerUsage(
             model=usage.model,

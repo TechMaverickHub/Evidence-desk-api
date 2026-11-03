@@ -19,6 +19,11 @@ from pathlib import Path
 
 from app.core.config import get_settings
 from app.core.db import get_sessionmaker
+from app.evaluation.answer_cli import (
+    ANSWER_COMMANDS,
+    add_answer_commands,
+    run_answer_command,
+)
 from app.evaluation.dataset import (
     DEFAULT_DEV_FRACTION,
     BuiltQuestion,
@@ -230,6 +235,7 @@ def _build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     _add_dataset_commands(commands)
     _add_run_commands(commands)
+    add_answer_commands(commands)
     return parser
 
 
@@ -272,6 +278,8 @@ def _add_run_commands(commands: argparse._SubParsersAction) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
+        if args.command in ANSWER_COMMANDS:
+            return run_answer_command(args)
         if args.command == "run":
             return _run(args)
         if args.command == "compare":

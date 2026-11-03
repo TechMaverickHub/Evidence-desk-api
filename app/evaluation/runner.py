@@ -38,7 +38,7 @@ from app.evaluation.records import (
     RunHeader,
     RunReport,
     RunResults,
-    score_kind,
+    run_score_kind,
 )
 from app.evaluation.relevance import MIN_OVERLAP_FRACTION, EvidenceItem, Span, match_evidence
 from app.ingestion.embedding import Embedder
@@ -106,7 +106,7 @@ def execute_run(
             embedding_model=embedder.model_name,
             query_instruction=query_instruction,
             min_overlap_fraction=MIN_OVERLAP_FRACTION,
-            score_kind=score_kind(config),
+            score_kind=run_score_kind(config),
             reranker_model=reranker.model_name if config.rerank else None,
         ),
         git=provenance.git_state(),
@@ -198,19 +198,24 @@ def search_options(config: RunConfig) -> SearchOptions:
     )
 
 
-def score_question(
-    question: BuiltQuestion,
-    hits: Sequence[SearchHit],
-    cutoffs: Sequence[int],
-    latency_ms: dict[str, float],
-) -> QuestionRecord:
-    evidence = [
+def evidence_items(question: BuiltQuestion) -> list[EvidenceItem]:
+    """The question's labelled evidence in the shape `match_evidence` expects."""
+    return [
         EvidenceItem(
             grade=item.grade,
             spans=tuple(Span(s.slug, s.version, s.char_start, s.char_end) for s in item.spans),
         )
         for item in question.evidence
     ]
+
+
+def score_question(
+    question: BuiltQuestion,
+    hits: Sequence[SearchHit],
+    cutoffs: Sequence[int],
+    latency_ms: dict[str, float],
+) -> QuestionRecord:
+    evidence = evidence_items(question)
     chunks = [Span(hit.slug, hit.version, hit.char_start, hit.char_end) for hit in hits]
     matches = match_evidence(chunks, evidence)
     grades = [item.grade for item in evidence]

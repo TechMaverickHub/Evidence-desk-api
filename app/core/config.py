@@ -56,15 +56,21 @@ class Settings(BaseSettings):
     llm_max_completion_tokens: int = Field(default=2048, gt=0)
     # Top chunks sent as context (each <= 300 tokens); the budget is Experiment D (010).
     answer_context_chunks: int = Field(default=5, ge=1, le=20)
+    # Optional pre-LLM abstention: below this top cross-encoder score, answer
+    # insufficient_evidence without calling the LLM. Off unless 009b's dev calibration
+    # adopts a value (see .claude/tasks/009b-answer-evaluation.md).
+    answer_min_rerank_score: float | None = None
+    # Grades answers in evaluation runs; a larger model than the generator.
+    llm_judge_model: str = "openai/gpt-oss-120b"
 
     # Evaluation runs started over the API read datasets by name from this directory and
     # verify the tenant's documents against this corpus manifest (task 006b).
     eval_datasets_dir: Path = Path("eval/datasets")
     eval_corpus_manifest: Path = Path("corpus/manifest.yaml")
 
-    @field_validator("groq_api_key", mode="before")
+    @field_validator("groq_api_key", "answer_min_rerank_score", mode="before")
     @classmethod
-    def blank_key_means_unset(cls, value: object) -> object:
+    def blank_means_unset(cls, value: object) -> object:
         # "GROQ_API_KEY=" in .env (as in .env.example) must mean "not configured".
         return None if isinstance(value, str) and not value.strip() else value
 

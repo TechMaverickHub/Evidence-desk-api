@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.retrieval.schemas import MAX_QUERY_CHARS, DocumentRef, SearchFilters
-from app.retrieval.service import SearchMode
+from app.retrieval.service import ScoreKind, SearchMode
 
 AnswerStatus = Literal["answered", "insufficient_evidence"]
 
@@ -23,11 +23,16 @@ class ModelAnswer(BaseModel):
     citations: list[int]
 
 
-def model_answer_schema() -> dict:
-    schema = ModelAnswer.model_json_schema()
-    # The docstring is for readers of this code, not for the model.
+def strict_json_schema(model: type[BaseModel]) -> dict:
+    """A model's JSON schema for strict structured output. The docstring is for readers of
+    this code, not for the LLM, so it is left out."""
+    schema = model.model_json_schema()
     schema.pop("description", None)
     return schema
+
+
+def model_answer_schema() -> dict:
+    return strict_json_schema(ModelAnswer)
 
 
 class AnswerRetrieval(BaseModel):
@@ -74,6 +79,10 @@ class RetrievalSummary(BaseModel):
     mode: SearchMode
     rerank: bool
     context_chunk_ids: list[uuid.UUID]
+    # The best retrieved chunk's score (null when nothing was retrieved); with rerank, the
+    # cross-encoder score the optional abstention gate compares against.
+    top_score: float | None
+    score_kind: ScoreKind
 
 
 class AnswerResponse(BaseModel):

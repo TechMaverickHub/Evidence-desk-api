@@ -1,0 +1,4 @@
+# Task 009b: the 009a pipeline as served by /v1/answers (dense, rerank top 20, 5 chunks).
+name: rerank20
+mode: dense
+rerank: true

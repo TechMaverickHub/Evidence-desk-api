@@ -143,6 +143,26 @@ or a 502 `LLM_INVALID_OUTPUT` after one retry) → response with citations.
    backoff (`LLM_MAX_RETRIES`).
 9. **No `GROQ_API_KEY`** → 503 for answers only.
 10. **Logs** carry metadata only: model, attempt, outcome, tokens, latency.
+11. **Optional gate (task 009b).** With rerank on, if the top cross-encoder score is
+    below `ANSWER_MIN_RERANK_SCORE` (default off), the answer is `insufficient_evidence`
+    with no LLM call.
+
+**Answer evaluation** (task 009b, CLI `answer-run` / `answer-judge` / `answer-report`):
+- **Runs.** Each question of a split goes through `generation.service.answer_question`
+  with the API's dependencies.
+  - Paced (`--pace`) and resumable: `answers-*.partial.jsonl` keeps finished questions;
+    errors are retried on a rerun, and a mismatched run key is refused.
+- **Records** (`answers-<config>-<split>.json`) hold raw facts: outcome, answer,
+  citations and context with the evidence items each overlaps, top score, tokens,
+  latency.
+- **Metrics** (`answer_metrics.py`, pure) are computed from the records:
+  - abstention, with false abstentions split into retrieval misses and generation
+  - citation precision, evidence coverage and context hit
+  - the gate sweep
+- **The judge** (`judge.py`, `LLM_JUDGE_MODEL`, prompts in `prompts.md`) adds
+  correctness (vs the reference) and faithfulness (vs cited passages only).
+  - Strict schema, retried once, else `unjudged`.
+  - Judged metrics are labelled with the human spot-check agreement.
 
 **Ingest** (`POST /v1/documents/ingest`): store the document (idempotent on slug + version +
 content hash) → enqueue an `ingest` job → worker chunks, embeds and replaces the document's

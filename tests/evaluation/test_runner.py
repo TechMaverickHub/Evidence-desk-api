@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.auth.models import Tenant
 from app.documents.models import DocumentChunk
 from app.evaluation.dataset import BuiltEvidence, BuiltQuestion, BuiltSpan, Dataset
-from app.evaluation.records import RunConfig, score_kind
+from app.evaluation.records import RunConfig, run_score_kind
 from app.evaluation.runner import (
     RunError,
     execute_run,
@@ -262,7 +262,7 @@ def test_a_hybrid_config_reaches_the_search_service(
     ],
 )
 def test_score_kind_names_what_hit_scores_mean(config: RunConfig, kind: str) -> None:
-    assert score_kind(config) == kind
+    assert run_score_kind(config) == kind
 
 
 def test_a_reranking_config_without_a_reranker_fails_clearly(

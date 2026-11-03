@@ -10,16 +10,14 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.evaluation.metrics import MetricSummary, QueryScores
 from app.retrieval.fusion import DEFAULT_RRF_K
-from app.retrieval.service import DEFAULT_FUSION_DEPTH, DEFAULT_RERANK_DEPTH
+from app.retrieval.service import (
+    DEFAULT_FUSION_DEPTH,
+    DEFAULT_RERANK_DEPTH,
+    ScoreKind,
+    score_kind,
+)
 
 RUN_FORMAT = "evidencedesk-run/1"
-
-ScoreKind = Literal["cosine", "ts_rank_cd", "rrf", "cross_encoder"]
-_SCORE_KIND_BY_RETRIEVER: dict[str, ScoreKind] = {
-    "dense": "cosine",
-    "keyword": "ts_rank_cd",
-    "hybrid": "rrf",
-}
 
 
 class RunConfig(BaseModel):
@@ -49,9 +47,8 @@ class RunConfig(BaseModel):
         return self
 
 
-def score_kind(config: "RunConfig") -> ScoreKind:
-    """Reranking replaces the retriever's score with the cross-encoder's."""
-    return "cross_encoder" if config.rerank else _SCORE_KIND_BY_RETRIEVER[config.retriever]
+def run_score_kind(config: "RunConfig") -> ScoreKind:
+    return score_kind(config.retriever, config.rerank)
 
 
 class MetricRow(BaseModel):
