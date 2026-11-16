@@ -1,0 +1,80 @@
+# Lint, migrations check, tests and Docker build on every push and pull request (task 013).
+name: CI
+
+on:
+  push:
+    branches: [main, dev, "task/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.9.7"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: evidencedesk
+          POSTGRES_PASSWORD: evidencedesk
+          POSTGRES_DB: evidencedesk
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U evidencedesk -d evidencedesk"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://evidencedesk:evidencedesk@localhost:5432/evidencedesk
+      TEST_DATABASE_URL: postgresql+psycopg://evidencedesk:evidencedesk@localhost:5432/evidencedesk_test
+      # CI-only dummy; tests mint and verify their own tokens with it.
+      JWT_SECRET_KEY: ci-only-not-a-secret-0123456789abcdef
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Create the test database (same script as the compose Postgres)
+        run: psql "postgresql://evidencedesk:evidencedesk@localhost:5432/evidencedesk" -f docker/postgres-init/01-test-db.sql
+      - name: Migrations apply and match the models
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+      # Real-model tests are excluded by default (pyproject addopts); the eval gate runs them.
+      - run: uv run pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          tags: evidencedesk:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

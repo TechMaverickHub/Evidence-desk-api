@@ -37,7 +37,7 @@ class ComparisonError(Exception):
 def render_run(report: RunReport) -> str:
     lines = _run_header(report)
     for k, rows in report.results.metrics.items():
-        lines += [f"## Retrieval metrics @{k}", "", *_metric_table(rows, k, _row_order(rows)), ""]
+        lines += [f"## Retrieval metrics @{k}", "", *_metric_table(rows, k, row_order(rows)), ""]
     lines += _overlap_section(report)
     lines += _latency_section(report)
     lines += _unanswerable_section(report.results.questions, report.header.effective.score_kind)
@@ -73,7 +73,7 @@ def _run_header(report: RunReport) -> list[str]:
     return lines
 
 
-def _row_order(rows: dict[str, MetricRow]) -> list[str]:
+def row_order(rows: dict[str, MetricRow]) -> list[str]:
     """The overall row first, then query types alphabetically."""
     return ["all", *sorted(name for name in rows if name != "all")]
 
@@ -184,7 +184,7 @@ def win_tie_loss(deltas: Sequence[float]) -> tuple[int, int, int]:
 
 
 def render_comparison(base: RunReport, candidate: RunReport) -> str:
-    pairs = _paired_questions(base, candidate)
+    pairs = paired_questions(base, candidate)
     lines = [
         f"# `{candidate.header.run_name}` vs `{base.header.run_name}`",
         "",
@@ -198,7 +198,7 @@ def render_comparison(base: RunReport, candidate: RunReport) -> str:
     return "\n".join(lines)
 
 
-def _paired_questions(
+def paired_questions(
     base: RunReport, candidate: RunReport
 ) -> list[tuple[QuestionRecord, QuestionRecord]]:
     if base.header.dataset != candidate.header.dataset:
@@ -215,7 +215,7 @@ def _delta_table(base: RunReport, candidate: RunReport, k: int) -> list[str]:
     base_rows, candidate_rows = base.results.metrics[k], candidate.results.metrics[k]
     columns = " | ".join(f"{label}@{k}" for label, _ in _METRICS)
     lines = [f"| query_type | n | {columns} |", "|---|---|" + "---|" * len(_METRICS)]
-    for name in _row_order(base_rows):
+    for name in row_order(base_rows):
         cells = " | ".join(
             _delta_cell(getattr(base_rows[name], field), getattr(candidate_rows[name], field))
             for _, field in _METRICS

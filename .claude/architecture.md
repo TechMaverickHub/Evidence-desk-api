@@ -20,7 +20,7 @@
 | Observability | stdlib `logging` with a JSON formatter carrying `trace_id`; OpenTelemetry traces (task 012): FastAPI's built-in request spans plus our stage spans; exporter `none` / `console` / `otlp` | Traces show where time goes per request without logging any text |
 | Tests | pytest + FastAPI `TestClient` against a real Postgres (Docker) | pgvector and FTS cannot be faked meaningfully |
 | Lint / format | ruff | One tool |
-| Delivery | Docker Compose (api, worker, postgres), GitHub Actions | Reproducible locally and in CI |
+| Delivery | Docker Compose (postgres, migrate, api, worker; optional Jaeger), GitHub Actions CI + evaluation regression gate (task 013) | Reproducible locally and in CI; retrieval regressions fail a PR |
 
 New dependencies need a one-line reason in the task doc that adds them.
 
@@ -57,7 +57,7 @@ app/
   generation/           prompts.md + loader, LLM gateway (Groq), citation checks, answer
                         service, /v1/answers
   evaluation/           dataset builder, IR metrics, span relevance, runner, run records,
-                        reports + comparison, provenance (git, environment)
+                        reports + comparison, regression gate, provenance (git, environment)
   jobs/                 job model + repository (shared by ingestion and evaluation)
 migrations/             Alembic
 corpus/                 Frozen corpus: generated pages, manifest.yaml, SOURCES.md, licenses/,
@@ -67,6 +67,9 @@ eval/datasets/          Labelled benchmark (JSONL), dev and test splits
 eval/configs/           Retrieval configurations for evaluation runs (YAML)
 eval/reports/           Generated experiment reports (Markdown + JSON)
 tests/                  Mirrors app/ (tests/retrieval/test_fusion.py, ...)
+Dockerfile              One image for api, worker and migrate (task 013)
+docker-compose.yml      postgres, migrate, api, worker; jaeger under the "tracing" profile
+.github/workflows/      ci.yml (lint, tests, image build), eval-gate.yml (dev regression gate)
 ```
 
 There is no `common` or `utils` package. Shared code lives in `app/core/`.
@@ -282,10 +285,41 @@ Worst-case latency of one LLM call: 3 attempts × `LLM_TIMEOUT_SECONDS` (20 s) +
   without an LLM call. Orphaned jobs are requeued, then failed after `JOB_MAX_ATTEMPTS`.
 - **Pagination:** `limit` / `offset` with a max `limit` of 100. Simple is fine here.
 
-## Local topology
+## Local topology and delivery (task 013)
 
 ```
-docker-compose.yml:
-  postgres (pgvector/pgvector:pg16)   api (uvicorn :8000)   worker (python -m app.worker)
+docker-compose.yml (one image, `Dockerfile`, for migrate / api / worker):
+  postgres (pgvector/pgvector:pg16, host :5434)
+    -> migrate (alembic upgrade head, once)
+      -> api (uvicorn :8000, healthcheck /v1/health)   worker (python -m app.worker)
+  jaeger (profile "tracing": UI :16686, OTLP/HTTP :4318)
+  volumes: postgres-data, hf-models (Hugging Face cache shared by api and worker)
 Groq -> real key from .env, or the generation tests use a fake client
 ```
+
+- **Image.** Built with uv from `uv.lock` (`--locked --no-dev`, CPU-only torch), then copied
+  into a `python:3.12-slim-bookworm` runtime as a non-root user. It holds `app/`,
+  `migrations/`, `corpus/` and `eval/{datasets,configs}` (evaluation-run jobs need them),
+  but no models: they are downloaded into the `hf-models` volume on first use. `.env`, tests
+  and reports are excluded by `.dockerignore`.
+- **Migrations** run in their own one-shot service, so API replicas never race on them.
+- **Settings** come from `.env` when present; compose overrides `DATABASE_URL` to reach
+  `postgres:5432` and gives a dev-only `JWT_SECRET_KEY` fallback.
+- **CI** (`.github/workflows/ci.yml`, push and PR): ruff; `alembic upgrade head` +
+  `alembic check`; `pytest -q` against a pgvector service; Docker build with the GitHub
+  Actions layer cache. Workflows have `contents: read` only and use no secrets.
+- **Evaluation gate** (`.github/workflows/eval-gate.yml`, PRs to `main` on
+  retrieval-relevant paths, or manual):
+  1. Model tests (`pytest -m model`), with the Hugging Face cache restored by `actions/cache`.
+  2. A fresh tenant (`create-tenant --password-env`, throwaway password) loads the corpus.
+  3. `cli run` of the adopted config (`d2-tokens450`) on **dev**.
+  4. `cli gate` (`app/evaluation/gate.py`) against the committed
+     `eval/reports/d2-tokens450-dev.json`.
+  - **Rule:** fail when nDCG@10, recall@10 or hit@5 (all questions) drops by more than
+    0.02. The paired bootstrap CI and per-`query_type` deltas are reported, not gated: same
+    code on the same data should reproduce the baseline, and on 70 questions a CI is too wide
+    to catch real drops.
+  - **Refusals (exit 2):** a test-split record, different configs, datasets or questions,
+    or a config without cutoffs 5 and 10.
+  - **Changing the baseline** (after adopting a new config) is an explicit change to the
+    workflow's `GATE_CONFIG` / `GATE_BASELINE` in the PR.

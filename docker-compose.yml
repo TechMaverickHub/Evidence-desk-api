@@ -1,5 +1,7 @@
-# Local development services. Task 001 runs only Postgres; the API and worker
-# containers are added in task 013.
+# Local stack (task 013): Postgres, a one-shot migration, the API and the worker.
+#   docker compose up -d --build              # everything
+#   docker compose up -d postgres             # only the database (tests, local uvicorn)
+#   docker compose --profile tracing up -d    # plus Jaeger; see .env.example for OTLP settings
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -21,5 +23,62 @@ services:
       timeout: 3s
       retries: 10
 
+  # Runs once before the api and worker start, so replicas never race on migrations.
+  migrate:
+    <<: &app
+      image: evidencedesk:dev
+      build: .
+      env_file:
+        - path: .env
+          required: false
+      environment:
+        # Containers reach Postgres on the compose network, not the host port in .env.
+        DATABASE_URL: postgresql+psycopg://evidencedesk:evidencedesk@postgres:5432/evidencedesk
+        # Dev-only fallback matching .env.example; .env or the shell can override it.
+        JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-not-a-secret-replace-me-0123456789}
+      volumes:
+        - hf-models:/models
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    ports:
+      - "${API_HOST_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # No curl in the slim image; Python is there anyway.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # The first start downloads the embedding model into the hf-models volume.
+      start_period: 180s
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # Trace viewer for TELEMETRY_EXPORTER=otlp (task 012); only with --profile tracing.
+  jaeger:
+    image: jaegertracing/jaeger:2.16.0
+    profiles: ["tracing"]
+    ports:
+      - "16686:16686" # UI
+      - "4318:4318" # OTLP over HTTP
+
 volumes:
   postgres-data:
+  # Hugging Face cache shared by api and worker, so models download once.
+  hf-models:

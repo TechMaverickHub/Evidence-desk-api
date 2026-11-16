@@ -22,9 +22,9 @@ later rows are the intended order and get their own task file when they come up.
 | 010 | [Chunking and context-budget experiments (Exp. D)](tasks/010-chunking-context.md) | ingestion, evaluation | W3 | ✅ Done; 278 tests; 450/75 chunks adopted (dev hit@5 +0.057); test answers 59/65 vs 56/65 |
 | 011 | [Reliability: LLM failure taxonomy, bounded retries, stale jobs, failure scenarios](tasks/011-reliability.md) | generation, jobs, evaluation | W4 | ✅ Done; 295 tests; 12 failure scenarios catalogued and tested |
 | 012 | [Observability: OpenTelemetry traces, stage latency, token usage and cost](tasks/012-observability.md) | core, all | W5 | ✅ Done; 308 tests; stage spans + trace_id in logs + cost_usd |
-| 013 | Docker Compose (api, worker, db), GitHub Actions, evaluation regression gate | repo | W5 | Not started |
+| 013 | [Docker Compose (api, worker, db), GitHub Actions, evaluation regression gate](tasks/013-docker-ci-eval-gate.md) | repo, evaluation | W5 | ✅ Done; 327 tests; compose stack + CI + dev regression gate (GitHub runs pending push) |
 | 014 | Streamlit dashboard (separate repo) | — | W5 | Not started |
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: write the plan for task 013 (Docker Compose for api, worker and db; GitHub Actions; evaluation regression gate). Task 009 is split into 009a/b; see 009a for why.
+Next: push per 013 option A and record the first GitHub CI and gate runs; then plan task 014. Task 009 is split into 009a/b; see 009a for why.

@@ -1,10 +1,12 @@
 """Command-line admin tasks that must not be exposed over HTTP.
 
 Usage: uv run python -m app.auth.cli create-tenant --name acme --admin-email admin@acme.example.com
+Non-interactive (CI, containers): add --password-env NAME to read the password from $NAME.
 """
 
 import argparse
 import getpass
+import os
 import sys
 
 from pydantic import ValidationError
@@ -25,8 +27,17 @@ def _prompt_password() -> str | None:
     return password
 
 
-def _create_tenant(name: str, admin_email: str) -> int:
-    password = _prompt_password()
+def _password_from_env(name: str) -> str | None:
+    # The variable's name is an argument, never its value, so the password stays out of argv.
+    password = os.environ.get(name)
+    if not password:
+        print(f"Environment variable {name} is not set or empty.", file=sys.stderr)
+        return None
+    return password
+
+
+def _create_tenant(name: str, admin_email: str, password_env: str | None) -> int:
+    password = _prompt_password() if password_env is None else _password_from_env(password_env)
     if password is None:
         return 1
     try:
@@ -54,9 +65,12 @@ def main(argv: list[str] | None = None) -> int:
     create = commands.add_parser("create-tenant", help="Create a tenant and its first admin")
     create.add_argument("--name", required=True, help="Unique tenant name")
     create.add_argument("--admin-email", required=True, help="Email of the first admin")
+    create.add_argument(
+        "--password-env", metavar="NAME", help="Read the admin password from this env variable"
+    )
 
     args = parser.parse_args(argv)
-    return _create_tenant(args.name, args.admin_email)
+    return _create_tenant(args.name, args.admin_email, args.password_env)
 
 
 if __name__ == "__main__":

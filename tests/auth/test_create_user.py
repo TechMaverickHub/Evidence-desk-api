@@ -108,3 +108,46 @@ def test_cli_creates_tenant_with_admin(
     admin = get_user_by_email(db_session, "admin@acme.example.com")
     assert admin is not None
     assert admin.role == Role.ADMIN
+
+
+def _no_prompt(prompt: str) -> str:
+    raise AssertionError("--password-env must not prompt")
+
+
+def test_cli_reads_the_admin_password_from_the_named_env_variable(
+    monkeypatch: pytest.MonkeyPatch, db_session: Session
+) -> None:
+    monkeypatch.setattr(cli.getpass, "getpass", _no_prompt)
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: lambda: db_session)
+    monkeypatch.setenv("GATE_ADMIN_PASSWORD", "a-strong-password")
+
+    exit_code = cli.main(
+        [
+            "create-tenant",
+            "--name",
+            "ci",
+            "--admin-email",
+            "ci@example.com",
+            "--password-env",
+            "GATE_ADMIN_PASSWORD",
+        ]
+    )
+
+    assert exit_code == 0
+    assert get_user_by_email(db_session, "ci@example.com") is not None
+
+
+@pytest.mark.parametrize("value", [None, "", "short"])
+def test_cli_rejects_a_missing_or_weak_env_password(
+    monkeypatch: pytest.MonkeyPatch, db_session: Session, value: str | None
+) -> None:
+    monkeypatch.setattr(cli.getpass, "getpass", _no_prompt)
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: lambda: db_session)
+    monkeypatch.delenv("GATE_ADMIN_PASSWORD", raising=False)
+    if value is not None:
+        monkeypatch.setenv("GATE_ADMIN_PASSWORD", value)
+
+    args = ["create-tenant", "--name", "ci", "--admin-email", "ci@example.com"]
+
+    assert cli.main([*args, "--password-env", "GATE_ADMIN_PASSWORD"]) == 1
+    assert get_user_by_email(db_session, "ci@example.com") is None

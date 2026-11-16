@@ -9,6 +9,8 @@ Usage:
     uv run python -m app.evaluation.cli run --config eval/configs/dense-baseline.yaml
         --dataset eval/datasets/evidencedesk-v1.jsonl --split dev --tenant eval-corpus-v1
     uv run python -m app.evaluation.cli compare eval/reports/a-dev.json eval/reports/b-dev.json
+    uv run python -m app.evaluation.cli gate eval/reports/d2-tokens450-dev.json
+        .cache/gate/d2-tokens450-dev.json --out .cache/gate/gate.md
 """
 
 import argparse
@@ -34,6 +36,7 @@ from app.evaluation.dataset import (
     read_corpus_texts,
     write_dataset,
 )
+from app.evaluation.gate import DEFAULT_TOLERANCE, GateError, evaluate_gate, render_gate
 from app.evaluation.records import RunReport
 from app.evaluation.report import ComparisonError, render_comparison, render_run
 from app.evaluation.runner import (
@@ -207,6 +210,22 @@ def _compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def _gate(args: argparse.Namespace) -> int:
+    """Exit 0 when the candidate holds up, 1 on a regression, 2 when the runs can't be gated."""
+    try:
+        baseline = _read_run(args.baseline)
+        candidate = _read_run(args.candidate)
+        result = evaluate_gate(baseline, candidate, args.tolerance)
+    except (RunError, ComparisonError, GateError) as exc:
+        print(f"Gate refused: {exc}", file=sys.stderr)
+        return 2
+    markdown = render_gate(baseline, candidate, result)
+    if args.out is not None:
+        _write(args.out, markdown + "\n")
+    print(markdown)
+    return 0 if result.passed else 1
+
+
 def _read_run(path: Path) -> RunReport:
     try:
         return RunReport.model_validate_json(path.read_bytes())
@@ -274,6 +293,12 @@ def _add_run_commands(commands: argparse._SubParsersAction) -> None:
     compare.add_argument("candidate", type=Path, help="Candidate run .json")
     compare.add_argument("--out-dir", type=Path, default=Path("eval/reports"))
 
+    gate = commands.add_parser("gate", help="Fail when a dev run regresses against a baseline")
+    gate.add_argument("baseline", type=Path, help="Committed baseline run .json")
+    gate.add_argument("candidate", type=Path, help="Fresh run .json of the same config")
+    gate.add_argument("--tolerance", type=float, default=DEFAULT_TOLERANCE)
+    gate.add_argument("--out", type=Path, help="Also write the Markdown summary here")
+
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
@@ -284,6 +309,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run(args)
         if args.command == "compare":
             return _compare(args)
+        if args.command == "gate":
+            return _gate(args)
         if args.command == "build-dataset":
             dataset = build_dataset(
                 args.source, args.manifest, args.name or args.out.stem, args.seed, args.dev_fraction
