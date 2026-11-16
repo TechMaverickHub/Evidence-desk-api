@@ -40,8 +40,10 @@ class Settings(BaseSettings):
 
     # The worker writes chunks with these sizes and search reads chunks with the same name,
     # so both must come from here.
-    chunk_max_tokens: int = Field(default=300, gt=0)
-    chunk_overlap_tokens: int = Field(default=50, ge=0)
+    # 450/75 adopted in Experiment D (task 010): more evidence reached the answer context
+    # than with 300/50 (dev hit@5 +0.057). Changing these needs `ingestion.cli rechunk`.
+    chunk_max_tokens: int = Field(default=450, gt=0)
+    chunk_overlap_tokens: int = Field(default=75, ge=0)
     # Embed (and rerank) chunks with their document title, version and heading path (task 010).
     chunk_context_header: bool = False
     worker_poll_seconds: float = Field(default=1.0, gt=0)

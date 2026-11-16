@@ -1,6 +1,6 @@
 # Task 010 — Chunking and context experiments (Experiment D)
 
-**Status:** 🔨 Code done; Experiment D runs pending the code commit
+**Status:** ✅ Done (D2 450/75 adopted; 5 context chunks kept)
 **Week:** W3 · **Modules:** `app/ingestion`, `app/retrieval`, `app/evaluation`, `app/generation` (small) ·
 **Branch:** `task/010-chunking` (off `task/009b-answer-evaluation`)
 
@@ -224,23 +224,193 @@ comes from stored document metadata (title, source, version), never from request
 - [x] `RunConfig.chunker`, runner, answer record chunker + tests
 - [x] `rechunk` CLI + tests
 - [x] `ruff check`, `ruff format --check`, full test suite clean
-- [ ] Commit 1 after confirmation
-- [ ] Dev: rechunk D1–D3, run D0–D3 (+D4 if triggered), decision by the rule
-- [ ] Test: chosen vs D0; if adopted, settings change + test answer run vs 009b
-- [ ] Update [architecture.md](../architecture.md), [database.md](../database.md), [api-spec.md](../api-spec.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
-- [ ] Commit 2 after confirmation
+- [x] Commit 1 after confirmation
+- [x] Dev: rechunk D1–D3, run D0–D3 (+D4 if triggered), decision by the rule
+- [x] Test: chosen vs D0; if adopted, settings change + test answer run vs 009b
+- [x] Update [architecture.md](../architecture.md), [database.md](../database.md), [api-spec.md](../api-spec.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
+- [x] Commit 2 after confirmation
 
 ---
 
 ## Handover
 
-*(Filled in after implementation.)*
-
 ### Summary
+**Experiment D measured how chunking affects whether evidence reaches the answer context.**
+Three variants were compared with the current 300/50 chunker on the exact answer pipeline
+(dense → rerank top 20), using a new metric, hit@k: any evidence in the top k.
+
+**Adopted: 450-token windows with 75 overlap (D2).**
+- **Why:** chosen by the dev rule fixed in the plan (hit@5 +0.057, 95 % CI [+0.014, +0.129]).
+- **Defaults changed:** `CHUNK_MAX_TOKENS=450`, `CHUNK_OVERLAP_TOKENS=75`.
+- **Context budget unchanged:** 5 chunks; 8 added only one dev question.
+- **Test result:** the retrieval gain is in the same direction but not demonstrated
+  (hit@5 +0.031, CI [−0.046, +0.108]). Answers improved from 56/65 to 59/65 answered, with
+  retrieval-miss refusals down from 8 to 5.
+- **Cost:** about 17 % more prompt tokens and slower reranking.
+
+**What was built:**
+- **Chunker variants** coexist by name.
+- **`ingestion.cli rechunk`** adds a variant to every ingested document; it is resumable.
+- **Contextual-header variants (`-ctx`)** embed and rerank "title (source version) >
+  heading path" + text, without touching offsets.
+- **Evaluation configs** can pick a chunker.
+
+Code is in `ba5a15e`; all experiment reports were generated from that clean commit. 278 tests
+pass.
+
 ### Architecture Notes
+- **Naming.** A chunker name says everything: `tokens-<max>-overlap-<o>[-ctx]`.
+  - `ingestion.chunking.has_context_header(name)` is how search knows to give the reranker
+    the same header + text the embedder saw.
+  - `contextual_header` and `model_input` build that text in one place.
+- **Offsets.** Stored `text`, `char_start` and `char_end` never include the header (tested),
+  so evidence labels, citations and snippets stay exact.
+- **Chunker selection.**
+  - `SearchOptions.chunker` and `RunConfig.chunker` select a variant per evaluation run.
+  - The API reads `configured_chunker()`, which now includes the `CHUNK_CONTEXT_HEADER`
+    setting (still off).
+  - `verify_corpus` checks the selected variant exists for every document.
+- **`rechunk_documents`** commits per document and skips documents that already have the
+  variant, so it resumes after interruption and never duplicates chunks. It is
+  tenant-scoped (tested).
+- **hit@k** sits next to P/R/MRR/nDCG in `metrics.py`, run records, reports and `compare`.
+  Records written before 010 load with `hit = None`, shown as "–", and are left out of
+  hit comparisons.
+- **The `eval-corpus-v1` tenant now holds four variants:**
+
+  | Variant | Chunks |
+  |---|---|
+  | 300/50 | 5,005 |
+  | 150/30 | 8,737 |
+  | 450/75 | 3,920 |
+  | 300/50-ctx | 5,005 |
+
+  The adopted default (450/75) is already present, so nothing needs re-ingesting.
+
 ### Deviations from the plan
+- **The D3 near miss.** D3 (contextual header) had the largest dev gains:
+  - hit@5 +0.086
+  - nDCG@10 +0.071, CI [+0.007, +0.138]
+  - hit@8 +0.100, CI [+0.014, +0.186]
+
+  But the lower bound of its primary-metric interval (hit@5) is exactly 0.0. The fixed
+  rule requires an interval that excludes 0, so D3 does not qualify, and choosing it after
+  seeing the numbers would be post-hoc tuning. As a result, D4 (best size + header) was not
+  triggered either. Recorded as the strongest lead for future work.
+- **The test answer run used environment variables** (`CHUNK_MAX_TOKENS=450`,
+  `CHUNK_OVERLAP_TOKENS=75`) to apply D2 without editing committed code, so the run comes
+  from a clean tree. Its record names the chunker it used. It needed its own answer config
+  (`answers-d2-tokens450.yaml`), so it doesn't overwrite 009b's `answers-rerank20-test`.
+- **D0 was re-run on dev and test** with the new code (for hit@k). Its numbers equal the
+  008 `dense-rerank20` runs exactly: a reproducibility check.
+- **`load_fixture_corpus` moved** to the shared `tests/conftest.py`, because the new
+  ingestion tests need it.
+- **Adopting D2 changed two tests:**
+  - `test_search_api` now compares against `configured_chunker()`.
+  - The header test names its 300/50 plain variant explicitly.
+
 ### Database Changes
+No migration. The `chunks.chunker` values now include `tokens-150-overlap-30`,
+`tokens-450-overlap-75` and `tokens-300-overlap-50-ctx` (the `String(50)` column fits them).
+See [database.md](../database.md).
+
 ### API Changes
+- **No endpoint changes.** `/v1/search` and `/v1/answers` now read 450/75 chunks by
+  default.
+- **New setting:** `CHUNK_CONTEXT_HEADER` (off).
+- **Defaults changed:** `CHUNK_MAX_TOKENS` 300 → 450 and `CHUNK_OVERLAP_TOKENS` 50 → 75.
+- **New CLI command:** `ingestion.cli rechunk`.
+- **Retrieval reports** gain Hit@k.
+
+See [api-spec.md](../api-spec.md).
+
 ### Evaluation Results
+**Setup:**
+- Dataset `evidencedesk-v1` (sha256 `b77c981f…cbcf9920`), tenant `eval-corpus-v1`.
+- `BAAI/bge-small-en-v1.5`; reranker `cross-encoder/ms-marco-MiniLM-L6-v2` on the top 20
+  (CPU); 5 context chunks.
+- Git `ba5a15e` (clean). Same Windows 11 machine as before.
+
+**Dev (70 answerable questions), against D0:**
+
+| Variant | Chunks | hit@5 | Δ hit@5 (95 % CI) | nDCG@10 | Δ nDCG@10 (95 % CI) | retrieval p50 |
+|---|---|---|---|---|---|---|
+| D0 300/50 | 5,005 | 0.757 | — | 0.589 | — | 1.28 s |
+| D1 150/30 | 8,737 | 0.743 | −0.014 [−0.100, +0.071] | 0.542 | −0.048 [−0.117, +0.011] | — |
+| **D2 450/75** | 3,920 | **0.814** | **+0.057 [+0.014, +0.129]** | 0.615 | +0.026 [−0.002, +0.063] | 1.93 s |
+| D3 300/50 + header | 5,005 | 0.843 | +0.086 [0.000, +0.171] | 0.660 | +0.071 [+0.007, +0.138] | 1.47 s |
+
+**Dev hit@5 per type** (n): D0 / D1 / D2 / D3
+
+| Type (n) | D0 | D1 | D2 | D3 |
+|---|---|---|---|---|
+| paraphrase (12) | 0.42 | 0.58 | 0.50 | 0.58 |
+| multi_passage (11) | 0.82 | 0.73 | 0.82 | 0.91 |
+| factual (12) | 0.67 | 0.58 | 0.75 | 0.83 |
+| exact_identifier (18) | 0.94 | 0.83 | 1.00 | 1.00 |
+| version_specific (13) | 0.92 | 0.92 | 0.92 | 1.00 |
+| ambiguous (4) | 0.50 | 0.75 | 0.75 | 0.25 |
+
+These groups are small and indicative only.
+
+**Decisions by the rule:**
+- **D2 beats D0, and is the only variant that qualifies.** Chosen.
+- **D4 not built:** it needed D3 to qualify too.
+- **Context budget:** D2's hit@8 − hit@5 = +0.014 (1 question), below 0.05, so 5 chunks
+  stay.
+
+**Test, one run each (65 answerable questions):**
+- **Retrieval, D2 vs D0:**
+  - hit@5 0.769 → 0.800, Δ +0.031, CI [−0.046, +0.108]
+  - nDCG@10 0.608 → 0.597, Δ −0.011, CI [−0.063, +0.027]
+  - R@5 Δ +0.023, CI [−0.038, +0.087]
+- **No demonstrated difference on test.**
+
+**Answers, test** (D2 settings vs 009b's D0 run; `gpt-oss-20b`; deterministic metrics, no
+judge):
+
+| | D0 (009b) | D2 |
+|---|---|---|
+| Answered (answerable) | 56/65 (86 %) | 59/65 (91 %) |
+| Wrong refusals: retrieval miss / generation | 8 / 1 | 5 / 1 |
+| Unanswerable correctly refused | 5/5 | 5/5 |
+| Context hit | 77 % | 80 % |
+| Citation precision / evidence coverage | 58 % / 82 % | 55 % / 81 % |
+| Prompt / completion tokens | 99.7k / 15.4k | 116.8k / 16.7k |
+| Total latency p50 / p95 | 10.3 s / 16.3 s | 12.9 s / 18.6 s |
+| Errors | 0 | 0 |
+
+**Caveat:** the two answer runs were 13 days apart on a hosted model, so provider-side drift
+can't be ruled out.
+
+**Reading:**
+- **Larger chunks help get the evidence into context.** D1 shows smaller chunks hurt
+  (nDCG −0.048).
+- **On test the effect is within noise for retrieval,** while answers moved the same way as
+  dev: three more answered, three fewer retrieval misses.
+- **The decision follows the pre-registered rule, and you chose to adopt it;** the test
+  evidence alone would not have demonstrated it.
+- **The contextual header looks promising,** especially for version-specific, multi-passage
+  and factual questions, but missed the bar by the narrowest margin.
+
 ### Future Work
+- **Header variants:** evaluate D2 + header (450/75-ctx) and D3 on benchmark v2 or another
+  dataset, not this dev split again.
+- **Index headers** in keyword search if hybrid search is revisited.
+- **A cleanup command** for unused chunk variants (150/30, 300/50, 300/50-ctx are kept for
+  reproducibility).
+- **011:** failure-scenario tests and clean stops on daily rate limits (from 009b).
+
 ### Modified Files
+| File | Why |
+|---|---|
+| `app/evaluation/metrics.py`, `records.py`, `report.py`, `runner.py` | hit@k; `RunConfig.chunker` |
+| `app/ingestion/chunking.py`, `pipeline.py`, `cli.py` | Variant naming, contextual header, `rechunk` |
+| `app/retrieval/service.py`, `reranking.py` | `SearchOptions.chunker`; reranker input with header |
+| `app/documents/repository.py` | `list_documents_missing_chunker` |
+| `app/evaluation/answer_records.py`, `answer_runner.py`, `answer_report.py` | Chunker in answer records |
+| `app/core/config.py`, `.env.example`, `app/worker.py` | `CHUNK_CONTEXT_HEADER`; defaults 450/75 adopted |
+| `tests/...` | hit@k, header/offsets, search parity, rechunk, runner; shared fixture move |
+| `eval/configs/d0-…d3-*.yaml`, `answers-d2-tokens450.yaml` | Experiment D configurations |
+| `eval/reports/d*-{dev,test}.*`, `compare-d*`, `answers-d2-tokens450-test.*` | Results |
+| `.claude/{architecture,database,api-spec,tasks,plan}.md`, this file | Docs |

@@ -8,8 +8,8 @@ behaviour only after the retrieval system is shown to work.
 ```
 W1 Foundation    001 setup ✅ → 002 auth ✅ → 003 ingestion ✅ → 004 dense search ✅
 W2 Measurement   005a metrics ✅ → 005b corpus ✅ → 005c benchmark ✅ → 006a runner + baseline (Exp. A) ✅ → 006b runs API ✅ → 007 hybrid (Exp. B) ✅
-W3 RAG quality   008 rerank (Exp. C) ✅ → 009a grounded answers ✅ → 009b answer evaluation ✅ → 010 chunking (Exp. D)   <- NEXT
-W4 Reliability   011 timeouts/retries/failure tests (security tests ship with 002–004)
+W3 RAG quality   008 rerank (Exp. C) ✅ → 009a grounded answers ✅ → 009b answer evaluation ✅ → 010 chunking (Exp. D) ✅
+W4 Reliability   011 timeouts/retries/failure tests   <- NEXT (security tests ship with 002–004)
 W5 Operations    012 tracing + cost → 013 Docker + CI + eval gate → 014 dashboard (separate repo)
 W6 Polish        015 load test + held-out report → 016 tool-calling workflow (optional)
 ```
@@ -35,7 +35,7 @@ cutting any experiment.
 | A | Dense baseline (fixed chunker, k, model) | — | R@5, nDCG@10, MRR, p95 | 006a ✅ (nDCG@10 0.529 dev / 0.551 test) |
 | B | Dense + FTS fused with RRF | A | Same, split by `exact_identifier` vs `paraphrase` | 007 ✅ not adopted (dev −0.078 significant; test −0.038, CI incl. 0) |
 | C | Dense top-N → cross-encoder → top-10 (hybrid not adopted in B) | A | nDCG@10 gain vs added p95 | 008 ✅ top 20 chosen: +0.060 dev / +0.058 test (CI incl. 0), +1.9 s p50 |
-| D | Chunk size / overlap / top-k / context budget | best of B/C | R@5, context precision, answer correctness | 010 |
+| D | Chunk size / overlap / header / context budget | C (dense, rerank top 20) | hit@5 (evidence in answer context), nDCG@10, answer metrics | 010 ✅ 450/75 adopted (dev hit@5 +0.057, CI excl. 0; test +0.031, CI incl. 0); 5 chunks kept |
 
 ## Acceptance criteria (provisional; revise if the baseline makes them unrealistic)
 

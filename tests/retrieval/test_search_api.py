@@ -14,6 +14,7 @@ from app.auth.models import Tenant, User
 from app.core.config import get_settings
 from app.documents import service as documents_service
 from app.ingestion.chunking import TokenWindowChunker
+from app.retrieval.service import configured_chunker
 from app.worker import build_handlers, process_next_job
 from tests.conftest import auth_headers, ingest_request
 from tests.fakes import FakeEmbedder, WhitespaceTokenizer
@@ -54,7 +55,7 @@ def test_search_returns_ranked_results_with_diagnostics(
     assert result["document"]["slug"] in {"fastapi/dependencies", "fastapi/caching"}
     assert result["text"].startswith("# Caching")
     diagnostics = body["diagnostics"]
-    assert diagnostics["chunker"] == "tokens-300-overlap-50"
+    assert diagnostics["chunker"] == configured_chunker()
     assert diagnostics["embedding_model"] == "fake-embedder"
     assert diagnostics["mode"] == "dense"
     assert set(diagnostics["latency_ms"]) == {"embed_query", "dense", "total"}

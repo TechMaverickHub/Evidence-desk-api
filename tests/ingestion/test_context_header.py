@@ -105,9 +105,8 @@ def test_search_reads_the_chosen_variant_and_reranks_what_was_embedded(
     assert passages
     assert all(text.startswith("CORS (fastapi-docs 0.162.0) > ") for text in passages)
     assert all("fastapi-docs" not in hit.text for hit in outcome.hits)
-    plain_outcome = service.search(
-        db_session, tenant.id, FakeEmbedder(), "max_age", SearchOptions(k=5)
-    )
+    plain_options = SearchOptions(k=5, chunker="tokens-300-overlap-50")
+    plain_outcome = service.search(db_session, tenant.id, FakeEmbedder(), "max_age", plain_options)
     assert plain_outcome.chunker == "tokens-300-overlap-50"
     assert {hit.chunk_id for hit in plain_outcome.hits}.isdisjoint(
         {hit.chunk_id for hit in outcome.hits}

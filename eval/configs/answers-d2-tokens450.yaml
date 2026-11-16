@@ -1,0 +1,4 @@
+# Task 010: the answer pipeline with Experiment D's chosen chunker (run with CHUNK_MAX_TOKENS=450 CHUNK_OVERLAP_TOKENS=75).
+name: d2-tokens450
+mode: dense
+rerank: true
