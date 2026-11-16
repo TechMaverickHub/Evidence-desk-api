@@ -54,7 +54,7 @@ jobs:
       JWT_SECRET_KEY: ci-only-not-a-secret-0123456789abcdef
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3 # no floating major tag is published
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
