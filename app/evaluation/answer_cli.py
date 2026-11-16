@@ -14,6 +14,7 @@ from pathlib import Path
 
 from app.core.config import get_settings
 from app.core.db import get_sessionmaker
+from app.core.errors import LLMUnavailableError
 from app.evaluation.answer_records import AnswerRunReport, JudgeAgreement
 from app.evaluation.answer_report import render_answer_run, render_spot_check
 from app.evaluation.answer_runner import (
@@ -21,6 +22,7 @@ from app.evaluation.answer_runner import (
     Pacer,
     execute_answer_run,
     load_answer_config,
+    stop_message,
 )
 from app.evaluation.dataset import load_dataset, read_corpus_texts
 from app.evaluation.judge import judge_run
@@ -86,10 +88,15 @@ def _answer_judge(args: argparse.Namespace) -> int:
     llm = build_llm(get_settings().llm_judge_model)
     with get_sessionmaker()() as session:
         tenant_id = tenant_id_by_name(session, args.tenant)
-        judge_run(
-            session, tenant_id, report, {q.id: q for q in dataset.questions}, llm,
-            load_judge_prompts(), Pacer(args.pace), lambda r: _save(r, args.record),
-        )  # fmt: skip
+        try:
+            judge_run(
+                session, tenant_id, report, {q.id: q for q in dataset.questions}, llm,
+                load_judge_prompts(), Pacer(args.pace), lambda r: _save(r, args.record),
+            )  # fmt: skip
+        except LLMUnavailableError as exc:
+            # Verdicts are saved after each record, so the rerun continues from here.
+            judged = sum(1 for r in report.records if r.judgments)
+            raise RunError(stop_message(exc, judged, len(report.records), args.record)) from exc
     _save(report, args.record)
     print(f"Judged {args.record}")
     return 0

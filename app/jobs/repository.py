@@ -69,3 +69,23 @@ def get_latest_job_for_document(
         .order_by(Job.created_at.desc())
         .limit(1)
     )
+
+
+def find_stale_jobs(session: Session, started_before: datetime) -> list[Job]:
+    """Jobs still marked running that started before the cutoff: their worker most likely
+    died (task 011). Locked with SKIP LOCKED so two recovering workers never share one."""
+    return list(
+        session.scalars(
+            select(Job)
+            .where(Job.status == JobStatus.RUNNING, Job.started_at < started_before)
+            .order_by(Job.started_at)
+            .with_for_update(skip_locked=True)
+        )
+    )
+
+
+def requeue_job(session: Session, job: Job) -> None:
+    """Back to the queue; `attempts` is kept, so repeated crashes still hit the limit."""
+    job.status = JobStatus.QUEUED
+    job.started_at = None
+    session.flush()

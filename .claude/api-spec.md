@@ -133,7 +133,9 @@ Every non-2xx response:
 | `NOT_FOUND` | 404 | Object missing, in another tenant, or unknown route |
 | `METHOD_NOT_ALLOWED` | 405 | Route exists but not for this HTTP method |
 | `CONFLICT` | 409 | Unique constraint (e.g. same slug + version, different content) |
-| `LLM_UNAVAILABLE` | 503 | Provider timeout / rate limit after retries |
+| `LLM_UNAVAILABLE` | 503 | Provider timeout, connection error, 5xx or short rate limit after retries; `Retry-After` when the provider gave one |
+| `LLM_QUOTA_EXCEEDED` | 503 | Provider usage quota used up (e.g. Groq tokens per day); `Retry-After` when given (task 011) |
+| `LLM_NOT_CONFIGURED` | 503 | No `GROQ_API_KEY`, key rejected, no access, or unknown model; not retried (task 011) |
 | `LLM_INVALID_OUTPUT` | 502 | Model output not valid JSON or failed schema validation after one retry |
 | `INTERNAL_ERROR` | 500 | Anything unhandled (logged with request_id) |
 

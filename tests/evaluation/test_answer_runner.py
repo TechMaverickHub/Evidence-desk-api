@@ -8,7 +8,11 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.auth.models import Tenant
-from app.core.errors import LLMUnavailableError
+from app.core.errors import (
+    LLMNotConfiguredError,
+    LLMQuotaExceededError,
+    LLMUnavailableError,
+)
 from app.evaluation.answer_records import AnswerRunConfig
 from app.evaluation.answer_runner import AnswerDeps, Pacer, run_answers
 from app.evaluation.dataset import Dataset
@@ -19,6 +23,10 @@ from tests.fakes import FakeEmbedder, FakeReranker, ScriptedLLMClient
 CONFIG = AnswerRunConfig(name="t")
 KEY = {"config": CONFIG.model_dump(), "dataset": "sha", "split": "all"}
 ANSWER = json.dumps({"status": "answered", "answer": "Yes.", "citations": [1]})
+
+
+def _no_pace() -> None:
+    pass
 
 
 def _deps(llm: ScriptedLLMClient) -> AnswerDeps:
@@ -109,3 +117,34 @@ def test_the_pacer_keeps_the_minimum_interval() -> None:
     pace()
 
     assert slept == [1.5]
+
+
+def test_a_daily_quota_stops_the_run_and_keeps_the_answers(
+    db_session: Session, tenant: Tenant, mini_dataset: Dataset, tmp_path: Path
+) -> None:
+    questions = mini_dataset.questions
+    partial = tmp_path / "p.jsonl"
+    llm = ScriptedLLMClient(ANSWER, ANSWER, LLMQuotaExceededError(retry_after_seconds=191))
+
+    with pytest.raises(RunError) as raised:
+        run_answers(db_session, tenant.id, questions, CONFIG, _deps(llm), partial, KEY, _no_pace)
+
+    message = str(raised.value)
+    assert "LLM_QUOTA_EXCEEDED" in message
+    assert f"2/{len(questions)} done" in message
+    assert "rerun the same command after about 4 min" in message
+    resumed = ScriptedLLMClient(*[ANSWER] * (len(questions) - 2))
+    run_answers(db_session, tenant.id, questions, CONFIG, _deps(resumed), partial, KEY, _no_pace)
+    assert len(resumed.calls) == len(questions) - 2
+
+
+def test_a_configuration_error_stops_the_run_with_an_operator_hint(
+    db_session: Session, tenant: Tenant, mini_dataset: Dataset, tmp_path: Path
+) -> None:
+    llm = ScriptedLLMClient(LLMNotConfiguredError())
+
+    with pytest.raises(RunError, match="fix the LLM configuration, then rerun"):
+        run_answers(
+            db_session, tenant.id, mini_dataset.questions, CONFIG, _deps(llm),
+            tmp_path / "p.jsonl", KEY, lambda: None,
+        )  # fmt: skip

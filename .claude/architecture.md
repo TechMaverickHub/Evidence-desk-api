@@ -208,6 +208,29 @@ metrics. Aggregates are reported overall and per `query_type` with counts.
    commit together, so a failed run has no partial results.
 4. `GET /v1/evaluations/runs[/{id}]` reads runs; status and errors come from the job.
 
+## Failure scenarios (task 011)
+
+Each defined failure has a defined behaviour and a test. LLM retries are tested through the
+real Groq SDK over an `httpx.MockTransport` (no network), pinning the request count.
+
+| # | Scenario | Behaviour | Test |
+|---|---|---|---|
+| 1 | Provider timeout | SDK retries `LLM_MAX_RETRIES` (2); then 503 `LLM_UNAVAILABLE`; 3 requests | `tests/generation/test_llm_retries.py::test_1_…` |
+| 2 | Short rate limit (429, `retry-after` ≤ 60 s) | Retried after the hinted delay; success if a later attempt succeeds | `test_llm_retries.py::test_2_…` |
+| 3 | Persistent 5xx / rate limit | 503 `LLM_UNAVAILABLE` + `Retry-After` when given | `test_llm_retries.py::test_3_…`, `test_a_short_429_…` |
+| 4 | Daily quota (429 with `retry-after` > 60 s, or a per-day message) | 503 `LLM_QUOTA_EXCEEDED` + `Retry-After`; `answer-run` stops with a resume hint, finished answers kept | `test_llm_retries.py::test_4_…`, `tests/evaluation/test_answer_runner.py::test_a_daily_quota_stops_…`, `tests/generation/test_answers_api.py::test_the_retry_hint_…` |
+| 5 | Bad key / no access / unknown model (401/403/404) | 503 `LLM_NOT_CONFIGURED`, not retried (1 request); runs stop with an operator hint | `test_llm_retries.py::test_5_…`, `test_answer_runner.py::test_a_configuration_error_…` |
+| 6 | No `GROQ_API_KEY` | 503 `LLM_NOT_CONFIGURED`; search unaffected | `test_answers_api.py::test_without_an_llm_configured_…` |
+| 7 | Invalid model output | One corrective retry; then 502 `LLM_INVALID_OUTPUT` (format) or `insufficient_evidence` (unsupported) | `test_answers_api.py::test_malformed_output_twice_is_a_502`, `::test_an_unsupported_answer_twice_…` |
+| 8 | Empty retrieval | `insufficient_evidence`, 0 LLM calls | `test_answers_api.py::test_nothing_retrieved_means_no_llm_call` |
+| 9 | Ingestion fails mid-document | Rolled back; job and document `failed`; resubmit retries | `tests/jobs/test_worker.py::test_failure_mid_document_…`, `::test_failed_document_can_be_resubmitted_…` |
+| 10 | Worker dies mid-job (interrupted ingestion) | After `JOB_STALE_AFTER_SECONDS` (1800) requeued; after `JOB_MAX_ATTEMPTS` (3) `failed` + document `failed` | `tests/jobs/test_stale_jobs.py` |
+| 11 | Judge provider failure | `answer-judge` exits 1 with a resume hint; judged records kept | `tests/evaluation/test_answer_cli.py::test_a_judge_provider_failure_…` |
+| 12 | Database unreachable | `/health` 503 `{database: unreachable}` | `tests/health/test_health.py::test_health_returns_503_…` |
+
+Worst-case latency of one LLM call: 3 attempts × `LLM_TIMEOUT_SECONDS` (20 s) + backoff
+(≤ 1.5 s) ≈ 62 s; an answer makes at most 2 calls (≈ 124 s).
+
 ## Access control
 
 - JWT bearer tokens carry `sub` (user id), `tenant_id` and `role`.
@@ -226,7 +249,9 @@ metrics. Aggregates are reported overall and per `query_type` with counts.
 - **Logging:** one JSON line per request (method, path, status, duration_ms, request_id) and
   per pipeline stage. Never log full prompts, document text or tokens.
 - **Reliability:** LLM calls have a timeout and bounded retries with backoff (429 / 5xx /
-  timeout only). Empty retrieval short-circuits to `insufficient_evidence` without an LLM call.
+  timeout only); failures are classified into transient, quota and configuration errors
+  (see Failure scenarios). Empty retrieval short-circuits to `insufficient_evidence`
+  without an LLM call. Orphaned jobs are requeued, then failed after `JOB_MAX_ATTEMPTS`.
 - **Pagination:** `limit` / `offset` with a max `limit` of 100. Simple is fine here.
 
 ## Local topology

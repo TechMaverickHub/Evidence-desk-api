@@ -6,6 +6,7 @@ file, and a rerun skips it, so an interrupted run never pays twice for the same 
 """
 
 import json
+import math
 import time
 import uuid
 from collections.abc import Callable, Sequence
@@ -18,7 +19,12 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.errors import LLMInvalidOutputError, LLMUnavailableError
+from app.core.errors import (
+    LLMInvalidOutputError,
+    LLMNotConfiguredError,
+    LLMQuotaExceededError,
+    LLMUnavailableError,
+)
 from app.evaluation import provenance, repository
 from app.evaluation.answer_records import (
     AnswerRecord,
@@ -136,10 +142,31 @@ def run_answers(
         if question.id in done:
             continue
         pace()
-        record = answer_one(session, tenant_id, question, config, deps)
+        try:
+            record = answer_one(session, tenant_id, question, config, deps)
+        except (LLMQuotaExceededError, LLMNotConfiguredError) as exc:
+            # Every remaining question would fail the same way: stop instead of recording
+            # dozens of identical errors, and say how to resume (task 011).
+            raise RunError(stop_message(exc, len(done), len(questions), partial_path)) from exc
         _append_partial(partial_path, record)
         done[question.id] = record
     return [done[question.id] for question in questions]
+
+
+def stop_message(exc: LLMUnavailableError, finished: int, total: int, progress: Path) -> str:
+    """Why a paced run stopped, what is saved, and when rerunning the same command helps."""
+    when = (
+        f" after about {math.ceil(exc.retry_after_seconds / 60)} min"
+        if exc.retry_after_seconds
+        else ""
+    )
+    action = f"rerun the same command{when}"
+    if isinstance(exc, LLMNotConfiguredError):
+        action = "fix the LLM configuration, then rerun"
+    return (
+        f"Stopped: {exc.message} ({exc.error_code}). {finished}/{total} done and saved in "
+        f"{progress}; {action} to resume."
+    )
 
 
 def answer_one(
@@ -163,8 +190,10 @@ def answer_one(
             deps.llm,
             deps.prompts,
         )
+    except (LLMQuotaExceededError, LLMNotConfiguredError):
+        raise  # run_answers stops the run; see stop_message
     except (LLMUnavailableError, LLMInvalidOutputError) as exc:
-        # Recorded, not retried here: a rerun of the same run picks these up again.
+        # Transient: recorded, not retried here. A rerun of the same run picks these up.
         return _error_record(question, exc.error_code)
     return _answered_record(session, tenant_id, question, response)
 

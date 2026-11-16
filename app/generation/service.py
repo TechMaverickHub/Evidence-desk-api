@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.errors import LLMInvalidOutputError, LLMUnavailableError
+from app.core.errors import LLMInvalidOutputError, LLMNotConfiguredError
 from app.generation.citations import (
     CheckedAnswer,
     InvalidReplyError,
@@ -66,7 +66,7 @@ def answer_question(
     prompts: AnswerPrompts,
 ) -> AnswerResponse:
     if llm is None:
-        raise LLMUnavailableError("Answering is not configured on this server (no LLM API key).")
+        raise LLMNotConfiguredError("Answering is not configured on this server (no LLM API key).")
     started = time.perf_counter()
     options = _search_options(request)
     reranker = reranker_provider() if options.rerank else None

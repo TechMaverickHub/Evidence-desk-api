@@ -9,6 +9,7 @@ import signal
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from functools import partial
 
 from sqlalchemy.orm import Session
@@ -92,8 +93,17 @@ def process_next_job(session: Session, handlers: dict[str, JobHandler]) -> bool:
 
 def run_worker(handlers: dict[str, JobHandler], poll_seconds: float, once: bool) -> None:
     stop = _stop_on_signal()
+    settings = get_settings()
+    stale_after = timedelta(seconds=settings.job_stale_after_seconds)
     logger.info("worker started", extra={"fields": {"once": once}})
+    last_recovery: datetime | None = None
     while not stop.is_set():
+        now = datetime.now(UTC)
+        # At startup, then while idle, at most once per stale period: bounded extra queries.
+        if last_recovery is None or now - last_recovery >= stale_after:
+            with get_sessionmaker()() as session:
+                recover_stale_jobs(session, handlers, stale_after, settings.job_max_attempts, now)
+            last_recovery = now
         with get_sessionmaker()() as session:
             processed = process_next_job(session, handlers)
         if processed:
@@ -102,6 +112,38 @@ def run_worker(handlers: dict[str, JobHandler], poll_seconds: float, once: bool)
             break
         stop.wait(poll_seconds)
     logger.info("worker stopped")
+
+
+def recover_stale_jobs(
+    session: Session,
+    handlers: dict[str, JobHandler],
+    stale_after: timedelta,
+    max_attempts: int,
+    now: datetime,
+) -> tuple[int, int]:
+    """Requeue jobs orphaned by a crashed worker; fail them once they've used every attempt.
+
+    Returns (requeued, failed). Safe to rerun a job: ingest replaces its chunks per chunker,
+    and an evaluate run writes results only in its success transaction.
+    """
+    requeued, failed = 0, 0
+    for job in jobs_repository.find_stale_jobs(session, now - stale_after):
+        if job.attempts < max_attempts:
+            jobs_repository.requeue_job(session, job)
+            requeued += 1
+            continue
+        handler = handlers.get(job.kind)
+        if handler is not None:
+            handler.on_failure(session, job)
+        error = f"worker stopped while running ({job.attempts} attempts)"
+        jobs_repository.mark_job_finished(session, job.id, JobStatus.FAILED, error)
+        failed += 1
+    session.commit()
+    if requeued or failed:
+        logger.warning(
+            "stale jobs recovered", extra={"fields": {"requeued": requeued, "failed": failed}}
+        )
+    return requeued, failed
 
 
 def build_default_handlers() -> dict[str, JobHandler]:

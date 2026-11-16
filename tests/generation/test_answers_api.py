@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.models import Tenant, User
 from app.core.config import get_settings
-from app.core.errors import LLMUnavailableError
+from app.core.errors import LLMQuotaExceededError, LLMUnavailableError
 from app.generation.deps import get_llm_client
 from app.generation.llm_client import LLMOutputRejectedError
 from tests.conftest import auth_headers
@@ -139,6 +139,7 @@ def test_without_an_llm_configured_answers_are_503_and_search_still_works(
     search = client.post("/v1/search", json={"query": QUESTION}, headers=headers)
 
     assert answer.status_code == 503
+    assert answer.json()["error_code"] == "LLM_NOT_CONFIGURED"
     assert "not configured" in answer.json()["message"]
     assert search.status_code == 200
 
@@ -236,3 +237,25 @@ def test_a_top_score_at_or_above_the_gate_is_answered(
     status, body, _ = ask(_reply())
 
     assert (status, body["status"]) == (200, "answered")
+
+
+def test_a_quota_error_tells_the_client_when_to_retry(ask: Callable) -> None:
+    status, body, _ = ask(LLMQuotaExceededError(retry_after_seconds=191))
+
+    assert status == 503
+    assert body["error_code"] == "LLM_QUOTA_EXCEEDED"
+
+
+def test_the_retry_hint_is_sent_as_a_header(
+    app: FastAPI, client: TestClient, tenant_with_chunks: Tenant, make_user: Callable[..., User]
+) -> None:
+    llm = ScriptedLLMClient(LLMQuotaExceededError(retry_after_seconds=191))
+    app.dependency_overrides[get_llm_client] = lambda: llm
+
+    response = client.post(
+        ANSWERS,
+        json={"question": QUESTION},
+        headers=auth_headers(make_user(tenant=tenant_with_chunks)),
+    )
+
+    assert response.headers["Retry-After"] == "191"

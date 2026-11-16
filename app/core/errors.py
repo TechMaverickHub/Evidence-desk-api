@@ -86,11 +86,36 @@ class ConflictError(AppError):
 
 
 class LLMUnavailableError(AppError):
-    """The provider timed out, rate-limited us, failed, or is not configured."""
+    """The provider timed out, rate-limited us or failed, even after bounded retries.
+
+    Subclasses are the failures retrying soon won't fix (task 011). Code that only needs
+    "the LLM is unavailable" catches this class and handles them all.
+    """
 
     status_code = 503
     error_code = "LLM_UNAVAILABLE"
     message = "The answer service is temporarily unavailable. Try again later."
+
+    def __init__(self, message: str | None = None, retry_after_seconds: int | None = None):
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds
+        # Per instance: clients learn when to retry from the provider's own hint.
+        if retry_after_seconds is not None:
+            self.headers = {"Retry-After": str(retry_after_seconds)}
+
+
+class LLMQuotaExceededError(LLMUnavailableError):
+    """The provider's daily usage quota is used up; retrying before it resets is pointless."""
+
+    error_code = "LLM_QUOTA_EXCEEDED"
+    message = "The LLM provider's usage quota is used up. Try again after the Retry-After delay."
+
+
+class LLMNotConfiguredError(LLMUnavailableError):
+    """No API key, a rejected key, no access, or an unknown model: an operator must fix it."""
+
+    error_code = "LLM_NOT_CONFIGURED"
+    message = "The answer service is not configured correctly on this server."
 
 
 class LLMInvalidOutputError(AppError):

@@ -47,13 +47,18 @@ class Settings(BaseSettings):
     # Embed (and rerank) chunks with their document title, version and heading path (task 010).
     chunk_context_header: bool = False
     worker_poll_seconds: float = Field(default=1.0, gt=0)
+    # A job still running after this long is assumed orphaned by a crashed worker and
+    # requeued (task 011). Must exceed the longest real job (evaluate runs: minutes).
+    job_stale_after_seconds: float = Field(default=1800, gt=0)
+    job_max_attempts: int = Field(default=3, ge=1)
 
     # Answer generation (task 009a). No default key: without one, /v1/answers returns 503
     # and everything else still works.
     groq_api_key: SecretStr | None = None
     # A Groq production model that supports strict json_schema output (constrained decoding).
     llm_model: str = "openai/gpt-oss-20b"
-    llm_timeout_seconds: float = Field(default=30.0, gt=0)
+    # Per attempt; worst case per call is (1 + LLM_MAX_RETRIES) x this + backoff (task 011).
+    llm_timeout_seconds: float = Field(default=20.0, gt=0)
     # The SDK retries timeouts, 429s and 5xx with backoff; 011 adds failure-scenario tests.
     llm_max_retries: int = Field(default=2, ge=0, le=5)
     # gpt-oss spends completion tokens on reasoning too, so this must leave room for the JSON.

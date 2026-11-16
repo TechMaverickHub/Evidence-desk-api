@@ -8,6 +8,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.auth.models import Tenant
+from app.core.errors import LLMQuotaExceededError
 from app.evaluation import answer_cli, cli
 from app.evaluation.answer_records import AnswerRunReport
 from app.evaluation.answer_runner import AnswerDeps
@@ -99,3 +100,28 @@ def test_a_bad_agreement_value_fails_cleanly(setup: dict, capsys: pytest.Capture
 
     assert cli.main(["answer-report", record, "--agreement", "21/20"]) == 1
     assert "--agreement" in capsys.readouterr().err
+
+
+def test_a_judge_provider_failure_exits_cleanly_and_keeps_progress(
+    setup: dict, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    split = setup["split"]
+    allow = ["--allow-test"] if split == "test" else []
+    assert cli.main([*_run_args(setup, split), *allow]) == 0
+    record_path = setup["out"] / f"answers-fx-{split}.json"
+    # One record judged (both criteria), then the provider's quota runs out.
+    judge = ScriptedLLMClient(
+        _verdict("correct"), _verdict("supported"), LLMQuotaExceededError(retry_after_seconds=600)
+    )
+    monkeypatch.setattr(answer_cli, "build_llm", lambda model: judge)
+    args = ["answer-judge", str(record_path), "--dataset", setup["dataset"],
+            "--tenant", setup["tenant"], "--pace", "0"]  # fmt: skip
+
+    assert cli.main(args) == 1
+
+    err = capsys.readouterr().err
+    assert "LLM_QUOTA_EXCEEDED" in err
+    assert "after about 10 min" in err
+    assert "Traceback" not in err
+    saved = AnswerRunReport.model_validate_json(record_path.read_bytes())
+    assert sum(1 for record in saved.records if record.judgments) == 1
