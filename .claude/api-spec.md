@@ -59,7 +59,11 @@ A 401 always carries `WWW-Authenticate: Bearer`. Tenant and role are re-read fro
 ## answers — `app/generation`
 | Method | Path | Roles | Notes | Task |
 |---|---|---|---|---|
-| POST | `answers` | viewer | `{question (1–1,000 chars), retrieval?: {mode=dense, rerank=true, filters?}}`, `extra="forbid"`. Returns `{status: answered\|insufficient_evidence, answer, citations: [{chunk_id, document, heading_path, char_start, char_end, snippet}], retrieval: {mode, rerank, context_chunk_ids}, usage: {model, prompt_tokens, completion_tokens, llm_calls}, latency_ms: {retrieval, llm, total}}`. 502 `LLM_INVALID_OUTPUT` (invalid output after one retry); 503 `LLM_UNAVAILABLE` (provider failure, or no `GROQ_API_KEY`) | 009a ✅ |
+| POST | `answers` | viewer | `{question (1–1,000 chars), retrieval?: {mode=dense, rerank=true, filters?}}`, `extra="forbid"`. Returns `{status: answered\|insufficient_evidence, answer, citations: [{chunk_id, document, heading_path, char_start, char_end, snippet}], retrieval: {mode, rerank, context_chunk_ids}, usage: {model, prompt_tokens, completion_tokens, llm_calls, cost_usd}, latency_ms: {retrieval, llm, total}}`. 502 `LLM_INVALID_OUTPUT` (invalid output after one retry); 503 `LLM_UNAVAILABLE` (provider failure, or no `GROQ_API_KEY`) | 009a ✅ |
+
+`usage.cost_usd` (task 012) is estimated from `LLM_PRICES` and is null when the model has
+no configured price. Traces: every request is traced with OpenTelemetry when
+`TELEMETRY_EXPORTER` is `console` or `otlp`; `/v1/health` is not traced.
 
 **Data sent to the LLM provider:** the question and up to `ANSWER_CONTEXT_CHUNKS` (5)
 retrieved passages go to Groq. (Task 009b: `retrieval` also returns `top_score` and

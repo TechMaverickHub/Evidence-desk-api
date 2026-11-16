@@ -10,6 +10,7 @@ from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging, log_requests
+from app.core.telemetry import configure_telemetry
 from app.documents.router import router as documents_router
 from app.evaluation.router import router as evaluations_router
 from app.generation.prompts import load_prompts
@@ -33,6 +34,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
+HEALTH_PATH = "/v1/health"
+
+
 def create_app() -> FastAPI:
     configure_logging(get_settings().log_level)
 
@@ -41,6 +45,12 @@ def create_app() -> FastAPI:
         version="0.1.0",
         description="Evaluation-driven engineering knowledge assistant.",
         lifespan=lifespan,
+        # FastAPI's built-in request spans (0.162+), on our provider; health probes would
+        # only add noise to traces.
+        telemetry={
+            "tracer_provider": configure_telemetry("evidencedesk-api"),
+            "exclude": lambda scope: scope.get("path") == HEALTH_PATH,
+        },
     )
     app.add_middleware(BaseHTTPMiddleware, dispatch=log_requests)
     register_exception_handlers(app)

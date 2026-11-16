@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.db import get_sessionmaker
 from app.core.logging import configure_logging
+from app.core.telemetry import configure_telemetry, tracer
 from app.evaluation.service import QueryEmbedderFactory, run_evaluation_job
 from app.ingestion.chunking import TokenWindowChunker
 from app.ingestion.embedding import Embedder
@@ -75,7 +76,14 @@ def process_next_job(session: Session, handlers: dict[str, JobHandler]) -> bool:
     # Commit the claim first, so the job shows as running while it is processed.
     session.commit()
 
-    handler = handlers.get(job.kind)
+    attributes = {"job.kind": job.kind, "job.id": str(job.id), "job.attempts": job.attempts}
+    with tracer.start_as_current_span("job", attributes=attributes) as span:
+        span.set_attribute("job.outcome", _run_job(session, job, handlers.get(job.kind)))
+    return True
+
+
+def _run_job(session: Session, job: Job, handler: JobHandler | None) -> str:
+    """Run one claimed job to a recorded outcome: "succeeded" or "failed"."""
     try:
         if handler is None:
             raise LookupError(f"No handler for job kind '{job.kind}'")
@@ -84,11 +92,10 @@ def process_next_job(session: Session, handlers: dict[str, JobHandler]) -> bool:
         logger.exception("job failed", extra={"fields": {"job_id": str(job.id)}})
         session.rollback()
         _record_failure(session, job, handler, exc)
-        return True
-
+        return "failed"
     jobs_repository.mark_job_finished(session, job.id, JobStatus.SUCCEEDED)
     session.commit()
-    return True
+    return "succeeded"
 
 
 def run_worker(handlers: dict[str, JobHandler], poll_seconds: float, once: bool) -> None:
@@ -196,6 +203,7 @@ def main(argv: list[str] | None = None) -> None:
 
     settings = get_settings()
     configure_logging(settings.log_level)
+    configure_telemetry("evidencedesk-worker")
     run_worker(build_default_handlers(), settings.worker_poll_seconds, args.once)
 
 

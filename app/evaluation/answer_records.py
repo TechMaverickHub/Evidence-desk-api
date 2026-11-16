@@ -73,6 +73,8 @@ class GeneratorSettings(BaseModel):
     min_rerank_score: float | None
     # Chunks read for the context (task 010); None in records written before it.
     chunker: str | None = None
+    # USD per million [input, output] tokens in force for the run (task 012); None = unpriced.
+    prices: tuple[float, float] | None = None
 
 
 class JudgeAgreement(BaseModel):

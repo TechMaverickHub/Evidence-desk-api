@@ -119,6 +119,7 @@ def execute_answer_run(
             rerank_depth=ANSWER_RERANK_DEPTH,
             min_rerank_score=settings.answer_min_rerank_score,
             chunker=configured_chunker(),
+            prices=settings.llm_prices.get(deps.llm.model_name),
         ),
         git=provenance.git_state(),
         environment=provenance.environment(repository.postgres_version(session)),

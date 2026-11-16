@@ -21,10 +21,10 @@ later rows are the intended order and get their own task file when they come up.
 | 009b | [Answer evaluation: abstention rate, citation precision, LLM-judged correctness/faithfulness, dev-calibrated threshold](tasks/009b-answer-evaluation.md) | evaluation, generation | W3 | ✅ Done; 268 tests; test: 86% answered, 5/5 refused, 50/56 judged correct; gate not adopted |
 | 010 | [Chunking and context-budget experiments (Exp. D)](tasks/010-chunking-context.md) | ingestion, evaluation | W3 | ✅ Done; 278 tests; 450/75 chunks adopted (dev hit@5 +0.057); test answers 59/65 vs 56/65 |
 | 011 | [Reliability: LLM failure taxonomy, bounded retries, stale jobs, failure scenarios](tasks/011-reliability.md) | generation, jobs, evaluation | W4 | ✅ Done; 295 tests; 12 failure scenarios catalogued and tested |
-| 012 | Observability: OpenTelemetry traces, stage latency, token usage and cost | core, all | W5 | Not started |
+| 012 | [Observability: OpenTelemetry traces, stage latency, token usage and cost](tasks/012-observability.md) | core, all | W5 | ✅ Done; 308 tests; stage spans + trace_id in logs + cost_usd |
 | 013 | Docker Compose (api, worker, db), GitHub Actions, evaluation regression gate | repo | W5 | Not started |
 | 014 | Streamlit dashboard (separate repo) | — | W5 | Not started |
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: write the plan for task 012 (observability: OpenTelemetry traces, stage latency, token usage and cost). Task 009 is split into 009a/b; see 009a for why.
+Next: write the plan for task 013 (Docker Compose for api, worker and db; GitHub Actions; evaluation regression gate). Task 009 is split into 009a/b; see 009a for why.

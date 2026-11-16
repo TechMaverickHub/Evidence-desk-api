@@ -15,6 +15,7 @@ from typing import Literal
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.telemetry import tracer
 from app.ingestion.chunking import (
     chunker_name,
     contextual_header,
@@ -79,9 +80,11 @@ class _Search:
 
     @contextmanager
     def timed(self, stage: str) -> Iterator[None]:
-        started = time.perf_counter()
-        yield
-        self.latency_ms[stage] = _ms(started, time.perf_counter())
+        """Time a stage for `latency_ms` and trace it as a span: one source for both."""
+        with tracer.start_as_current_span(f"search.{stage}"):
+            started = time.perf_counter()
+            yield
+            self.latency_ms[stage] = _ms(started, time.perf_counter())
 
 
 def search(
@@ -103,12 +106,18 @@ def search(
         version=options.version,
     )
     run = _Search(session, scope, embedder, query, options)
-    started = time.perf_counter()
-    hits = _ranked_hits(run, reranker)
-    run.latency_ms["total"] = _ms(started, time.perf_counter())
-    # The query text is deliberately not logged.
+    # The query text is deliberately neither logged nor put on spans.
     fields = {"mode": options.mode, "rerank": options.rerank, "k": options.k}
-    logger.info("search", extra={"fields": fields | {"results": len(hits)} | run.latency_ms})
+    with tracer.start_as_current_span(
+        "search", attributes=fields | {"chunker": scope.chunker}
+    ) as span:
+        started = time.perf_counter()
+        hits = _ranked_hits(run, reranker)
+        run.latency_ms["total"] = _ms(started, time.perf_counter())
+        span.set_attribute("results", len(hits))
+    # Latencies are nested: a stage named "rerank" must not overwrite the rerank option.
+    log_fields = fields | {"results": len(hits), "latency_ms": run.latency_ms}
+    logger.info("search", extra={"fields": log_fields})
     return SearchOutcome(hits, scope.chunker, scope.embedding_model, run.latency_ms)
 
 

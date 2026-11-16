@@ -17,7 +17,7 @@
 | Generation | Groq (`groq` SDK), structured JSON output | Low-cost hosted inference |
 | Auth | JWT (`PyJWT`), passwords hashed with `pwdlib[argon2]` | Matches the FastAPI docs' current recommendation |
 | Background jobs | DB-backed `jobs` table + one worker process (`python -m app.worker`) | Enough for ingestion and eval runs; no Celery/Redis |
-| Observability | stdlib `logging` with a JSON formatter; OpenTelemetry tracing in task 012 | Start simple, add tracing once the pipeline exists |
+| Observability | stdlib `logging` with a JSON formatter carrying `trace_id`; OpenTelemetry traces (task 012): FastAPI's built-in request spans plus our stage spans; exporter `none` / `console` / `otlp` | Traces show where time goes per request without logging any text |
 | Tests | pytest + FastAPI `TestClient` against a real Postgres (Docker) | pgvector and FTS cannot be faked meaningfully |
 | Lint / format | ruff | One tool |
 | Delivery | Docker Compose (api, worker, postgres), GitHub Actions | Reproducible locally and in CI |
@@ -230,6 +230,34 @@ real Groq SDK over an `httpx.MockTransport` (no network), pinning the request co
 
 Worst-case latency of one LLM call: 3 attempts × `LLM_TIMEOUT_SECONDS` (20 s) + backoff
 (≤ 1.5 s) ≈ 62 s; an answer makes at most 2 calls (≈ 124 s).
+
+## Observability (task 012)
+
+- **Provider.** `app/core/telemetry.configure_telemetry(service)` installs one global
+  `TracerProvider`. The API passes it to FastAPI's built-in telemetry, which creates the
+  request, dependency, endpoint and serialisation spans; `/v1/health` is excluded. The
+  worker installs its own (`evidencedesk-worker`).
+- **Exporter.** `TELEMETRY_EXPORTER`:
+  - `none` (default): spans exist but are not exported
+  - `console`: printed to stdout
+  - `otlp`: sent via the standard `OTEL_EXPORTER_OTLP_ENDPOINT` / `_HEADERS` variables;
+    export is batched in the background
+- **Our spans:**
+
+  | Span | Attributes |
+  |---|---|
+  | `search` | mode, rerank, k, chunker, results |
+  | `search.<stage>` | one per stage: embed_query, dense, keyword, fuse, rerank. Opened by the same timer that fills `latency_ms`, so the two always agree |
+  | `answer` | status, passages, citations, LLM call count |
+  | `llm.call` | attempt, model, outcome, token counts, cost; provider errors recorded on the span |
+  | `job` | kind, id, attempts, outcome |
+- **Privacy.** No span or log carries question, passage, answer or prompt text (tested).
+- **Logs.** JSON lines include `trace_id` and `span_id` when written inside a span.
+- **Cost.** `generation.costs` turns tokens into USD from `LLM_PRICES` (per model, USD per
+  million input/output tokens).
+  - `/v1/answers` returns `usage.cost_usd`, which is null for unpriced models.
+  - Answer-run headers record the prices in force, and reports show the run's estimated
+    generator cost at those prices.
 
 ## Access control
 

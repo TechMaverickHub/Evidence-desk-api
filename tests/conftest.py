@@ -14,6 +14,7 @@ from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from sqlalchemy.orm import Session
 
 from app.auth.models import Role, Tenant, User
@@ -29,8 +30,16 @@ from app.ingestion.pipeline import process_document
 from app.main import create_app
 from app.retrieval.deps import get_query_embedder, get_reranker_provider
 from tests.fakes import FakeEmbedder, FakeReranker, WhitespaceTokenizer
+from tests.telemetry_plugin import SPAN_EXPORTER
 
 TEST_PASSWORD = "correct-horse-battery-staple"
+
+
+@pytest.fixture
+def spans() -> Iterator[InMemorySpanExporter]:
+    """Spans finished during the test (cleared before it starts)."""
+    SPAN_EXPORTER.clear()
+    yield SPAN_EXPORTER
 
 
 @pytest.fixture(scope="session", autouse=True)

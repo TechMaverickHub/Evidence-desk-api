@@ -15,6 +15,7 @@ from app.evaluation.answer_metrics import (
 from app.evaluation.answer_records import AnswerRecord, AnswerRunReport
 from app.evaluation.dataset import BuiltQuestion
 from app.evaluation.runner import percentile
+from app.generation.costs import cost_at
 
 SPOT_CHECK_SIZE = 20
 SPOT_CHECK_SEED = "evidencedesk-judge-check"
@@ -31,7 +32,7 @@ def render_answer_run(report: AnswerRunReport, gate: float | None = None) -> str
     lines += ["## Outcomes", "", *_outcome_table(summaries), ""]
     lines += ["## Citations and context", "", *_citation_table(summaries), ""]
     lines += _judged_section(report, summaries)
-    lines += _cost_section(report.records)
+    lines += _cost_section(report.records, report.header.generator.prices)
     lines += _gate_section(report.records, gate)
     if report.header.dataset.split == "dev":
         lines += _failure_lists(report.records)
@@ -132,7 +133,7 @@ def _judged_section(report: AnswerRunReport, summaries: dict[str, AnswerSummary]
     return lines
 
 
-def _cost_section(records: Sequence[AnswerRecord]) -> list[str]:
+def _cost_section(records: Sequence[AnswerRecord], prices: tuple[float, float] | None) -> list[str]:
     totals = [r.latency_ms["total"] for r in records if "total" in r.latency_ms]
     llm = [r.latency_ms["llm"] for r in records if r.llm_calls]
     lines = [
@@ -141,12 +142,21 @@ def _cost_section(records: Sequence[AnswerRecord]) -> list[str]:
         f"- LLM calls: {sum(r.llm_calls for r in records)} for {len(records)} questions",
         f"- Tokens: {sum(r.prompt_tokens for r in records)} prompt, "
         f"{sum(r.completion_tokens for r in records)} completion",
+        f"- Estimated generator cost: {_run_cost(records, prices)}",
     ]
     if totals:
         lines.append(f"- Total latency {_p50_p95(totals)}")
     if llm:
         lines.append(f"- LLM latency {_p50_p95(llm)}")
     return [*lines, ""]
+
+
+def _run_cost(records: Sequence[AnswerRecord], prices: tuple[float, float] | None) -> str:
+    if prices is None:
+        return "not priced (set LLM_PRICES; see task 012)"
+    prompt = sum(r.prompt_tokens for r in records)
+    completion = sum(r.completion_tokens for r in records)
+    return f"${cost_at(prices, prompt, completion):.4f} at {list(prices)} USD per million tokens"
 
 
 def _gate_section(records: Sequence[AnswerRecord], gate: float | None) -> list[str]:

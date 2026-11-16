@@ -73,6 +73,8 @@ class AnswerUsage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     llm_calls: int
+    # Estimated USD from LLM_PRICES; null when the model has no configured price.
+    cost_usd: float | None = None
 
 
 class RetrievalSummary(BaseModel):

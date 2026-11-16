@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,6 +15,9 @@ class Settings(BaseSettings):
 
     app_env: str = "dev"
     log_level: str = "INFO"
+    # Where spans go (task 012): nowhere, stdout, or an OTLP collector configured through
+    # the standard OTEL_EXPORTER_OTLP_ENDPOINT / OTEL_EXPORTER_OTLP_HEADERS variables.
+    telemetry_exporter: Literal["none", "console", "otlp"] = "none"
     database_url: str
     test_database_url: str | None = None
 
@@ -69,6 +73,10 @@ class Settings(BaseSettings):
     # insufficient_evidence without calling the LLM. Off unless 009b's dev calibration
     # adopts a value (see .claude/tasks/009b-answer-evaluation.md).
     answer_min_rerank_score: float | None = None
+    # USD per million [input, output] tokens, per model, as JSON in the environment, e.g.
+    # LLM_PRICES='{"openai/gpt-oss-20b": [0.1, 0.5]}'. Unpriced models report cost as null;
+    # no prices ship with the code because providers change them.
+    llm_prices: dict[str, tuple[float, float]] = Field(default_factory=dict)
     # Grades answers in evaluation runs; a larger model than the generator.
     llm_judge_model: str = "openai/gpt-oss-120b"
 

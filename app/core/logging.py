@@ -10,6 +10,7 @@ from contextvars import ContextVar
 from datetime import UTC, datetime
 
 from fastapi import Request, Response
+from opentelemetry import trace
 
 # Holds the current request's id so every log line in that request can include it,
 # without passing it through every function call.
@@ -33,10 +34,20 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "request_id": request_id_var.get(),
         }
+        entry.update(_trace_ids())
         entry.update(getattr(record, "fields", {}))
         if record.exc_info:
             entry["exception"] = self.formatException(record.exc_info)
         return json.dumps(entry, default=str)
+
+
+def _trace_ids() -> dict[str, str]:
+    """The active span's ids in the W3C hex form trace backends show, so a log line can be
+    found from its trace and the reverse (task 012). Empty outside a span."""
+    context = trace.get_current_span().get_span_context()
+    if not context.is_valid:
+        return {}
+    return {"trace_id": f"{context.trace_id:032x}", "span_id": f"{context.span_id:016x}"}
 
 
 def configure_logging(level: str) -> None:

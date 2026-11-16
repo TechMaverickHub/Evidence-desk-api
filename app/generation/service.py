@@ -11,10 +11,12 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from opentelemetry import trace
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import LLMInvalidOutputError, LLMNotConfiguredError
+from app.core.telemetry import tracer
 from app.generation.citations import (
     CheckedAnswer,
     InvalidReplyError,
@@ -23,6 +25,7 @@ from app.generation.citations import (
     format_passages,
     label_passages,
 )
+from app.generation.costs import add_costs, estimate_cost
 from app.generation.llm_client import LLMClient, LLMOutputRejectedError, LLMReply, Messages
 from app.generation.prompts import AnswerPrompts
 from app.generation.schemas import (
@@ -54,6 +57,8 @@ class _Usage:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     llm_ms: float = 0.0
+    # Stays known only while every call's model has a price (see generation.costs).
+    cost_usd: float | None = 0.0
 
 
 def answer_question(
@@ -67,6 +72,28 @@ def answer_question(
 ) -> AnswerResponse:
     if llm is None:
         raise LLMNotConfiguredError("Answering is not configured on this server (no LLM API key).")
+    with tracer.start_as_current_span("answer") as span:
+        response = _answer(session, tenant_id, request, embedder, reranker_provider, llm, prompts)
+        span.set_attributes(
+            {
+                "answer.status": response.status,
+                "answer.passages": len(response.retrieval.context_chunk_ids),
+                "answer.citations": len(response.citations),
+                "llm.calls": response.usage.llm_calls,
+            }
+        )
+        return response
+
+
+def _answer(
+    session: Session,
+    tenant_id: uuid.UUID,
+    request: AnswerRequest,
+    embedder: Embedder,
+    reranker_provider: Callable[[], Reranker],
+    llm: LLMClient,
+    prompts: AnswerPrompts,
+) -> AnswerResponse:
     started = time.perf_counter()
     options = _search_options(request)
     reranker = reranker_provider() if options.rerank else None
@@ -135,26 +162,35 @@ def _attempt(
     llm: LLMClient, messages: Messages, passages: list[LabelledPassage], usage: _Usage
 ) -> CheckedAnswer:
     usage.llm_calls += 1
-    try:
-        reply = llm.complete_json(messages, model_answer_schema(), SCHEMA_NAME)
-    except LLMOutputRejectedError as exc:
-        _log_call(llm.model_name, usage.llm_calls, None, "rejected")
-        raise InvalidReplyError("format", "the provider rejected the generated output") from exc
+    # Provider errors propagate through the span, which records them as span errors.
+    with tracer.start_as_current_span("llm.call", attributes={"llm.attempt": usage.llm_calls}):
+        try:
+            reply = llm.complete_json(messages, model_answer_schema(), SCHEMA_NAME)
+        except LLMOutputRejectedError as exc:
+            _log_call(llm.model_name, usage.llm_calls, None, "rejected")
+            raise InvalidReplyError("format", "the provider rejected the generated output") from exc
+        _add_usage(usage, reply)
+        try:
+            checked = check_reply(reply.content, passages)
+        except InvalidReplyError as invalid:
+            _log_call(reply.model, usage.llm_calls, reply, invalid.kind)
+            raise
+        _log_call(reply.model, usage.llm_calls, reply, checked.status)
+        return checked
+
+
+def _add_usage(usage: _Usage, reply: LLMReply) -> None:
     usage.model = reply.model
     usage.prompt_tokens += reply.prompt_tokens
     usage.completion_tokens += reply.completion_tokens
     usage.llm_ms += reply.latency_ms
-    try:
-        checked = check_reply(reply.content, passages)
-    except InvalidReplyError as invalid:
-        _log_call(reply.model, usage.llm_calls, reply, invalid.kind)
-        raise
-    _log_call(reply.model, usage.llm_calls, reply, checked.status)
-    return checked
+    cost = estimate_cost(reply.model, reply.prompt_tokens, reply.completion_tokens)
+    usage.cost_usd = add_costs(usage.cost_usd, cost)
 
 
 def _log_call(model: str, attempt: int, reply: LLMReply | None, outcome: str) -> None:
-    # Metadata only: never the question, passages or answer text.
+    """One log line and the current `llm.call` span's attributes: metadata only, never the
+    question, passages or answer text."""
     fields: dict[str, object] = {"model": model, "attempt": attempt, "outcome": outcome}
     if reply is not None:
         fields |= {
@@ -162,6 +198,10 @@ def _log_call(model: str, attempt: int, reply: LLMReply | None, outcome: str) ->
             "prompt_tokens": reply.prompt_tokens,
             "completion_tokens": reply.completion_tokens,
         }
+        cost = estimate_cost(reply.model, reply.prompt_tokens, reply.completion_tokens)
+        if cost is not None:
+            fields["cost_usd"] = cost
+    trace.get_current_span().set_attributes({f"llm.{key}": value for key, value in fields.items()})
     logger.info("llm call", extra={"fields": fields})
 
 
@@ -188,6 +228,7 @@ def _response(
             prompt_tokens=usage.prompt_tokens,
             completion_tokens=usage.completion_tokens,
             llm_calls=usage.llm_calls,
+            cost_usd=usage.cost_usd,
         ),
         latency_ms=latency_ms,
     )

@@ -9,6 +9,8 @@ dependencies = [
     "email-validator>=2.3.0",
     "fastapi>=0.162.0",
     "groq>=1.7.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.2",
+    "opentelemetry-sdk>=1.45.2",
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.6",
     "pwdlib[argon2]>=0.3.1",
@@ -48,8 +50,11 @@ select = ["E", "F", "I", "B", "UP", "SIM", "N", "BLE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The project root on sys.path, so `-p tests.telemetry_plugin` can be imported early.
+pythonpath = ["."]
 # Tests marked "model" load the real embedding model (network on first run); opt in with -m model.
-addopts = "-ra -m 'not model'"
+# tests.telemetry_plugin installs the in-memory tracer provider before the app is imported.
+addopts = "-ra -m 'not model' -p tests.telemetry_plugin"
 markers = ["model: loads the real embedding model (slow; downloads it on first run)"]
 
 [dependency-groups]
