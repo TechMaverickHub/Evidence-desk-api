@@ -7,6 +7,7 @@ tests never see each other's data and need no cleanup code.
 import os
 import uuid
 from collections.abc import Callable, Iterator
+from pathlib import Path
 
 import pytest
 from alembic import command
@@ -19,11 +20,15 @@ from app.auth.models import Role, Tenant, User
 from app.core.config import get_settings
 from app.core.db import get_engine, get_session, get_sessionmaker
 from app.core.security import create_access_token, hash_password
+from app.documents import service as documents_service
 from app.documents.schemas import IngestDocumentRequest
 from app.generation.deps import get_llm_client
+from app.ingestion.chunking import TokenWindowChunker
+from app.ingestion.cli import read_manifest
+from app.ingestion.pipeline import process_document
 from app.main import create_app
 from app.retrieval.deps import get_query_embedder, get_reranker_provider
-from tests.fakes import FakeEmbedder, FakeReranker
+from tests.fakes import FakeEmbedder, FakeReranker, WhitespaceTokenizer
 
 TEST_PASSWORD = "correct-horse-battery-staple"
 
@@ -135,3 +140,25 @@ def ingest_request(**overrides: object) -> IngestDocumentRequest:
     }
     fields.update(overrides)
     return IngestDocumentRequest.model_validate(fields)
+
+
+FIXTURE_MANIFEST = Path(__file__).parent / "fixtures" / "corpus" / "manifest.yaml"
+
+
+@pytest.fixture
+def load_fixture_corpus(db_session: Session) -> Callable[[Tenant], None]:
+    """Ingest and chunk the fixture corpus with the configured chunker name and FakeEmbedder."""
+    settings = get_settings()
+    # Same max/overlap as the settings, so the chunker name matches what search reads.
+    chunker = TokenWindowChunker(
+        WhitespaceTokenizer(), settings.chunk_max_tokens, settings.chunk_overlap_tokens
+    )
+
+    def _load(tenant: Tenant) -> None:
+        for request in read_manifest(FIXTURE_MANIFEST):
+            result = documents_service.ingest_document(db_session, tenant.id, request)
+            document = documents_service.get_document(db_session, tenant.id, result.document_id)
+            process_document(db_session, document, chunker, FakeEmbedder())
+        db_session.flush()
+
+    return _load

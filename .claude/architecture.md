@@ -11,7 +11,7 @@
 | ORM / migrations | SQLAlchemy 2.0 (sync, `psycopg` 3) + Alembic | Sync keeps the code simple; embedding and reranking are CPU-bound anyway |
 | Keyword retrieval | PostgreSQL full-text search (`tsvector`, `ts_rank_cd`) | Exact identifiers, error codes, config keys |
 | Embeddings | `sentence-transformers`, `BAAI/bge-small-en-v1.5` (384 dims), CPU-only `torch` from the PyTorch CPU index | Small, local, reproducible |
-| Chunking | Markdown-heading sections, then 300-token windows with 50 overlap, measured with the model's own tokenizer | Word counts overflowed the 512-token limit on code (task 003) |
+| Chunking | Markdown-heading sections, then 300-token windows with 50 overlap, measured with the model's own tokenizer. Variants (task 010) are named `tokens-<max>-overlap-<o>[-ctx]` and coexist in `chunks`; `-ctx` variants embed and rerank `title (source version) > heading path` + text, while stored text and offsets never include it | Word counts overflowed the 512-token limit on code (task 003) |
 | Reranking | `sentence-transformers` CrossEncoder, `cross-encoder/ms-marco-MiniLM-L-6-v2` | Second-stage ranker for Experiment C |
 | Fusion | Reciprocal Rank Fusion (own ~15-line function) | No library needed |
 | Generation | Groq (`groq` SDK), structured JSON output | Low-cost hosted inference |

@@ -1,0 +1,8 @@
+# Experiment D (task 010) — D3: current size + contextual header (title, source version, heading path). Answer pipeline: dense, rerank top 20.
+name: d3-header
+retriever: dense
+depth: 10
+cutoffs: [5, 8, 10]
+rerank: true
+rerank_depth: 20
+chunker: tokens-300-overlap-50-ctx

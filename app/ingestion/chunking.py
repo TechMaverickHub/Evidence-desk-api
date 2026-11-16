@@ -20,9 +20,38 @@ class Tokenizer(Protocol):
     def token_offsets(self, text: str) -> list[tuple[int, int]]: ...
 
 
-def chunker_name(max_tokens: int, overlap_tokens: int) -> str:
+# Chunker variants whose model input carries a contextual header (task 010).
+CONTEXT_SUFFIX = "-ctx"
+_CHUNKER_NAME = re.compile(r"^tokens-(\d+)-overlap-(\d+)(-ctx)?$")
+
+
+def chunker_name(max_tokens: int, overlap_tokens: int, context_header: bool = False) -> str:
     """Stored on every chunk; search uses it to read only chunks of one strategy."""
-    return f"tokens-{max_tokens}-overlap-{overlap_tokens}"
+    suffix = CONTEXT_SUFFIX if context_header else ""
+    return f"tokens-{max_tokens}-overlap-{overlap_tokens}{suffix}"
+
+
+def has_context_header(name: str) -> bool:
+    """Whether a chunker's chunks were embedded with a contextual header. The name alone
+    decides it, so search can give the reranker the same input the embedder saw."""
+    match = _CHUNKER_NAME.match(name)
+    if match is None:
+        raise ValueError(f"Not a chunker name: {name!r}")
+    return match.group(3) is not None
+
+
+def contextual_header(title: str, source: str, version: str, heading_path: str) -> str:
+    """Where a chunk comes from: document title, source and version, then its heading path.
+    Chunks are embedded without their surroundings, so this restores what the reader of a
+    chunk would otherwise not know (which page, which version, which section)."""
+    header = f"{title} ({source} {version})"
+    return f"{header} > {heading_path}" if heading_path else header
+
+
+def model_input(text: str, header: str | None) -> str:
+    """The text a model sees for a chunk. The stored chunk text never includes the header,
+    so character offsets (and the evidence labels built on them) stay exact."""
+    return f"{header}\n\n{text}" if header else text
 
 
 @dataclass(frozen=True)
@@ -55,6 +84,8 @@ class TokenWindowChunker:
     tokenizer: Tokenizer
     max_tokens: int = 300
     overlap_tokens: int = 50
+    # Embed each chunk with a contextual header (see `contextual_header`); windows are the same.
+    context_header: bool = False
 
     def __post_init__(self) -> None:
         if not 0 <= self.overlap_tokens < self.max_tokens:
@@ -62,7 +93,7 @@ class TokenWindowChunker:
 
     @property
     def name(self) -> str:
-        return chunker_name(self.max_tokens, self.overlap_tokens)
+        return chunker_name(self.max_tokens, self.overlap_tokens, self.context_header)
 
     def chunk(self, content: str) -> list[Chunk]:
         chunks: list[Chunk] = []

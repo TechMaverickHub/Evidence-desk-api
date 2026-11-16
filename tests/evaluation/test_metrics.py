@@ -7,6 +7,7 @@ import pytest
 from app.evaluation.metrics import (
     QueryScores,
     aggregate,
+    hit_at_k,
     ndcg_at_k,
     precision_at_k,
     recall_at_k,
@@ -78,9 +79,9 @@ def test_score_query_rejects_unanswerable_questions() -> None:
 
 def test_aggregate_reports_means_and_counts_per_type() -> None:
     scores = [
-        QueryScores("q-1", "factual", 1.0, 1.0, 1.0, 1.0),
-        QueryScores("q-2", "factual", 0.0, 0.5, 0.5, 0.2),
-        QueryScores("q-3", "paraphrase", 0.5, 0.0, 0.0, 0.0),
+        QueryScores("q-1", "factual", 1.0, 1.0, 1.0, 1.0, 1.0),
+        QueryScores("q-2", "factual", 0.0, 0.5, 0.5, 0.2, 1.0),
+        QueryScores("q-3", "paraphrase", 0.5, 0.0, 0.0, 0.0, 0.0),
     ]
 
     summary = aggregate(scores)
@@ -91,3 +92,22 @@ def test_aggregate_reports_means_and_counts_per_type() -> None:
     assert summary["factual"].mrr == pytest.approx(0.75)
     assert summary["all"].count == 3
     assert summary["all"].precision == pytest.approx(0.5)
+
+
+def test_hit_at_k_is_whether_any_evidence_is_in_the_top_k() -> None:
+    matches = [frozenset(), frozenset(), frozenset({1}), frozenset({0})]
+
+    assert hit_at_k(matches, 2) == 0.0
+    assert hit_at_k(matches, 3) == 1.0
+    assert hit_at_k([], 5) == 0.0
+
+
+def test_hit_is_averaged_per_group() -> None:
+    summary = aggregate(
+        [
+            QueryScores("q-1", "factual", 0, 0, 0, 0, 1.0),
+            QueryScores("q-2", "factual", 0, 0, 0, 0, 0.0),
+        ]
+    )
+
+    assert summary["factual"].hit == pytest.approx(0.5)

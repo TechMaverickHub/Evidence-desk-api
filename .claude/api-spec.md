@@ -103,6 +103,19 @@ uv run python -m app.evaluation.cli answer-report eval/reports/answers-rerank20-
 
 `answer-report` also takes `--agreement 18/20` and `--gate T`.
 
+**Chunker variants (task 010).** A variant is added next to existing chunks with:
+
+```bash
+uv run python -m app.ingestion.cli rechunk --tenant eval-corpus-v1 --max-tokens 150 --overlap-tokens 30
+```
+
+- `rechunk` takes `--context-header`.
+- Evaluation configs choose a variant with `chunker:` (e.g. `tokens-150-overlap-30`).
+- `/v1/search` and `/v1/answers` read the chunker set by `CHUNK_MAX_TOKENS`,
+  `CHUNK_OVERLAP_TOKENS` and `CHUNK_CONTEXT_HEADER`.
+- Retrieval reports gain **Hit@k**: the share of questions with any evidence in the
+  top k.
+
 ## Error envelope
 
 Every non-2xx response:

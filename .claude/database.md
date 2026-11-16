@@ -36,7 +36,8 @@ indexes).
   There is **no** unique `(tenant_id, content_hash)`: an unchanged page in two doc versions has
   identical content and must be stored twice. Idempotency is `(slug, version)` + hash comparison.
 - **chunks**: `id`, `document_id FK CASCADE`, `tenant_id FK` (copied from the document),
-  `chunker (e.g. tokens-300-overlap-50)`, `ordinal`, `text`, `char_start`, `char_end`,
+  `chunker (e.g. tokens-300-overlap-50, or tokens-300-overlap-50-ctx for a contextual-header
+  variant; task 010)`, `ordinal`, `text`, `char_start`, `char_end`,
   `heading_path (e.g. "Tutorial > Dependencies")`, `embedding vector(384)`,
   `embedding_model (e.g. BAAI/bge-small-en-v1.5)`.
   Unique `(document_id, chunker, ordinal)`; CHECK `char_start >= 0 AND char_end > char_start`;

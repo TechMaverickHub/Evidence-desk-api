@@ -90,7 +90,7 @@ def execute_run(
     """
     if config.rerank and reranker is None:
         raise RunError(f"Config '{config.name}' reranks, but no reranker was provided")
-    chunker = configured_chunker()
+    chunker = config.chunker or configured_chunker()
     document_count = verify_corpus(
         session, tenant_id, corpus_texts, chunker=chunker, embedding_model=embedder.model_name
     )
@@ -195,6 +195,7 @@ def search_options(config: RunConfig) -> SearchOptions:
         rrf_k=config.rrf_k,
         rerank=config.rerank,
         rerank_depth=config.rerank_depth,
+        chunker=config.chunker,
     )
 
 
@@ -324,4 +325,6 @@ def _query_scores(record: QuestionRecord, k: int) -> QueryScores:
         recall=row.recall,
         reciprocal_rank=row.reciprocal_rank,
         ndcg=row.ndcg,
+        # Records written before task 010 have no hit; nothing summarises those.
+        hit=row.hit if row.hit is not None else 0.0,
     )

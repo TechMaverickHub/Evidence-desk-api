@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     # so both must come from here.
     chunk_max_tokens: int = Field(default=300, gt=0)
     chunk_overlap_tokens: int = Field(default=50, ge=0)
+    # Embed (and rerank) chunks with their document title, version and heading path (task 010).
+    chunk_context_header: bool = False
     worker_poll_seconds: float = Field(default=1.0, gt=0)
 
     # Answer generation (task 009a). No default key: without one, /v1/answers returns 503

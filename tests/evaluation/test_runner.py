@@ -92,6 +92,7 @@ def test_score_question_plumbs_matches_into_every_cutoff() -> None:
         "recall": 0.0,
         "reciprocal_rank": 0.0,
         "ndcg": 0.0,
+        "hit": 0.0,
     }
     at_3 = record.scores[3]
     assert (at_3.precision, at_3.recall, at_3.reciprocal_rank) == pytest.approx((2 / 3, 1, 0.5))
@@ -306,3 +307,21 @@ def test_a_reranked_run_records_its_model_and_rerank_stage(
     assert [hit.score for hit in first_hits] == sorted(
         (hit.score for hit in first_hits), reverse=True
     )
+
+
+def test_a_run_reads_and_verifies_the_chunker_its_config_names(
+    db_session: Session,
+    make_tenant: Callable[..., Tenant],
+    load_fixture_corpus,
+    mini_dataset: Dataset,
+    corpus_texts: dict,
+) -> None:
+    tenant = make_tenant()
+    load_fixture_corpus(tenant)
+    variant = RunConfig(name="t", chunker="tokens-150-overlap-30")
+
+    assert search_options(variant).chunker == "tokens-150-overlap-30"
+    with pytest.raises(RunError, match="no tokens-150-overlap-30 chunks"):
+        execute_run(
+            db_session, tenant.id, FakeEmbedder(), variant, mini_dataset, "dev", corpus_texts, ""
+        )

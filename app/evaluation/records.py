@@ -38,6 +38,8 @@ class RunConfig(BaseModel):
     cutoffs: list[int] = Field(default=[5, 10], min_length=1)
     # None uses the EMBEDDING_QUERY_INSTRUCTION setting; "" sends queries without one.
     query_instruction: str | None = None
+    # A chunker variant to evaluate (task 010), e.g. "tokens-150-overlap-30"; None = settings.
+    chunker: str | None = Field(default=None, pattern=r"^tokens-\d+-overlap-\d+(-ctx)?$")
 
     @model_validator(mode="after")
     def _cutoffs_within_depth(self) -> "RunConfig":
@@ -57,6 +59,8 @@ class MetricRow(BaseModel):
     recall: float
     mrr: float
     ndcg: float
+    # Share of questions with any evidence in the top k (task 010); None in older records.
+    hit: float | None = None
 
     @classmethod
     def from_summary(cls, summary: MetricSummary) -> "MetricRow":
@@ -66,6 +70,7 @@ class MetricRow(BaseModel):
             recall=summary.recall,
             mrr=summary.mrr,
             ndcg=summary.ndcg,
+            hit=summary.hit,
         )
 
 
@@ -74,6 +79,7 @@ class QueryScoreRow(BaseModel):
     recall: float
     reciprocal_rank: float
     ndcg: float
+    hit: float | None = None
 
     @classmethod
     def from_scores(cls, scores: QueryScores) -> "QueryScoreRow":
@@ -82,6 +88,7 @@ class QueryScoreRow(BaseModel):
             recall=scores.recall,
             reciprocal_rank=scores.reciprocal_rank,
             ndcg=scores.ndcg,
+            hit=scores.hit,
         )
 
 

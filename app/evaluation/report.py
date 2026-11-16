@@ -18,7 +18,13 @@ TIE_TOLERANCE = 1e-9
 MISS_HITS_SHOWN = 3
 
 _BANDS = ("low", "high")
-_METRICS = (("P", "precision"), ("R", "recall"), ("MRR", "mrr"), ("nDCG", "ndcg"))
+_METRICS = (
+    ("P", "precision"),
+    ("R", "recall"),
+    ("MRR", "mrr"),
+    ("nDCG", "ndcg"),
+    ("Hit", "hit"),
+)
 
 
 class ComparisonError(Exception):
@@ -77,7 +83,7 @@ def _metric_table(rows: dict[str, MetricRow], k: int, names: Sequence[str]) -> l
     lines = [f"| query_type | n | {columns} |", "|---|---|" + "---|" * len(_METRICS)]
     for name in names:
         row = rows[name]
-        values = " | ".join(f"{getattr(row, field):.3f}" for _, field in _METRICS)
+        values = " | ".join(_value(getattr(row, field)) for _, field in _METRICS)
         label = f"**{name}**" if name == "all" else name
         lines.append(f"| {label} | {row.count} | {values} |")
     return lines
@@ -219,7 +225,14 @@ def _delta_table(base: RunReport, candidate: RunReport, k: int) -> list[str]:
     return lines
 
 
-def _delta_cell(base_value: float, candidate_value: float) -> str:
+def _value(value: float | None) -> str:
+    # Older records have no hit@k; show that instead of guessing a number.
+    return "–" if value is None else f"{value:.3f}"
+
+
+def _delta_cell(base_value: float | None, candidate_value: float | None) -> str:
+    if base_value is None or candidate_value is None:
+        return f"{_value(base_value)} → {_value(candidate_value)}"
     return f"{base_value:.3f} → {candidate_value:.3f} ({candidate_value - base_value:+.3f})"
 
 
@@ -230,6 +243,13 @@ def _paired_section(
     cutoffs = list(base.results.metrics)
     primary = [("R", "recall", cutoffs[0]), ("MRR", "reciprocal_rank", cutoffs[-1])]
     primary.append(("nDCG", "ndcg", cutoffs[-1]))
+    # hit@k is compared only when both runs recorded it (task 010 onwards).
+    if all(
+        row.hit is not None
+        for b, c in scored
+        for row in (b.scores[cutoffs[0]], c.scores[cutoffs[0]])
+    ):
+        primary += [("Hit", "hit", k) for k in cutoffs[:-1]]
     lines = [
         f"## Per-question differences ({len(scored)} answerable questions)",
         "",

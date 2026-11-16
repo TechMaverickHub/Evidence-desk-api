@@ -107,3 +107,13 @@ def test_runs_on_different_datasets_are_not_compared() -> None:
 
     with pytest.raises(ComparisonError, match="different datasets"):
         render_comparison(base, other)
+
+
+def test_records_from_before_hit_at_k_still_render_and_compare() -> None:
+    old = _report([_record("q-1", "factual", 1.0, 1.0)])
+    for row in old.results.metrics[10].values():
+        row.hit = None
+
+    assert "| **all** | 1 |" in render_run(old)
+    markdown = render_comparison(old, old)
+    assert "Hit@" not in markdown.split("## Per-question differences")[1]

@@ -27,6 +27,12 @@ def recall_at_k(matches: Matches, item_count: int, k: int) -> float:
     return len(found) / item_count
 
 
+def hit_at_k(matches: Matches, k: int) -> float:
+    """1 if any evidence item is matched in the top k, else 0. For answers this is "did the
+    evidence reach the context", which recall (the share of items found) doesn't say."""
+    return 1.0 if any(matches[:k]) else 0.0
+
+
 def reciprocal_rank(matches: Matches, k: int) -> float:
     """1 / rank of the first relevant chunk in the top k, else 0 (averaged into MRR@k)."""
     for rank, matched in enumerate(matches[:k], start=1):
@@ -68,6 +74,7 @@ class QueryScores:
     recall: float
     reciprocal_rank: float
     ndcg: float
+    hit: float
 
 
 @dataclass(frozen=True)
@@ -77,6 +84,7 @@ class MetricSummary:
     recall: float
     mrr: float
     ndcg: float
+    hit: float
 
 
 def score_query(
@@ -92,6 +100,7 @@ def score_query(
         recall=recall_at_k(matches, len(grades), k),
         reciprocal_rank=reciprocal_rank(matches, k),
         ndcg=ndcg_at_k(matches, grades, k),
+        hit=hit_at_k(matches, k),
     )
 
 
@@ -111,4 +120,5 @@ def _summarise(group: Sequence[QueryScores]) -> MetricSummary:
         recall=fmean(score.recall for score in group),
         mrr=fmean(score.reciprocal_rank for score in group),
         ndcg=fmean(score.ndcg for score in group),
+        hit=fmean(score.hit for score in group),
     )

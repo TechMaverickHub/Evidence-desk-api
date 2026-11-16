@@ -113,6 +113,7 @@ def build_default_handlers() -> dict[str, JobHandler]:
         HuggingFaceTokenizer(settings.embedding_model_name),
         settings.chunk_max_tokens,
         settings.chunk_overlap_tokens,
+        settings.chunk_context_header,
     )
     # Passages only: the worker never embeds queries, so no query instruction is needed.
     embedder = SentenceTransformerEmbedder(

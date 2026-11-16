@@ -15,7 +15,12 @@ from typing import Literal
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.ingestion.chunking import chunker_name
+from app.ingestion.chunking import (
+    chunker_name,
+    contextual_header,
+    has_context_header,
+    model_input,
+)
 from app.ingestion.embedding import Embedder
 from app.retrieval import repository
 from app.retrieval.fusion import DEFAULT_RRF_K, fuse_rankings_rrf
@@ -46,6 +51,8 @@ class SearchOptions:
     rrf_k: int = DEFAULT_RRF_K
     rerank: bool = False
     rerank_depth: int = DEFAULT_RERANK_DEPTH
+    # A chunker variant to read (task 010 evaluation); None reads the configured one.
+    chunker: str | None = None
     source: str | None = None
     version: str | None = None
 
@@ -89,7 +96,7 @@ def search(
         raise ValueError("Reranking was requested but no reranker was provided")
     scope = SearchScope(
         tenant_id=tenant_id,
-        chunker=configured_chunker(),
+        chunker=options.chunker or configured_chunker(),
         # The embedder's own model name, so a query never meets another model's vectors.
         embedding_model=embedder.model_name,
         source=options.source,
@@ -111,8 +118,19 @@ def _ranked_hits(run: _Search, reranker: Reranker | None) -> list[SearchHit]:
         return RETRIEVERS[options.mode](run, options.k)
     # The reranker reorders a deeper candidate list, then cuts it to k.
     candidates = RETRIEVERS[options.mode](run, max(options.k, options.rerank_depth))
+    passage = _with_header if has_context_header(run.scope.chunker) else _chunk_text
     with run.timed("rerank"):
-        return rerank_hits(reranker, run.query, candidates, options.k)
+        return rerank_hits(reranker, run.query, candidates, options.k, passage)
+
+
+def _chunk_text(hit: SearchHit) -> str:
+    return hit.text
+
+
+def _with_header(hit: SearchHit) -> str:
+    # The same input the embedder saw for this chunker (see ingestion.chunking).
+    header = contextual_header(hit.title, hit.source, hit.version, hit.heading_path)
+    return model_input(hit.text, header)
 
 
 def score_kind(mode: SearchMode, rerank: bool) -> ScoreKind:
@@ -123,7 +141,9 @@ def score_kind(mode: SearchMode, rerank: bool) -> ScoreKind:
 def configured_chunker() -> str:
     """The chunker whose chunks search reads; the worker writes chunks with the same settings."""
     settings = get_settings()
-    return chunker_name(settings.chunk_max_tokens, settings.chunk_overlap_tokens)
+    return chunker_name(
+        settings.chunk_max_tokens, settings.chunk_overlap_tokens, settings.chunk_context_header
+    )
 
 
 def _dense(run: _Search, k: int) -> list[SearchHit]:

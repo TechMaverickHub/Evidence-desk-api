@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.documents import repository as documents_repository
 from app.documents.models import Document, DocumentChunk, DocumentStatus
-from app.ingestion.chunking import TokenWindowChunker
+from app.ingestion.chunking import Chunk, TokenWindowChunker, contextual_header, model_input
 from app.ingestion.embedding import Embedder
 from app.jobs.models import Job
 
@@ -26,7 +26,9 @@ def process_document(
     if not chunks:
         raise IngestionError("Document has no indexable text (only headings or whitespace).")
 
-    vectors = embedder.embed_documents([chunk.text for chunk in chunks])
+    vectors = embedder.embed_documents(
+        [_embedding_input(document, chunk, chunker) for chunk in chunks]
+    )
     rows = [
         DocumentChunk(
             document_id=document.id,
@@ -45,6 +47,15 @@ def process_document(
     documents_repository.replace_chunks(session, document, chunker.name, rows)
     document.status = DocumentStatus.INGESTED
     return len(rows)
+
+
+def _embedding_input(document: Document, chunk: Chunk, chunker: TokenWindowChunker) -> str:
+    if not chunker.context_header:
+        return chunk.text
+    header = contextual_header(
+        document.title, document.source, document.version, chunk.heading_path
+    )
+    return model_input(chunk.text, header)
 
 
 def run_ingest_job(

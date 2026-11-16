@@ -49,7 +49,8 @@ def _header(report: AnswerRunReport) -> list[str]:
         f"sha256 `{header.dataset.sha256}`",
         f"- **Config:** `{header.config.model_dump_json()}`",
         f"- **Generator:** `{generator.model}`, {generator.context_chunks} context chunks, "
-        f"rerank depth {generator.rerank_depth}, gate during run: {generator.min_rerank_score}",
+        f"rerank depth {generator.rerank_depth}, chunker `{generator.chunker or 'unrecorded'}`, "
+        f"gate during run: {generator.min_rerank_score}",
         f"- **Judge:** `{header.judge_model or 'not judged'}`"
         + (f", human agreement {agreement.agreed}/{agreement.checked}" if agreement else ""),
         f"- **Corpus:** {header.corpus_documents} documents verified",

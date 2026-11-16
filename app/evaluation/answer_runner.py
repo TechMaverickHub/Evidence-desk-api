@@ -112,6 +112,7 @@ def execute_answer_run(
             context_chunks=settings.answer_context_chunks,
             rerank_depth=ANSWER_RERANK_DEPTH,
             min_rerank_score=settings.answer_min_rerank_score,
+            chunker=configured_chunker(),
         ),
         git=provenance.git_state(),
         environment=provenance.environment(repository.postgres_version(session)),

@@ -71,6 +71,8 @@ class GeneratorSettings(BaseModel):
     rerank_depth: int
     # The gate in force during the run (None = off); calibration sweeps it offline.
     min_rerank_score: float | None
+    # Chunks read for the context (task 010); None in records written before it.
+    chunker: str | None = None
 
 
 class JudgeAgreement(BaseModel):

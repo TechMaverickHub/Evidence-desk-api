@@ -88,3 +88,28 @@ def replace_chunks(
     )
     session.add_all(chunks)
     session.flush()
+
+
+def list_documents_missing_chunker(
+    session: Session, tenant_id: uuid.UUID, chunker: str, embedding_model: str
+) -> list[Document]:
+    """Ingested documents with no chunks of this chunker and model yet (task 010 rechunk)."""
+    has_variant = (
+        select(DocumentChunk.id)
+        .where(
+            DocumentChunk.document_id == Document.id,
+            DocumentChunk.chunker == chunker,
+            DocumentChunk.embedding_model == embedding_model,
+        )
+        .exists()
+    )
+    query = (
+        select(Document)
+        .where(
+            Document.tenant_id == tenant_id,
+            Document.status == DocumentStatus.INGESTED,
+            ~has_variant,
+        )
+        .order_by(Document.slug, Document.version)
+    )
+    return list(session.scalars(query))

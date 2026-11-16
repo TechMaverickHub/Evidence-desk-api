@@ -3,6 +3,8 @@
 Usage:
     uv run python -m app.ingestion.cli load-corpus --tenant acme
         --manifest corpus/manifest.yaml [--process]
+    uv run python -m app.ingestion.cli rechunk --tenant acme --max-tokens 150
+        --overlap-tokens 30 [--context-header]
 
 Manifest format (paths are relative to the manifest file):
 
@@ -18,6 +20,7 @@ Manifest format (paths are relative to the manifest file):
 import argparse
 import sys
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -28,9 +31,13 @@ from app.auth.repository import get_tenant_by_name
 from app.core.config import get_settings
 from app.core.db import get_sessionmaker
 from app.core.errors import ConflictError
+from app.documents import repository as documents_repository
 from app.documents import service as documents_service
 from app.documents.schemas import IngestDocumentRequest
 from app.documents.service import IngestResult
+from app.ingestion.chunking import TokenWindowChunker
+from app.ingestion.embedding import Embedder
+from app.ingestion.pipeline import IngestionError, process_document
 
 
 class ManifestEntry(BaseModel):
@@ -103,15 +110,65 @@ def _process_queue() -> None:
     run_worker(build_default_handlers(), get_settings().worker_poll_seconds, once=True)
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="python -m app.ingestion.cli")
-    commands = parser.add_subparsers(dest="command", required=True)
-    load = commands.add_parser("load-corpus", help="Ingest every document in a manifest")
-    load.add_argument("--tenant", required=True, help="Tenant name")
-    load.add_argument("--manifest", required=True, type=Path, help="Path to manifest.yaml")
-    load.add_argument("--process", action="store_true", help="Run the worker once afterwards")
-    args = parser.parse_args(argv)
+@dataclass(frozen=True)
+class RechunkResult:
+    processed: int
+    failed: list[str]
 
+
+def rechunk_documents(
+    session: Session, tenant_id: uuid.UUID, chunker: TokenWindowChunker, embedder: Embedder
+) -> RechunkResult:
+    """Chunk and embed every ingested document that lacks this chunker variant.
+
+    The new chunks sit next to existing ones (chunks are keyed by chunker name), so variants
+    can be compared on identical documents. Commits per document, so an interrupted run
+    resumes where it stopped.
+    """
+    documents = documents_repository.list_documents_missing_chunker(
+        session, tenant_id, chunker.name, embedder.model_name
+    )
+    processed, failed = 0, []
+    for document in documents:
+        label = f"{document.slug}@{document.version}"
+        try:
+            process_document(session, document, chunker, embedder)
+        except IngestionError as exc:
+            session.rollback()
+            failed.append(f"{label}: {exc}")
+            continue
+        session.commit()
+        processed += 1
+    return RechunkResult(processed, failed)
+
+
+def _rechunk(args: argparse.Namespace) -> int:
+    # Imported here: loading the model and tokenizer imports torch (tens of seconds).
+    from app.ingestion.local_models import HuggingFaceTokenizer, SentenceTransformerEmbedder
+
+    settings = get_settings()
+    chunker = TokenWindowChunker(
+        HuggingFaceTokenizer(settings.embedding_model_name),
+        args.max_tokens,
+        args.overlap_tokens,
+        args.context_header,
+    )
+    embedder = SentenceTransformerEmbedder(
+        settings.embedding_model_name, settings.embedding_batch_size
+    )
+    with get_sessionmaker()() as session:
+        tenant = get_tenant_by_name(session, args.tenant)
+        if tenant is None:
+            print(f"Unknown tenant '{args.tenant}'", file=sys.stderr)
+            return 1
+        result = rechunk_documents(session, tenant.id, chunker, embedder)
+    print(f"{chunker.name}: {result.processed} document(s) chunked, {len(result.failed)} failed.")
+    for failure in result.failed:
+        print(f"  {failure}", file=sys.stderr)
+    return 0
+
+
+def _load(args: argparse.Namespace) -> int:
     try:
         queued, unchanged = load_corpus(args.tenant, args.manifest)
     except CorpusError as exc:
@@ -121,6 +178,24 @@ def main(argv: list[str] | None = None) -> int:
     if args.process:
         _process_queue()
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m app.ingestion.cli")
+    commands = parser.add_subparsers(dest="command", required=True)
+    load = commands.add_parser("load-corpus", help="Ingest every document in a manifest")
+    load.add_argument("--tenant", required=True, help="Tenant name")
+    load.add_argument("--manifest", required=True, type=Path, help="Path to manifest.yaml")
+    load.add_argument("--process", action="store_true", help="Run the worker once afterwards")
+    rechunk = commands.add_parser(
+        "rechunk", help="Add a chunker variant to every ingested document (task 010)"
+    )
+    rechunk.add_argument("--tenant", required=True, help="Tenant name")
+    rechunk.add_argument("--max-tokens", required=True, type=int)
+    rechunk.add_argument("--overlap-tokens", required=True, type=int)
+    rechunk.add_argument("--context-header", action="store_true", help="Embed with a header")
+    args = parser.parse_args(argv)
+    return _rechunk(args) if args.command == "rechunk" else _load(args)
 
 
 if __name__ == "__main__":
