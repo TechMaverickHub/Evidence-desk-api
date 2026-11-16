@@ -8,7 +8,7 @@ behaviour only after the retrieval system is shown to work.
 ```
 W1 Foundation    001 setup ✅ → 002 auth ✅ → 003 ingestion ✅ → 004 dense search ✅
 W2 Measurement   005a metrics ✅ → 005b corpus ✅ → 005c benchmark ✅ → 006a runner + baseline (Exp. A) ✅ → 006b runs API ✅ → 007 hybrid (Exp. B) ✅
-W3 RAG quality   008 rerank (Exp. C) ✅ → 009a grounded answers ✅ → 009b answer evaluation   <- NEXT + abstention → 010 chunking (Exp. D)
+W3 RAG quality   008 rerank (Exp. C) ✅ → 009a grounded answers ✅ → 009b answer evaluation ✅ → 010 chunking (Exp. D)   <- NEXT
 W4 Reliability   011 timeouts/retries/failure tests (security tests ship with 002–004)
 W5 Operations    012 tracing + cost → 013 Docker + CI + eval gate → 014 dashboard (separate repo)
 W6 Polish        015 load test + held-out report → 016 tool-calling workflow (optional)

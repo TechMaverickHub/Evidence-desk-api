@@ -18,7 +18,7 @@ later rows are the intended order and get their own task file when they come up.
 | 007 | [Keyword search (FTS) + RRF hybrid (Exp. B)](tasks/007-keyword-hybrid-search.md) | retrieval | W2 | ✅ Done; 193 tests; hybrid not adopted (test nDCG@10 Δ −0.038, CI [−0.117, +0.045]) |
 | 008 | [Cross-encoder reranking (Exp. C)](tasks/008-cross-encoder-rerank.md) | retrieval | W3 | ✅ Done; 208 tests; rerank top 20: nDCG@10 +0.060 dev / +0.058 test, ~1.9 s p50 |
 | 009a | [Grounded answers: `POST /v1/answers`, structured output, citation validation, abstention](tasks/009a-grounded-answers.md) | generation | W3 | ✅ Done; 247 tests; live check: 8/10 answered correctly, 2/2 unanswerable abstained |
-| 009b | [Answer evaluation: abstention rate, citation precision, LLM-judged correctness/faithfulness, dev-calibrated threshold](tasks/009b-answer-evaluation.md) | evaluation, generation | W3 | 🔨 Code done (268 tests); dev/test answer runs pending |
+| 009b | [Answer evaluation: abstention rate, citation precision, LLM-judged correctness/faithfulness, dev-calibrated threshold](tasks/009b-answer-evaluation.md) | evaluation, generation | W3 | ✅ Done; 268 tests; test: 86% answered, 5/5 refused, 50/56 judged correct; gate not adopted |
 | 010 | Chunking and context-budget experiments (Exp. D) | ingestion, evaluation | W3 | Not started |
 | 011 | Reliability: LLM timeouts, bounded retries, failure-scenario tests | generation, ingestion | W4 | Not started |
 | 012 | Observability: OpenTelemetry traces, stage latency, token usage and cost | core, all | W5 | Not started |
@@ -27,4 +27,4 @@ later rows are the intended order and get their own task file when they come up.
 | 015 | Load test + final held-out evaluation report + known limitations | evaluation | W6 | Not started |
 | 016 | Bounded tool-calling workflow: read-only log-bundle diagnosis (optional) | generation | W6 | Not started |
 
-Next: approve [task 009b](tasks/009b-answer-evaluation.md). Task 009 is split into 009a/b; see 009a for why.
+Next: write the plan for task 010 (chunking and context-budget experiments, Experiment D). Task 009 is split into 009a/b; see 009a for why.

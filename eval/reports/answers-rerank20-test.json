@@ -1,0 +1,6087 @@
+{
+ "format": "evidencedesk-answers/1",
+ "header": {
+  "run_name": "answers-rerank20-test",
+  "created_at": "2026-11-16T14:34:23.201511Z",
+  "dataset": {
+   "name": "evidencedesk-v1",
+   "sha256": "b77c981ff46376d25f7c81eb3f60b520df64a6566b584234d688a0b8cbcf9920",
+   "split": "test"
+  },
+  "config": {
+   "name": "rerank20",
+   "mode": "dense",
+   "rerank": true
+  },
+  "generator": {
+   "model": "openai/gpt-oss-20b",
+   "context_chunks": 5,
+   "rerank_depth": 20,
+   "min_rerank_score": null
+  },
+  "judge_model": "openai/gpt-oss-120b",
+  "judge_agreement": null,
+  "git": {
+   "sha": "ec8653f35f6945127cd025e9df6535fc8614cf54",
+   "dirty": false
+  },
+  "environment": {
+   "python": "3.12.12",
+   "os": "Windows-11",
+   "processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+   "cpu_count": "8",
+   "postgres": "16.14 (Debian 16.14-1.pgdg12+1)"
+  },
+  "corpus_documents": 285
+ },
+ "records": [
+  {
+   "id": "q-0003",
+   "query_type": "factual",
+   "question": "When do FastAPI background tasks run relative to the HTTP response?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "FastAPI background tasks run after the HTTP response has been sent to the client.",
+   "citations": [
+    {
+     "chunk_id": "eb30dd47-c5bb-48b1-86ca-6419d78571ed",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 5667,
+     "char_end": 6384,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6196ac52-c6ae-4498-bce4-b35e215d0a2c",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 0,
+     "char_end": 742,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "81c8db83-6686-4974-882b-d428d22e36c9",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 764,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "eb30dd47-c5bb-48b1-86ca-6419d78571ed",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 5667,
+     "char_end": 6384,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6196ac52-c6ae-4498-bce4-b35e215d0a2c",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 0,
+     "char_end": 742,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "2315f99d-5c9c-40ff-9e87-d8c8d465b348",
+     "slug": "fastapi/tutorial/frontend",
+     "version": "0.162.0",
+     "char_start": 6035,
+     "char_end": 6503,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "81c8db83-6686-4974-882b-d428d22e36c9",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 764,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "69db8ea4-1523-4fef-b8c1-14943cacbaf9",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.115.0",
+     "char_start": 19505,
+     "char_end": 20886,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.552583694458008,
+   "llm_calls": 1,
+   "prompt_tokens": 1418,
+   "completion_tokens": 185,
+   "latency_ms": {
+    "retrieval": 1854.5,
+    "llm": 1396.32,
+    "total": 4624.29
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that FastAPI background tasks run after the HTTP response is sent, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages explicitly state that FastAPI background tasks are run after the response is returned, directly supporting the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0004",
+   "query_type": "exact_identifier",
+   "question": "Why should BackgroundTasks be imported from fastapi rather than using BackgroundTask from starlette.background?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Importing BackgroundTasks from fastapi avoids accidentally importing the alternative BackgroundTask (without the s) from starlette.background, and it lets you use BackgroundTasks as a path‑operation function parameter so FastAPI can handle it automatically. Using BackgroundTask directly requires you to create the object yourself and return a Starlette Response that includes it.",
+   "citations": [
+    {
+     "chunk_id": "17d1c329-ee63-471f-9b18-e4dcae940e3d",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 5087,
+     "char_end": 5953,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "ed78b324-9eaa-4355-9bab-4c68b6420dad",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 8240,
+     "char_end": 9187,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "17d1c329-ee63-471f-9b18-e4dcae940e3d",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 5087,
+     "char_end": 5953,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "ed78b324-9eaa-4355-9bab-4c68b6420dad",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 8240,
+     "char_end": 9187,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "8b495eeb-d60c-4dc4-b210-db12c9364af5",
+     "slug": "starlette/background",
+     "version": "1.10.0",
+     "char_start": 941,
+     "char_end": 1988,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d4d7502a-cfdf-4e14-9e88-3fbf377dc7bd",
+     "slug": "starlette/background",
+     "version": "1.10.0",
+     "char_start": 183,
+     "char_end": 939,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f56d05a6-549d-4af5-87a8-309a37feed1d",
+     "slug": "starlette/background",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 181,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.336513519287109,
+   "llm_calls": 1,
+   "prompt_tokens": 1408,
+   "completion_tokens": 277,
+   "latency_ms": {
+    "retrieval": 1753.45,
+    "llm": 1375.02,
+    "total": 3129.65
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly explains that FastAPI re-exports BackgroundTasks for automatic path‑operation handling, while the singular BackgroundTask must be manually created and returned in a Starlette resp"
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements in the answer are directly stated in the passages regarding import avoidance, path‑operation usage, and the need to manually create and return a Response when using BackgroundTask."
+    }
+   }
+  },
+  {
+   "id": "q-0005",
+   "query_type": "factual",
+   "question": "When is a tool like Celery a better choice than FastAPI's built-in background tasks?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Celery is preferable when you need to run heavy background work that can be offloaded to separate processes or servers, especially when the task does not need to share memory or app state. It also shines when you want a distributed queue that can scale across multiple workers, which requires a message broker such as RabbitMQ or Redis. In contrast, FastAPI’s built‑in BackgroundTasks is suited for lightweight, short‑lived jobs that can run in the same process and may need to access the FastAPI app’s variables.",
+   "citations": [
+    {
+     "chunk_id": "3d457f3d-43ca-4ec6-94ae-7ecb3ebc6d92",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 5955,
+     "char_end": 6659,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "b1e0bc60-291a-4550-8613-4ddc89ccb117",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 9189,
+     "char_end": 10082,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "3d457f3d-43ca-4ec6-94ae-7ecb3ebc6d92",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 5955,
+     "char_end": 6659,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "b1e0bc60-291a-4550-8613-4ddc89ccb117",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 9189,
+     "char_end": 10082,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "17d1c329-ee63-471f-9b18-e4dcae940e3d",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 5087,
+     "char_end": 5953,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ed78b324-9eaa-4355-9bab-4c68b6420dad",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 8240,
+     "char_end": 9187,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "44dc9dad-c0f8-4f5f-8e36-10c488e72835",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 3607,
+     "char_end": 4700,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.749102830886841,
+   "llm_calls": 1,
+   "prompt_tokens": 1586,
+   "completion_tokens": 291,
+   "latency_ms": {
+    "retrieval": 2063.71,
+    "llm": 1043.83,
+    "total": 3108.85
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that Celery is better for heavy background computation offloaded to separate processes or servers using a broker like RabbitMQ or Redis, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements in the answer are directly reflected in the passages, which describe Celery for heavy, multi‑process work with brokers like RabbitMQ/Redis and FastAPI BackgroundTasks for small, same‑pr"
+    }
+   }
+  },
+  {
+   "id": "q-0010",
+   "query_type": "factual",
+   "question": "In a dependency that uses yield, when does the code after the yield statement run?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "In a dependency that uses `yield`, the code after the `yield` runs after the response has been sent to the client (the default `scope=\"request\"`). If the dependency is declared with `Depends(scope=\"function\")`, the exit code runs after the path‑operation function finishes but before the response is sent.",
+   "citations": [
+    {
+     "chunk_id": "c8f84b92-912e-41df-8b57-c3d6d08cac22",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 842,
+     "char_end": 1754,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "7e74abe9-a003-4bea-bc68-537f10044087",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.115.0",
+     "char_start": 915,
+     "char_end": 1851,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "d8a6331b-d6b8-4a21-85e2-a75f68dff83b",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 5806,
+     "char_end": 6911,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8f6fe67a-a989-44f9-a567-7913ac6d3a6f",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 5141,
+     "char_end": 5804,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "d8a6331b-d6b8-4a21-85e2-a75f68dff83b",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 5806,
+     "char_end": 6911,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c8f84b92-912e-41df-8b57-c3d6d08cac22",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 842,
+     "char_end": 1754,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "7e74abe9-a003-4bea-bc68-537f10044087",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.115.0",
+     "char_start": 915,
+     "char_end": 1851,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "8f6fe67a-a989-44f9-a567-7913ac6d3a6f",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 5141,
+     "char_end": 5804,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5653a821-7b40-4343-a0e0-3ba05242291c",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 10959,
+     "char_end": 12089,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.233144760131836,
+   "llm_calls": 1,
+   "prompt_tokens": 1675,
+   "completion_tokens": 312,
+   "latency_ms": {
+    "retrieval": 1898.48,
+    "llm": 954.69,
+    "total": 2854.31
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "incorrect",
+     "reason": "The answer adds a claim that code after yield runs before the response when using Depends(scope=\"function\"), which contradicts the reference stating it always runs after the response."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both statements about default request scope and function scope behavior are directly confirmed by passage [4]."
+    }
+   }
+  },
+  {
+   "id": "q-0011",
+   "query_type": "exact_identifier",
+   "question": "What is Uvicorn's default value for --timeout-keep-alive?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "5 seconds",
+   "citations": [
+    {
+     "chunk_id": "d387b3c3-7898-4d69-9b6d-35bdece07a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3346,
+     "char_end": 3533,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "472dc56c-581b-42f0-9d6a-d38e45638e99",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 12143,
+     "char_end": 12457,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "d387b3c3-7898-4d69-9b6d-35bdece07a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3346,
+     "char_end": 3533,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b4c31e81-5481-40be-83cb-e623e78f16d1",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 520,
+     "char_end": 785,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "472dc56c-581b-42f0-9d6a-d38e45638e99",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 12143,
+     "char_end": 12457,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "5d098cbb-820d-41e0-a32e-d05e13c31bba",
+     "slug": "uvicorn/concepts/lifespan",
+     "version": "0.54.0",
+     "char_start": 3951,
+     "char_end": 4243,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.474532127380371,
+   "llm_calls": 1,
+   "prompt_tokens": 1040,
+   "completion_tokens": 100,
+   "latency_ms": {
+    "retrieval": 1981.1,
+    "llm": 406.24,
+    "total": 2388.22
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states the default timeout of 5 seconds as given in the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The answer's claim of \"5 seconds\" matches the Keep-Alive default timeout stated in the passages."
+    }
+   }
+  },
+  {
+   "id": "q-0012",
+   "query_type": "exact_identifier",
+   "question": "What happens to requests that arrive after Uvicorn's --limit-concurrency has been reached?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Requests arriving after the --limit-concurrency threshold is reached are immediately rejected with a 503 Service Unavailable response and are not queued.",
+   "citations": [
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bf768b6a-e835-4952-a3a1-8888c418cc26",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 4575,
+     "char_end": 5825,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bf768b6a-e835-4952-a3a1-8888c418cc26",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 4575,
+     "char_end": 5825,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e3f3db35-0baa-4a7e-9b48-4ab61a0a8a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 5629,
+     "char_end": 6943,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ce872242-af9f-414c-9f16-3d3c7705c3c2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 6735,
+     "char_end": 6998,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a62fc725-0035-4fdb-97dc-dd4a5fbc1ac4",
+     "slug": "incidents/0016",
+     "version": "1",
+     "char_start": 484,
+     "char_end": 661,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.542814254760742,
+   "llm_calls": 1,
+   "prompt_tokens": 1448,
+   "completion_tokens": 173,
+   "latency_ms": {
+    "retrieval": 2189.08,
+    "llm": 432.13,
+    "total": 2622.67
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately restates that requests are immediately responded to with HTTP 503 and are not queued, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Passages state that requests exceeding --limit-concurrency get an immediate 503 response and are not queued, directly matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0013",
+   "query_type": "exact_identifier",
+   "question": "By default, which client IPs does Uvicorn trust to send X-Forwarded-* proxy headers?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "By default Uvicorn trusts only the loopback addresses: 127.0.0.1 and ::1.",
+   "citations": [
+    {
+     "chunk_id": "dcf449ef-ede2-4016-9011-5d7764d9fee1",
+     "slug": "incidents/0002",
+     "version": "1",
+     "char_start": 632,
+     "char_end": 914,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "dcf449ef-ede2-4016-9011-5d7764d9fee1",
+     "slug": "incidents/0002",
+     "version": "1",
+     "char_start": 632,
+     "char_end": 914,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "851cb20f-f5e4-4ea2-b3a1-3c9d19887deb",
+     "slug": "uvicorn/deployment/index",
+     "version": "0.54.0",
+     "char_start": 10732,
+     "char_end": 11706,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "712d13d4-91e3-44bb-9e3e-58e74357d55a",
+     "slug": "fastapi/deployment/https",
+     "version": "0.162.0",
+     "char_start": 12700,
+     "char_end": 13762,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ea482b96-8f96-42f1-af8a-af98c54ca6fb",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 40554,
+     "char_end": 40919,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3b8dd6c5-8e21-4d6a-b473-805cf4e7a99b",
+     "slug": "uvicorn/deployment/index",
+     "version": "0.54.0",
+     "char_start": 11562,
+     "char_end": 12319,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.67228889465332,
+   "llm_calls": 1,
+   "prompt_tokens": 1426,
+   "completion_tokens": 279,
+   "latency_ms": {
+    "retrieval": 1942.46,
+    "llm": 4195.35,
+    "total": 6139.08
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states the default trusted IPs (127.0.0.1 and ::1) as given in the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage states that Uvicorn's default trusted addresses are 127.0.0.1 and ::1, directly supporting the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0014",
+   "query_type": "factual",
+   "question": "Why would you configure Uvicorn to restart a worker after a fixed number of requests?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "96049a86-94da-40ef-9bf9-1b837a1372af",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 27431,
+     "char_end": 27834,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "aa1ea5a5-f14d-436d-8065-855c89596945",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 7929,
+     "char_end": 8838,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "032a2958-edfd-4ccb-b767-613ed1e478eb",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.162.0",
+     "char_start": 27246,
+     "char_end": 27594,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8ad4c1e4-65b0-4caa-9e28-f49cd9222ab4",
+     "slug": "uvicorn/deployment/index",
+     "version": "0.54.0",
+     "char_start": 2347,
+     "char_end": 3447,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "26c16422-f954-4df6-8bbd-8b9fedf99849",
+     "slug": "uvicorn/index",
+     "version": "0.54.0",
+     "char_start": 4202,
+     "char_end": 5275,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.0789899826049805,
+   "llm_calls": 1,
+   "prompt_tokens": 1404,
+   "completion_tokens": 161,
+   "latency_ms": {
+    "retrieval": 1767.2,
+    "llm": 11059.74,
+    "total": 12827.81
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0017",
+   "query_type": "factual",
+   "question": "How can a Pydantic model be validated from an ORM object instead of a dict?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use Pydantic’s `model_validate()` method with the `from_attributes=True` flag (or enable `ConfigDict.from_attributes=True` in the model). This tells Pydantic to read field values from attributes of the ORM object instead of a dict.",
+   "citations": [
+    {
+     "chunk_id": "bcafabac-faea-4221-8344-5dc289e4fd4a",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 20896,
+     "char_end": 21357,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1aeb40be-853c-4189-90d0-7c7497880b7b",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 27965,
+     "char_end": 29013,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "bcafabac-faea-4221-8344-5dc289e4fd4a",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 20896,
+     "char_end": 21357,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1aeb40be-853c-4189-90d0-7c7497880b7b",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 27965,
+     "char_end": 29013,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "9ee52ef2-b795-424c-9c64-5762dc4e7858",
+     "slug": "pydantic/errors/validation_errors",
+     "version": "v2.14.2",
+     "char_start": 31156,
+     "char_end": 31686,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c6e3f36a-b2ed-467c-8361-49074be2b955",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 18565,
+     "char_end": 19598,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "dbecb711-8b88-4791-9c5c-d5d8d246d4e8",
+     "slug": "pydantic/errors/validation_errors",
+     "version": "v2.14.2",
+     "char_start": 30400,
+     "char_end": 31154,
+     "matched_items": []
+    }
+   ],
+   "top_score": 5.947785377502441,
+   "llm_calls": 1,
+   "prompt_tokens": 1524,
+   "completion_tokens": 171,
+   "latency_ms": {
+    "retrieval": 1972.3,
+    "llm": 7722.85,
+    "total": 9696.38
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states enabling from_attributes via model_validate() or model config, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All claims are directly supported by the passages"
+    }
+   }
+  },
+  {
+   "id": "q-0018",
+   "query_type": "factual",
+   "question": "How do you make a Pydantic model immutable, and what happens if code tries to change a field?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "To make a Pydantic model immutable, set the model’s configuration to frozen by adding `model_config = ConfigDict(frozen=True)` (or set `frozen=True` on individual fields). When code attempts to assign a new value to a frozen field or the model itself, Pydantic raises a `ValidationError` indicating the instance or field is frozen.",
+   "citations": [
+    {
+     "chunk_id": "644da44c-6cff-4ec1-9299-0d1f1b330ee3",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 55171,
+     "char_end": 56237,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "adeb4db6-d0f9-434f-91db-b05f326a4281",
+     "slug": "pydantic/concepts/fields",
+     "version": "v2.14.2",
+     "char_start": 19700,
+     "char_end": 20539,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "644da44c-6cff-4ec1-9299-0d1f1b330ee3",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 55171,
+     "char_end": 56237,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "c34cb904-7978-43d4-84e0-7492a16700cf",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 9563,
+     "char_end": 10558,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "adeb4db6-d0f9-434f-91db-b05f326a4281",
+     "slug": "pydantic/concepts/fields",
+     "version": "v2.14.2",
+     "char_start": 19700,
+     "char_end": 20539,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b68a7cdd-35fc-4116-9cb8-a1819d7ee57b",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 5718,
+     "char_end": 6644,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "25eae184-b973-48cf-9fb3-55945557ba89",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 16352,
+     "char_end": 17437,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.999772548675537,
+   "llm_calls": 1,
+   "prompt_tokens": 1784,
+   "completion_tokens": 219,
+   "latency_ms": {
+    "retrieval": 1867.91,
+    "llm": 13048.29,
+    "total": 14917.44
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "incorrect",
+     "reason": "The answer adds inaccurate details (e.g., setting frozen on individual fields and claiming a ValidationError) that are not supported by the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements in the answer are directly confirmed by the passages, which describe using ConfigDict(frozen=True) or Field(frozen=True) and the resulting ValidationError for frozen instances or fields"
+    }
+   }
+  },
+  {
+   "id": "q-0019",
+   "query_type": "exact_identifier",
+   "question": "What response does Starlette's TrustedHostMiddleware send when the Host header is not in allowed_hosts?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "It returns a 400 Bad Request response.",
+   "citations": [
+    {
+     "chunk_id": "6a29831f-897c-44da-a56d-59c68381b4c4",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 12375,
+     "char_end": 13457,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "41ac0a5f-7df3-4bdb-8104-e199eddb5fb7",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 2467,
+     "char_end": 3458,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4e937a99-7930-44b7-9e13-d693fc6f7fcf",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.115.0",
+     "char_start": 2438,
+     "char_end": 3269,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "6a29831f-897c-44da-a56d-59c68381b4c4",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 12375,
+     "char_end": 13457,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "41ac0a5f-7df3-4bdb-8104-e199eddb5fb7",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 2467,
+     "char_end": 3458,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4e937a99-7930-44b7-9e13-d693fc6f7fcf",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.115.0",
+     "char_start": 2438,
+     "char_end": 3269,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "cff41dec-85b5-4a41-ab5e-e377f8fa9471",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 8555,
+     "char_end": 9578,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5356df8a-4987-4678-a1fb-74b1c407de58",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 252,
+     "char_end": 1530,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.338631629943848,
+   "llm_calls": 1,
+   "prompt_tokens": 1684,
+   "completion_tokens": 111,
+   "latency_ms": {
+    "retrieval": 1895.93,
+    "llm": 10724.48,
+    "total": 12621.57
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that a 400 Bad Request response is sent, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages state that an invalid request triggers a 400 response, which directly supports the claim that it returns a 400 Bad Request response."
+    }
+   }
+  },
+  {
+   "id": "q-0020",
+   "query_type": "exact_identifier",
+   "question": "What is the default minimum_size of GZipMiddleware?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The default minimum_size for GZipMiddleware is 500 bytes.",
+   "citations": [
+    {
+     "chunk_id": "cffff1e5-59be-47eb-8616-78922ec259e5",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 3460,
+     "char_end": 4301,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c56f1ece-cc37-4c29-a13c-e41f5afcc907",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.115.0",
+     "char_start": 3271,
+     "char_end": 4108,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "819d05b7-0276-41bf-b9b7-e38e79f83d0f",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 14452,
+     "char_end": 15735,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "cffff1e5-59be-47eb-8616-78922ec259e5",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 3460,
+     "char_end": 4301,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c56f1ece-cc37-4c29-a13c-e41f5afcc907",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.115.0",
+     "char_start": 3271,
+     "char_end": 4108,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "819d05b7-0276-41bf-b9b7-e38e79f83d0f",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 14452,
+     "char_end": 15735,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "5a99c559-5312-4cc6-8406-bb98a806c231",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 15543,
+     "char_end": 16694,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "da1f7305-b461-497e-954b-5ce21e76d60a",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 13459,
+     "char_end": 14450,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.713261604309082,
+   "llm_calls": 1,
+   "prompt_tokens": 1673,
+   "completion_tokens": 123,
+   "latency_ms": {
+    "retrieval": 1810.51,
+    "llm": 11495.59,
+    "total": 13307.52
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states the default minimum_size as 500 bytes, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages explicitly state that the default for minimum_size is 500 bytes."
+    }
+   }
+  },
+  {
+   "id": "q-0021",
+   "query_type": "exact_identifier",
+   "question": "Which command-line option tells FastAPI it is served under a path prefix such as /api/v1 by a proxy?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use the `--root-path` command‑line option (e.g., `fastapi run --root-path /api/v1`).",
+   "citations": [
+    {
+     "chunk_id": "2ccde2d5-f17d-4f80-bb02-4b7342e695b8",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 3972,
+     "char_end": 5024,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "d58fed9d-61f1-4ae6-9ec5-739c4ce5f14f",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 11126,
+     "char_end": 11716,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "9c85ca31-7735-4a12-8d47-9566b693f285",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.115.0",
+     "char_start": 497,
+     "char_end": 1537,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2ccde2d5-f17d-4f80-bb02-4b7342e695b8",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 3972,
+     "char_end": 5024,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "e617eac2-dc03-4c29-9b01-e87a7c299403",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 4891,
+     "char_end": 5838,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d58fed9d-61f1-4ae6-9ec5-739c4ce5f14f",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 11126,
+     "char_end": 11716,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8afb5715-678e-4cfa-b50d-6ebf1e30bce4",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.115.0",
+     "char_start": 8514,
+     "char_end": 9185,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.188002586364746,
+   "llm_calls": 1,
+   "prompt_tokens": 1680,
+   "completion_tokens": 126,
+   "latency_ms": {
+    "retrieval": 1929.85,
+    "llm": 12184.71,
+    "total": 14116.08
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly identifies the --root-path option and matches the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages explicitly state that the server can be configured with the `fastapi run --root-path` option, confirming the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0032",
+   "query_type": "exact_identifier",
+   "question": "What is the default value of Uvicorn's --reload-delay?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "0.25",
+   "citations": [
+    {
+     "chunk_id": "78e25933-2843-4f72-8c0a-e6be637ff829",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 2523,
+     "char_end": 3072,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "78e25933-2843-4f72-8c0a-e6be637ff829",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 2523,
+     "char_end": 3072,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b4c31e81-5481-40be-83cb-e623e78f16d1",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 520,
+     "char_end": 785,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d387b3c3-7898-4d69-9b6d-35bdece07a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3346,
+     "char_end": 3533,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b10db3e6-d10e-4793-9821-effa587875b8",
+     "slug": "incidents/0019",
+     "version": "1",
+     "char_start": 583,
+     "char_end": 884,
+     "matched_items": []
+    }
+   ],
+   "top_score": 5.686326503753662,
+   "llm_calls": 1,
+   "prompt_tokens": 1066,
+   "completion_tokens": 121,
+   "latency_ms": {
+    "retrieval": 1703.09,
+    "llm": 4756.5,
+    "total": 6460.65
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states the default value of 0.25 (seconds) as given in the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The answer '0.25' matches the default value for --reload-delay stated in the passage."
+    }
+   }
+  },
+  {
+   "id": "q-0033",
+   "query_type": "exact_identifier",
+   "question": "How long does a Starlette SessionMiddleware session last by default (max_age)?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "By default, a Starlette SessionMiddleware session lasts 2 weeks.",
+   "citations": [
+    {
+     "chunk_id": "da20d94e-85fb-47c0-bc81-4a11b814eb02",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 9580,
+     "char_end": 10749,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "da20d94e-85fb-47c0-bc81-4a11b814eb02",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 9580,
+     "char_end": 10749,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "9628602b-67b4-4902-a009-f9c75b3621c6",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 39527,
+     "char_end": 39733,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b90c6f4e-b2c4-4696-9c87-6247b949b7ab",
+     "slug": "starlette/responses",
+     "version": "1.10.0",
+     "char_start": 979,
+     "char_end": 2102,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "897a3f98-7df7-4901-910d-c5f327f1a928",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 10586,
+     "char_end": 11671,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ab281a02-9c40-470c-899c-63ac1ad54b0b",
+     "slug": "starlette/third-party-packages",
+     "version": "1.10.0",
+     "char_start": 3333,
+     "char_end": 3693,
+     "matched_items": []
+    }
+   ],
+   "top_score": 0.6974560618400574,
+   "llm_calls": 1,
+   "prompt_tokens": 1493,
+   "completion_tokens": 148,
+   "latency_ms": {
+    "retrieval": 1900.53,
+    "llm": 9653.97,
+    "total": 11555.29
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states the default session duration of two weeks as given in the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage states that the max_age default for SessionMiddleware is 2 weeks, directly supporting the claim."
+    }
+   }
+  },
+  {
+   "id": "q-0034",
+   "query_type": "exact_identifier",
+   "question": "What does https_only=True do in Starlette's SessionMiddleware?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Setting https_only=True tells SessionMiddleware to set the cookie’s Secure flag, so the session cookie is only transmitted over HTTPS connections.",
+   "citations": [
+    {
+     "chunk_id": "897a3f98-7df7-4901-910d-c5f327f1a928",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 10586,
+     "char_end": 11671,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "897a3f98-7df7-4901-910d-c5f327f1a928",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 10586,
+     "char_end": 11671,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "f5611460-17ab-498d-90f8-c1498d7e380a",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 11453,
+     "char_end": 11821,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "dde606f8-8fff-40d3-8758-dbaa0f8009ac",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 11823,
+     "char_end": 12373,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2627f466-043f-4a91-a0a4-7534a5c85f3b",
+     "slug": "starlette/testclient",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 1141,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "9628602b-67b4-4902-a009-f9c75b3621c6",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 39527,
+     "char_end": 39733,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.59928035736084,
+   "llm_calls": 1,
+   "prompt_tokens": 1327,
+   "completion_tokens": 187,
+   "latency_ms": {
+    "retrieval": 2273.51,
+    "llm": 4593.47,
+    "total": 6868.25
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that https_only=True sets the Secure flag so the session cookie is only sent over HTTPS, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that setting https_only=True causes the Secure flag to be set and ensures the session cookie is only sent over HTTPS, matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0035",
+   "query_type": "exact_identifier",
+   "question": "What does Starlette's HTTPSRedirectMiddleware do with plain http and ws requests?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "It redirects any plain HTTP or WebSocket (ws) requests to the secure HTTPS or WSS scheme.",
+   "citations": [
+    {
+     "chunk_id": "dde606f8-8fff-40d3-8758-dbaa0f8009ac",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 11823,
+     "char_end": 12373,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "dde606f8-8fff-40d3-8758-dbaa0f8009ac",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 11823,
+     "char_end": 12373,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "0bf180aa-cd67-4e13-bcb3-9cf51a78136b",
+     "slug": "starlette/websockets",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 147,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "7ad8bd26-0e72-42cc-a536-645532a0b15c",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 24784,
+     "char_end": 25706,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5889cd07-d16a-4bca-b30b-33a5a9ca3c98",
+     "slug": "starlette/routing",
+     "version": "1.10.0",
+     "char_start": 0,
+     "char_end": 840,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bfe94148-b242-4910-b934-2f3821dc12c7",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 5017,
+     "char_end": 6112,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.557116508483887,
+   "llm_calls": 1,
+   "prompt_tokens": 1358,
+   "completion_tokens": 132,
+   "latency_ms": {
+    "retrieval": 2083.62,
+    "llm": 10917.97,
+    "total": 13002.31
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately states that plain HTTP and ws requests are redirected to HTTPS or WSS, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that HTTP and ws requests are redirected to the secure HTTPS or wss scheme, matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0039",
+   "query_type": "paraphrase",
+   "question": "Will accepting very large video uploads exhaust the server's RAM?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "f170e99a-05a6-4aa5-9eee-8b0ae1e817d0",
+     "slug": "fastapi/deployment/concepts",
+     "version": "0.162.0",
+     "char_start": 11387,
+     "char_end": 11839,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "15b0ca05-6f0a-45b7-8c8e-20e6fb8be8be",
+     "slug": "fastapi/deployment/concepts",
+     "version": "0.115.0",
+     "char_start": 10864,
+     "char_end": 11297,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "09abee63-9281-4ac5-b2b8-f2e4ca868b5b",
+     "slug": "starlette/routing",
+     "version": "1.10.0",
+     "char_start": 7799,
+     "char_end": 9076,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2d9ff517-03d4-4449-aa97-88372da8e6e3",
+     "slug": "fastapi/deployment/concepts",
+     "version": "0.115.0",
+     "char_start": 15748,
+     "char_end": 16962,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1363f2d2-a8ff-4069-bfbe-db5a26e5badd",
+     "slug": "fastapi/deployment/concepts",
+     "version": "0.162.0",
+     "char_start": 16401,
+     "char_end": 17617,
+     "matched_items": []
+    }
+   ],
+   "top_score": -6.317472457885742,
+   "llm_calls": 1,
+   "prompt_tokens": 1656,
+   "completion_tokens": 170,
+   "latency_ms": {
+    "retrieval": 2108.39,
+    "llm": 10892.64,
+    "total": 13002.36
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0041",
+   "query_type": "paraphrase",
+   "question": "Visitors who type the unencrypted address should be bounced to the secure site. Which Starlette building block handles that?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "HTTPSRedirectMiddleware",
+   "citations": [
+    {
+     "chunk_id": "dde606f8-8fff-40d3-8758-dbaa0f8009ac",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 11823,
+     "char_end": 12373,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "dde606f8-8fff-40d3-8758-dbaa0f8009ac",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 11823,
+     "char_end": 12373,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "4acbed21-1ea7-4900-8ab8-6ee22ec453d6",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 41705,
+     "char_end": 41957,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6a29831f-897c-44da-a56d-59c68381b4c4",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 12375,
+     "char_end": 13457,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a4c812db-ee24-4e12-a130-f2c855b8424c",
+     "slug": "starlette/authentication",
+     "version": "1.10.0",
+     "char_start": 1794,
+     "char_end": 2217,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "421d9024-9d5e-41fc-8a1d-46ea9b637503",
+     "slug": "starlette/authentication",
+     "version": "1.10.0",
+     "char_start": 0,
+     "char_end": 1314,
+     "matched_items": []
+    }
+   ],
+   "top_score": -4.351496696472168,
+   "llm_calls": 1,
+   "prompt_tokens": 1305,
+   "completion_tokens": 89,
+   "latency_ms": {
+    "retrieval": 1811.52,
+    "llm": 8631.25,
+    "total": 10443.63
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly identifies HTTPSRedirectMiddleware as the Starlette component that redirects unencrypted requests to the secure site, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The answer simply names HTTPSRedirectMiddleware, which is directly presented in the passage."
+    }
+   }
+  },
+  {
+   "id": "q-0046",
+   "query_type": "paraphrase",
+   "question": "How did other users end up seeing password hashes in our user API?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "14701be3-713d-4ea3-9870-499f81f7f357",
+     "slug": "incidents/0013",
+     "version": "1",
+     "char_start": 268,
+     "char_end": 387,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3a58b709-e7d9-4682-a784-dd84b9cb4fdf",
+     "slug": "fastapi/tutorial/security/simple-oauth2",
+     "version": "0.115.0",
+     "char_start": 74008,
+     "char_end": 74440,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4ed59974-7c36-4c1b-8e1e-e3f7f7250107",
+     "slug": "fastapi/tutorial/security/oauth2-jwt",
+     "version": "0.162.0",
+     "char_start": 2439,
+     "char_end": 2747,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "14b3c0f9-fd9b-461a-9ec9-27af32c30017",
+     "slug": "fastapi/tutorial/security/simple-oauth2",
+     "version": "0.115.0",
+     "char_start": 30539,
+     "char_end": 31531,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "19f802be-526e-4aa9-8212-ebc172e1deb1",
+     "slug": "fastapi/tutorial/security/simple-oauth2",
+     "version": "0.162.0",
+     "char_start": 9625,
+     "char_end": 10634,
+     "matched_items": []
+    }
+   ],
+   "top_score": 2.2447354793548584,
+   "llm_calls": 1,
+   "prompt_tokens": 1262,
+   "completion_tokens": 179,
+   "latency_ms": {
+    "retrieval": 1818.53,
+    "llm": 6955.31,
+    "total": 8774.97
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0047",
+   "query_type": "paraphrase",
+   "question": "New users stopped getting their welcome mail even though sign-up kept succeeding. Why did nothing alert us?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "0d614151-2aee-4769-9681-40352d591395",
+     "slug": "incidents/0014",
+     "version": "1",
+     "char_start": 163,
+     "char_end": 250,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a6c5c92a-11a3-4d71-bc4b-88c5ef28237f",
+     "slug": "incidents/0014",
+     "version": "1",
+     "char_start": 252,
+     "char_end": 319,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "42ec4086-b8fd-4fa9-9663-a55394b1d95e",
+     "slug": "incidents/0014",
+     "version": "1",
+     "char_start": 321,
+     "char_end": 478,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f0a1f1d1-6940-4f98-a916-ab0fc264319c",
+     "slug": "incidents/0014",
+     "version": "1",
+     "char_start": 0,
+     "char_end": 161,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5d7765f3-d3a3-4a8f-8b7d-56c01015b3d3",
+     "slug": "fastapi/tutorial/security/oauth2-jwt",
+     "version": "0.115.0",
+     "char_start": 1146,
+     "char_end": 1559,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.108403205871582,
+   "llm_calls": 1,
+   "prompt_tokens": 785,
+   "completion_tokens": 169,
+   "latency_ms": {
+    "retrieval": 1938.74,
+    "llm": 6073.25,
+    "total": 8013.28
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0048",
+   "query_type": "paraphrase",
+   "question": "A dependency hands each request a database connection. How do I guarantee the connection is given back even when the handler crashes?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use a dependency that yields the connection and closes it in a `finally` block. The `yield` ensures the code after it runs after the request finishes, even if the handler crashes, so the connection is always returned.",
+   "citations": [
+    {
+     "chunk_id": "a791db99-f7e3-4f31-8ead-b429e7779026",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 31673,
+     "char_end": 32805,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3d4078b6-4f10-40d2-9814-30737cbd72e5",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 18905,
+     "char_end": 19898,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "aa755cfd-9330-45dc-995e-cdc6652c8859",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 43716,
+     "char_end": 44206,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3852147d-1b4c-44b1-8c28-ccf4f56a1fc8",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 6354,
+     "char_end": 7157,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "cac916a1-9dc7-482b-ad59-f31ed6ac1fdc",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 24288,
+     "char_end": 25384,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a791db99-f7e3-4f31-8ead-b429e7779026",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 31673,
+     "char_end": 32805,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3d4078b6-4f10-40d2-9814-30737cbd72e5",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 18905,
+     "char_end": 19898,
+     "matched_items": []
+    }
+   ],
+   "top_score": -2.121629238128662,
+   "llm_calls": 1,
+   "prompt_tokens": 1596,
+   "completion_tokens": 209,
+   "latency_ms": {
+    "retrieval": 1901.8,
+    "llm": 8893.58,
+    "total": 10796.25
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states using a yielding dependency with cleanup in a finally block, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both claims about using a dependency that yields the connection and closes it in a finally block, and that yield ensures cleanup after the request (even on errors), are reflected by the try‑yield‑fina"
+    }
+   }
+  },
+  {
+   "id": "q-0050",
+   "query_type": "paraphrase",
+   "question": "I append an item to a list kept in the user's cookie-backed session, but the change never sticks. What am I doing wrong?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "You need to re‑assign the modified list back to the session. For example, after appending, do `request.session['cart'] = request.session['cart']` (or assign a new list) so the session is marked as modified.",
+   "citations": [
+    {
+     "chunk_id": "da20d94e-85fb-47c0-bc81-4a11b814eb02",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 9580,
+     "char_end": 10749,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "da20d94e-85fb-47c0-bc81-4a11b814eb02",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 9580,
+     "char_end": 10749,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "3222c387-3f8f-4b89-bd8f-f3bc01b77c09",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 35545,
+     "char_end": 36628,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "9a34cb62-06d2-4bdc-a077-0742350c5414",
+     "slug": "fastapi/tutorial/cookie-param-models",
+     "version": "0.115.0",
+     "char_start": 4473,
+     "char_end": 5395,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "aacfc8e8-3961-46f5-9020-a8658554aff0",
+     "slug": "fastapi/tutorial/body-nested-models",
+     "version": "0.115.0",
+     "char_start": 919,
+     "char_end": 1217,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6afd5fea-c7ed-4bf2-b830-eb8f1d344ce0",
+     "slug": "fastapi/tutorial/cookie-params",
+     "version": "0.162.0",
+     "char_start": 416,
+     "char_end": 1497,
+     "matched_items": []
+    }
+   ],
+   "top_score": 0.9909056425094604,
+   "llm_calls": 1,
+   "prompt_tokens": 1686,
+   "completion_tokens": 201,
+   "latency_ms": {
+    "retrieval": 1814.0,
+    "llm": 11959.63,
+    "total": 13774.91
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly advises reassigning the modified list back to the session, matching the reference's key point."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage states that changes to nested values aren't tracked and that you must assign the updated value back to the session (e.g., request.session[\"cart\"] = cart) to ensure changes are saved, which"
+    }
+   }
+  },
+  {
+   "id": "q-0051",
+   "query_type": "paraphrase",
+   "question": "Requests to /users/me keep getting treated as a lookup for a user whose id is \"me\". What is going on?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Because a generic path like `/users/{user_id}` is defined before the specific `/users/me` route, FastAPI matches the request to the first route it finds and treats the literal segment `me` as a value for the `user_id` parameter. This causes the request to be interpreted as a lookup for a user whose id is \"me\".",
+   "citations": [
+    {
+     "chunk_id": "00a7b5da-bea1-4811-a2db-28915e07a223",
+     "slug": "fastapi/tutorial/path-params",
+     "version": "0.115.0",
+     "char_start": 5089,
+     "char_end": 5518,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "00a7b5da-bea1-4811-a2db-28915e07a223",
+     "slug": "fastapi/tutorial/path-params",
+     "version": "0.115.0",
+     "char_start": 5089,
+     "char_end": 5518,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "087bf5bb-188e-498d-aa21-a9cc3ee5428d",
+     "slug": "fastapi/tutorial/path-params",
+     "version": "0.162.0",
+     "char_start": 4786,
+     "char_end": 5191,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "370c2c96-67d2-4cdd-a2dc-1ed2a3f65870",
+     "slug": "fastapi/tutorial/security/get-current-user",
+     "version": "0.162.0",
+     "char_start": 1390,
+     "char_end": 1548,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ef3185ce-77ba-4330-bd79-a5d81aec6e9e",
+     "slug": "fastapi/tutorial/security/oauth2-jwt",
+     "version": "0.115.0",
+     "char_start": 21413,
+     "char_end": 22316,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "59794095-c52f-485a-83e5-d8ffdedd552f",
+     "slug": "fastapi/tutorial/security/simple-oauth2",
+     "version": "0.162.0",
+     "char_start": 4399,
+     "char_end": 5358,
+     "matched_items": []
+    }
+   ],
+   "top_score": 0.2124500572681427,
+   "llm_calls": 1,
+   "prompt_tokens": 1317,
+   "completion_tokens": 438,
+   "latency_ms": {
+    "retrieval": 1998.42,
+    "llm": 9773.56,
+    "total": 11773.57
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly explains that the generic /users/{user_id} route being declared before the specific /users/me causes /users/me to be treated as a user_id of \"me\", matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explains that the first matching route is used and that `/users/me` can be treated as receiving a `user_id` parameter with value \"me\", which directly supports the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0052",
+   "query_type": "paraphrase",
+   "question": "How do I refuse search text longer than 50 characters in a query string?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use FastAPI’s `Query` with `max_length=50` inside an `Annotated` type for the query parameter. For example:\n\n```python\nfrom typing import Annotated\nfrom fastapi import FastAPI, Query\n\napp = FastAPI()\n\n@app.get(\"/items/\")\nasync def read_items(q: Annotated[str | None, Query(max_length=50)] = None):\n    # your logic here\n    return {\"q\": q}\n```\n\nFastAPI will automatically validate that the query string is no longer than 50 characters and return a clear error if it is.\n```",
+   "citations": [
+    {
+     "chunk_id": "a7dce222-3084-4d5c-b7d5-79fdc4c53231",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.115.0",
+     "char_start": 4537,
+     "char_end": 5472,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "62ff42ef-d5de-401e-8374-79eafdcfaa94",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.162.0",
+     "char_start": 2530,
+     "char_end": 3476,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "a7dce222-3084-4d5c-b7d5-79fdc4c53231",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.115.0",
+     "char_start": 4537,
+     "char_end": 5472,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e8bf8814-2d5e-4082-9c33-cf503af037cf",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.162.0",
+     "char_start": 3287,
+     "char_end": 3910,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "636c22b6-80c3-4df2-8917-a50e7e4e291d",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.115.0",
+     "char_start": 5297,
+     "char_end": 5612,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "62ff42ef-d5de-401e-8374-79eafdcfaa94",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.162.0",
+     "char_start": 2530,
+     "char_end": 3476,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "c4ee07eb-bd6f-4505-ba58-4dbe27ba10f5",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.162.0",
+     "char_start": 8106,
+     "char_end": 9124,
+     "matched_items": []
+    }
+   ],
+   "top_score": -0.5524293780326843,
+   "llm_calls": 1,
+   "prompt_tokens": 1560,
+   "completion_tokens": 297,
+   "latency_ms": {
+    "retrieval": 2135.91,
+    "llm": 13993.93,
+    "total": 16131.64
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly describes declaring the query parameter with Annotated and Query(max_length=50) to reject longer values, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The answer's claims about using Query with max_length=50 inside Annotated and FastAPI automatically validating length and returning clear errors are directly stated in the provided passages."
+    }
+   }
+  },
+  {
+   "id": "q-0054",
+   "query_type": "paraphrase",
+   "question": "How many processes is a container usually expected to run?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "A container is normally expected to run a single process.",
+   "citations": [
+    {
+     "chunk_id": "e653306e-1cd4-4196-9990-888b4f3c9669",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.162.0",
+     "char_start": 4491,
+     "char_end": 5361,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "840f1fad-5552-4b77-b9b7-6ca15d6bb5ce",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 4721,
+     "char_end": 5561,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "e653306e-1cd4-4196-9990-888b4f3c9669",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.162.0",
+     "char_start": 4491,
+     "char_end": 5361,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "840f1fad-5552-4b77-b9b7-6ca15d6bb5ce",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 4721,
+     "char_end": 5561,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "4c33eca7-38b5-4d2b-a7db-36263e137464",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.162.0",
+     "char_start": 2835,
+     "char_end": 3131,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "06b266e1-ef39-4bd9-9e88-2a6dc662e4fd",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 2840,
+     "char_end": 3089,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "eba3b8b9-d27e-4a2e-9c58-70d28b34d717",
+     "slug": "fastapi/deployment/server-workers",
+     "version": "0.162.0",
+     "char_start": 1003,
+     "char_end": 1292,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.459498405456543,
+   "llm_calls": 1,
+   "prompt_tokens": 1110,
+   "completion_tokens": 96,
+   "latency_ms": {
+    "retrieval": 1713.02,
+    "llm": 8670.28,
+    "total": 10384.22
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that a container normally runs a single process, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages state that a container normally has a single process, directly supporting the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0055",
+   "query_type": "paraphrase",
+   "question": "What status should an endpoint return once it has successfully stored a newly submitted item?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The endpoint should return HTTP status code 201 (Created).",
+   "citations": [
+    {
+     "chunk_id": "e40ccaf1-11e5-4406-8cea-257b3bbd6ecc",
+     "slug": "fastapi/advanced/additional-status-codes",
+     "version": "0.162.0",
+     "char_start": 302,
+     "char_end": 1341,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "48bd27d3-079d-44b2-8511-e3e1e89c61d1",
+     "slug": "fastapi/advanced/additional-status-codes",
+     "version": "0.115.0",
+     "char_start": 273,
+     "char_end": 1294,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2546608e-36b7-4ff9-93bf-d3c6a23a0e75",
+     "slug": "fastapi/advanced/response-change-status-code",
+     "version": "0.162.0",
+     "char_start": 260,
+     "char_end": 634,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "7b9c30a4-ab5f-4b2a-92eb-5d1e881029f0",
+     "slug": "fastapi/advanced/additional-status-codes",
+     "version": "0.162.0",
+     "char_start": 1215,
+     "char_end": 2260,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "e40ccaf1-11e5-4406-8cea-257b3bbd6ecc",
+     "slug": "fastapi/advanced/additional-status-codes",
+     "version": "0.162.0",
+     "char_start": 302,
+     "char_end": 1341,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "48bd27d3-079d-44b2-8511-e3e1e89c61d1",
+     "slug": "fastapi/advanced/additional-status-codes",
+     "version": "0.115.0",
+     "char_start": 273,
+     "char_end": 1294,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2546608e-36b7-4ff9-93bf-d3c6a23a0e75",
+     "slug": "fastapi/advanced/response-change-status-code",
+     "version": "0.162.0",
+     "char_start": 260,
+     "char_end": 634,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "7b9c30a4-ab5f-4b2a-92eb-5d1e881029f0",
+     "slug": "fastapi/advanced/additional-status-codes",
+     "version": "0.162.0",
+     "char_start": 1215,
+     "char_end": 2260,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1e1fa7d3-f988-442c-b238-90414d4789ce",
+     "slug": "fastapi/tutorial/path-operation-configuration",
+     "version": "0.115.0",
+     "char_start": 1848,
+     "char_end": 2235,
+     "matched_items": []
+    }
+   ],
+   "top_score": 0.5171105861663818,
+   "llm_calls": 1,
+   "prompt_tokens": 1549,
+   "completion_tokens": 148,
+   "latency_ms": {
+    "retrieval": 1790.05,
+    "llm": 7793.95,
+    "total": 9585.23
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that the endpoint should return HTTP status code 201 (Created), matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages explicitly describe returning HTTP 201 Created for endpoints that create new items, supporting the claim that the endpoint should return status code 201."
+    }
+   }
+  },
+  {
+   "id": "q-0057",
+   "query_type": "paraphrase",
+   "question": "Our JSON uses camelCase keys but our Python attributes are snake_case. How can I map every field at once instead of one by one?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "f5a9464c-6642-409a-b500-1b9c085b601b",
+     "slug": "fastapi/tutorial/body-nested-models",
+     "version": "0.162.0",
+     "char_start": 8683,
+     "char_end": 9776,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2fea642f-97e0-4402-9d8b-708e2ac92943",
+     "slug": "fastapi/tutorial/body-nested-models",
+     "version": "0.115.0",
+     "char_start": 18330,
+     "char_end": 19288,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "33eb5fc2-183b-4178-bc2c-f8b71e07778d",
+     "slug": "pydantic/concepts/json_schema",
+     "version": "v2.14.2",
+     "char_start": 32253,
+     "char_end": 33277,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8435152d-0e7e-49be-b12a-315bb47d7bbf",
+     "slug": "pydantic/concepts/fields",
+     "version": "v2.14.2",
+     "char_start": 0,
+     "char_end": 989,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "772482bb-dc98-49ef-877d-794650c83ffa",
+     "slug": "pydantic/concepts/json_schema",
+     "version": "v2.14.2",
+     "char_start": 31256,
+     "char_end": 32241,
+     "matched_items": []
+    }
+   ],
+   "top_score": -2.241319179534912,
+   "llm_calls": 1,
+   "prompt_tokens": 1820,
+   "completion_tokens": 127,
+   "latency_ms": {
+    "retrieval": 1827.79,
+    "llm": 12852.3,
+    "total": 14681.41
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0058",
+   "query_type": "paraphrase",
+   "question": "What's the downside of receiving an uploaded file as a raw bytes parameter?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Receiving a file as a raw bytes parameter causes the entire file to be loaded into memory, which can lead to high memory usage and is unsuitable for large files.",
+   "citations": [
+    {
+     "chunk_id": "195937f9-204e-40fd-9ac1-6ac2fa21b7d2",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 1604,
+     "char_end": 2015,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "269ed4ba-19b2-42ac-8443-f31f87fb026e",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 3096,
+     "char_end": 3838,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "195937f9-204e-40fd-9ac1-6ac2fa21b7d2",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 1604,
+     "char_end": 2015,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "269ed4ba-19b2-42ac-8443-f31f87fb026e",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 3096,
+     "char_end": 3838,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "b5c322be-529d-4efe-8f29-49299dd457b0",
+     "slug": "fastapi/tutorial/request-forms-and-files",
+     "version": "0.115.0",
+     "char_start": 3302,
+     "char_end": 3883,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ea13844f-ff89-4f0b-94ce-1093b5d486ba",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 5172,
+     "char_end": 5992,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4a9b86f7-ea91-405f-a51f-94bf43544cc1",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 2017,
+     "char_end": 2986,
+     "matched_items": []
+    }
+   ],
+   "top_score": 1.0304237604141235,
+   "llm_calls": 1,
+   "prompt_tokens": 1403,
+   "completion_tokens": 342,
+   "latency_ms": {
+    "retrieval": 2310.95,
+    "llm": 9051.75,
+    "total": 11364.16
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that using a raw bytes parameter loads the whole file into memory, leading to high memory usage and unsuitability for large files, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages explicitly state that declaring a parameter as bytes causes the whole file to be stored in memory and works well only for small files, supporting the claim about high memory usage and uns"
+    }
+   }
+  },
+  {
+   "id": "q-0060",
+   "query_type": "paraphrase",
+   "question": "After we put a new front proxy in place, live dashboard updates arrived in clumps instead of instantly. Why?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The new reverse proxy was buffering the streaming responses for the live‑events route, so events were sent in bursts instead of immediately.",
+   "citations": [
+    {
+     "chunk_id": "bba49ac5-3d75-49bc-abd1-4fec5417b24d",
+     "slug": "incidents/0019",
+     "version": "1",
+     "char_start": 362,
+     "char_end": 581,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "9bf73ccc-bb07-41bc-80cb-718d214202f0",
+     "slug": "incidents/0019",
+     "version": "1",
+     "char_start": 886,
+     "char_end": 1034,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "bba49ac5-3d75-49bc-abd1-4fec5417b24d",
+     "slug": "incidents/0019",
+     "version": "1",
+     "char_start": 362,
+     "char_end": 581,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "0b3687e6-bb2f-47be-a0c0-ae71879d1fca",
+     "slug": "incidents/0019",
+     "version": "1",
+     "char_start": 164,
+     "char_end": 289,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "9bf73ccc-bb07-41bc-80cb-718d214202f0",
+     "slug": "incidents/0019",
+     "version": "1",
+     "char_start": 886,
+     "char_end": 1034,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "559cfd7a-68af-49ba-92b0-883dde625bcc",
+     "slug": "incidents/0002",
+     "version": "1",
+     "char_start": 172,
+     "char_end": 311,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c80cd1c4-5165-491a-8592-1d3570d3e9e4",
+     "slug": "incidents/0002",
+     "version": "1",
+     "char_start": 401,
+     "char_end": 630,
+     "matched_items": []
+    }
+   ],
+   "top_score": 1.77753746509552,
+   "llm_calls": 1,
+   "prompt_tokens": 771,
+   "completion_tokens": 247,
+   "latency_ms": {
+    "retrieval": 2013.5,
+    "llm": 6890.18,
+    "total": 8905.15
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly identifies that the proxy’s buffering of streaming responses caused the live dashboard updates to arrive in clumps, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The passages confirm that the reverse proxy was buffering responses for the live‑events route, but they do not explicitly state that events were sent in bursts rather than immediately."
+    }
+   }
+  },
+  {
+   "id": "q-0061",
+   "query_type": "multi_passage",
+   "question": "In INC-0001 the load balancer sent traffic to pods whose workers were still starting. What did the team change, and where in a FastAPI app does one-time startup work belong?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "ec9eae34-d4ce-40b3-a6b5-266186592e82",
+     "slug": "incidents/0001",
+     "version": "1",
+     "char_start": 382,
+     "char_end": 686,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "51abef6e-8025-4e2d-95f7-aa5203a94dcc",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 20569,
+     "char_end": 21854,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4ea2d003-b33f-40cc-95c1-09542be6657e",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.162.0",
+     "char_start": 20114,
+     "char_end": 21384,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "7687ad2e-ee96-4a66-9b9f-62d63a8539d6",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 19745,
+     "char_end": 20567,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2ba473a5-506e-4eef-90fe-f39459756f53",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.162.0",
+     "char_start": 19271,
+     "char_end": 20112,
+     "matched_items": []
+    }
+   ],
+   "top_score": 1.9506111145019531,
+   "llm_calls": 1,
+   "prompt_tokens": 1582,
+   "completion_tokens": 182,
+   "latency_ms": {
+    "retrieval": 2199.23,
+    "llm": 9984.02,
+    "total": 12184.4
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0065",
+   "query_type": "multi_passage",
+   "question": "Why did the export quota dependency in INC-0007 run only once per request, and which documented option makes it run every time it is declared?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The export quota dependency ran only once per request because FastAPI caches a dependency’s result within a request, so repeated declarations reuse the cached value. To force it to run on every declaration, the documented option is to set `use_cache=False` when declaring the dependency with `Depends`.",
+   "citations": [
+    {
+     "chunk_id": "63d76fd8-69cf-478d-8cd0-1ce88e0a7bcd",
+     "slug": "incidents/0007",
+     "version": "1",
+     "char_start": 597,
+     "char_end": 792,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "36ad33e6-5236-4a2c-99b1-fce4b312f47e",
+     "slug": "fastapi/tutorial/dependencies/sub-dependencies",
+     "version": "0.115.0",
+     "char_start": 10607,
+     "char_end": 11727,
+     "matched_items": [
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "a8c0b97d-95d8-4967-92ed-1d34493554a9",
+     "slug": "incidents/0007",
+     "version": "1",
+     "char_start": 186,
+     "char_end": 359,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d53599c2-190b-4bea-bcdf-6a59edc2f0b7",
+     "slug": "incidents/0007",
+     "version": "1",
+     "char_start": 440,
+     "char_end": 595,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "36ad33e6-5236-4a2c-99b1-fce4b312f47e",
+     "slug": "fastapi/tutorial/dependencies/sub-dependencies",
+     "version": "0.115.0",
+     "char_start": 10607,
+     "char_end": 11727,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "48531003-cfd4-48e9-926b-20993f8ca0b2",
+     "slug": "fastapi/tutorial/dependencies/sub-dependencies",
+     "version": "0.162.0",
+     "char_start": 3360,
+     "char_end": 4472,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "63d76fd8-69cf-478d-8cd0-1ce88e0a7bcd",
+     "slug": "incidents/0007",
+     "version": "1",
+     "char_start": 597,
+     "char_end": 792,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "top_score": 3.915783405303955,
+   "llm_calls": 1,
+   "prompt_tokens": 1210,
+   "completion_tokens": 271,
+   "latency_ms": {
+    "retrieval": 2373.51,
+    "llm": 5505.51,
+    "total": 7880.39
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that FastAPI caches dependency results per request and that setting use_cache=False makes it run on each declaration, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both claims about caching per request and using use_cache=False are directly stated in the provided passages."
+    }
+   }
+  },
+  {
+   "id": "q-0066",
+   "query_type": "multi_passage",
+   "question": "Why were long CSV exports cut off during deploys, and what does the Uvicorn option used in the fix control?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Long CSV exports were cut off because Uvicorn closed idle keep‑alive connections after its default 5‑second timeout, while the load balancer kept idle upstream connections for 60 seconds, so during redeploys the balancer sometimes sent a request on a connection Uvicorn had already closed. The Uvicorn option used in the fix controls the idle keep‑alive timeout, determining how long Uvicorn keeps idle connections open before closing them.",
+   "citations": [
+    {
+     "chunk_id": "900ced58-9a9a-4152-b2cb-f9572e91af44",
+     "slug": "incidents/0008",
+     "version": "1",
+     "char_start": 171,
+     "char_end": 279,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b4c31e81-5481-40be-83cb-e623e78f16d1",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 520,
+     "char_end": 785,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "900ced58-9a9a-4152-b2cb-f9572e91af44",
+     "slug": "incidents/0008",
+     "version": "1",
+     "char_start": 171,
+     "char_end": 279,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f02bccab-d889-4dc9-bbc7-7936108dde61",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 349,
+     "char_end": 518,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b4c31e81-5481-40be-83cb-e623e78f16d1",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 520,
+     "char_end": 785,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b9901685-7b8a-4421-a90b-9615bbe98963",
+     "slug": "incidents/0010",
+     "version": "1",
+     "char_start": 302,
+     "char_end": 578,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "96049a86-94da-40ef-9bf9-1b837a1372af",
+     "slug": "fastapi/deployment/docker",
+     "version": "0.115.0",
+     "char_start": 27431,
+     "char_end": 27834,
+     "matched_items": []
+    }
+   ],
+   "top_score": -1.3492255210876465,
+   "llm_calls": 1,
+   "prompt_tokens": 864,
+   "completion_tokens": 943,
+   "latency_ms": {
+    "retrieval": 1941.07,
+    "llm": 5750.46,
+    "total": 7692.66
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "incorrect",
+     "reason": "The answer incorrectly attributes the cutoff to idle keep‑alive timeouts and claims the option controls that, whereas the reference states the issue was an unset --timeout-graceful-shutdown causing in"
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The answer's first claim about Uvicorn's 5‑second keep‑alive timeout and the load balancer's 60‑second timeout is supported by the passages, but the statement about the Uvicorn option used in the fix "
+    }
+   }
+  },
+  {
+   "id": "q-0068",
+   "query_type": "multi_passage",
+   "question": "After the domain migration every request failed. Which middleware setting was wrong, and what status code does that middleware return for an unrecognised host?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The mis‑configured setting was the `allowed_hosts` list – it did not include the new domain, so every request failed. The TrustedHostMiddleware returns a 400 status code for an unrecognised host.",
+   "citations": [
+    {
+     "chunk_id": "6a29831f-897c-44da-a56d-59c68381b4c4",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 12375,
+     "char_end": 13457,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "41ac0a5f-7df3-4bdb-8104-e199eddb5fb7",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 2467,
+     "char_end": 3458,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "6a29831f-897c-44da-a56d-59c68381b4c4",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 12375,
+     "char_end": 13457,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "e1e6f0de-b217-4e28-9973-48cd3e9e16c4",
+     "slug": "incidents/0012",
+     "version": "1",
+     "char_start": 0,
+     "char_end": 175,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "41ac0a5f-7df3-4bdb-8104-e199eddb5fb7",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 2467,
+     "char_end": 3458,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4e937a99-7930-44b7-9e13-d693fc6f7fcf",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.115.0",
+     "char_start": 2438,
+     "char_end": 3269,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4a08d2e0-2578-42eb-a447-5fcac551c8dc",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3183,
+     "char_end": 3865,
+     "matched_items": []
+    }
+   ],
+   "top_score": -0.5104671120643616,
+   "llm_calls": 1,
+   "prompt_tokens": 1410,
+   "completion_tokens": 301,
+   "latency_ms": {
+    "retrieval": 2408.33,
+    "llm": 11941.71,
+    "total": 14351.44
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly identifies the allowed_hosts setting as the issue and states the middleware returns a 400 status code, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both claims are directly supported by the passages describing allowed_hosts behavior and the 400 response for invalid hosts."
+    }
+   }
+  },
+  {
+   "id": "q-0070",
+   "query_type": "multi_passage",
+   "question": "Why did endpoints returning ORM objects fail after the Pydantic v2 upgrade, and what is the v2 way to read attributes from such objects?",
+   "answerable": true,
+   "evidence_items": 3,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Endpoints failed because the response models still used the v1 setting `orm_mode = True`, which is no longer recognized in Pydantic v2. In v2 the equivalent setting is `from_attributes = True`, which tells Pydantic to read data from object attributes rather than a dict.",
+   "citations": [
+    {
+     "chunk_id": "42282870-2034-47dd-8b1d-defc0f09584e",
+     "slug": "incidents/0017",
+     "version": "1",
+     "char_start": 171,
+     "char_end": 263,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "16f89223-f8c0-450f-aa09-37f951127ebd",
+     "slug": "incidents/0017",
+     "version": "1",
+     "char_start": 496,
+     "char_end": 684,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "42282870-2034-47dd-8b1d-defc0f09584e",
+     "slug": "incidents/0017",
+     "version": "1",
+     "char_start": 171,
+     "char_end": 263,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "16f89223-f8c0-450f-aa09-37f951127ebd",
+     "slug": "incidents/0017",
+     "version": "1",
+     "char_start": 496,
+     "char_end": 684,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "08e97136-7a80-44be-b53f-79483141ce63",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 21359,
+     "char_end": 22219,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "55d86316-294f-45a9-825b-95d07af599ec",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 13078,
+     "char_end": 14124,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bcafabac-faea-4221-8344-5dc289e4fd4a",
+     "slug": "fastapi/tutorial/sql-databases",
+     "version": "0.115.0",
+     "char_start": 20896,
+     "char_end": 21357,
+     "matched_items": []
+    }
+   ],
+   "top_score": 5.860721588134766,
+   "llm_calls": 1,
+   "prompt_tokens": 1244,
+   "completion_tokens": 275,
+   "latency_ms": {
+    "retrieval": 1904.71,
+    "llm": 8412.97,
+    "total": 10318.43
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately explains that using orm_mode caused the failure and that the v2 replacement is from_attributes, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The passages support the claim about orm_mode being outdated and from_attributes being the new setting, but do not state that from_attributes tells Pydantic to read data from object attributes rather "
+    }
+   }
+  },
+  {
+   "id": "q-0074",
+   "query_type": "multi_passage",
+   "question": "How do Uvicorn's --limit-concurrency and --backlog differ?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "`--limit-concurrency` is an application‑level gate that counts open connections or in‑flight request/response tasks; when the limit is reached new requests are immediately rejected with a 503 and are not queued. `--backlog` is an OS‑level socket setting that limits the kernel’s accept queue – it only limits how many connections can sit unaccepted after the TCP handshake; if the queue is full the kernel stops accepting new connections, causing client failures or timeouts rather than a 503.",
+   "citations": [
+    {
+     "chunk_id": "bf768b6a-e835-4952-a3a1-8888c418cc26",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 4575,
+     "char_end": 5825,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e3f3db35-0baa-4a7e-9b48-4ab61a0a8a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 5629,
+     "char_end": 6943,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "bf768b6a-e835-4952-a3a1-8888c418cc26",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 4575,
+     "char_end": 5825,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e3f3db35-0baa-4a7e-9b48-4ab61a0a8a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 5629,
+     "char_end": 6943,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a62fc725-0035-4fdb-97dc-dd4a5fbc1ac4",
+     "slug": "incidents/0016",
+     "version": "1",
+     "char_start": 484,
+     "char_end": 661,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e59a6d99-ce85-4300-a1ba-b57b121c469b",
+     "slug": "uvicorn/deployment/index",
+     "version": "0.54.0",
+     "char_start": 4322,
+     "char_end": 4753,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.57726526260376,
+   "llm_calls": 1,
+   "prompt_tokens": 1497,
+   "completion_tokens": 369,
+   "latency_ms": {
+    "retrieval": 1920.1,
+    "llm": 8919.61,
+    "total": 10840.43
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly describes --limit-concurrency as an application‑level cap that returns a 503 and --backlog as the OS‑level TCP accept queue size, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements in the answer are directly stated or clearly derived from the provided passages."
+    }
+   }
+  },
+  {
+   "id": "q-0075",
+   "query_type": "multi_passage",
+   "question": "When receiving uploaded files, how do a bytes parameter and an UploadFile parameter differ in memory use?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "A `bytes` parameter causes FastAPI to read the entire file into memory, so the whole file is stored as a bytes object. An `UploadFile` parameter uses a spooled file: it keeps data in memory only up to a size limit, then spills the rest to disk, reducing memory usage for large uploads.",
+   "citations": [
+    {
+     "chunk_id": "269ed4ba-19b2-42ac-8443-f31f87fb026e",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 3096,
+     "char_end": 3838,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "4a9b86f7-ea91-405f-a51f-94bf43544cc1",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 2017,
+     "char_end": 2986,
+     "matched_items": [
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "269ed4ba-19b2-42ac-8443-f31f87fb026e",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 3096,
+     "char_end": 3838,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "ea13844f-ff89-4f0b-94ce-1093b5d486ba",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 5172,
+     "char_end": 5992,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "b5c322be-529d-4efe-8f29-49299dd457b0",
+     "slug": "fastapi/tutorial/request-forms-and-files",
+     "version": "0.115.0",
+     "char_start": 3302,
+     "char_end": 3883,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4a9b86f7-ea91-405f-a51f-94bf43544cc1",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 2017,
+     "char_end": 2986,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "cd6406f1-5209-4220-9a20-fd36a2521c8c",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 768,
+     "char_end": 1796,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.1294331550598145,
+   "llm_calls": 1,
+   "prompt_tokens": 1556,
+   "completion_tokens": 544,
+   "latency_ms": {
+    "retrieval": 1856.26,
+    "llm": 18724.71,
+    "total": 20582.28
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately restates that bytes stores the whole file in memory while UploadFile uses a spooled file that stays in memory up to a limit then spills to disk, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both statements about bytes being fully in memory and UploadFile using a spooled file with a memory limit are directly stated in the provided passages."
+    }
+   }
+  },
+  {
+   "id": "q-0077",
+   "query_type": "version_specific",
+   "question": "Which FastAPI version added streaming responses in JSON Lines format, and what content type do they use?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "53994db9-7602-4751-bf86-a8d12ba7017f",
+     "slug": "fastapi/advanced/custom-response",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 1071,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8c22d703-4c80-4467-a853-378d997a9d13",
+     "slug": "fastapi/advanced/custom-response",
+     "version": "0.115.0",
+     "char_start": 2260,
+     "char_end": 2982,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4b120e4e-a295-4975-acec-a12d15e55581",
+     "slug": "fastapi/advanced/custom-response",
+     "version": "0.115.0",
+     "char_start": 0,
+     "char_end": 1146,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "48b06bfb-884a-4e3a-893e-15b1c6fb3c58",
+     "slug": "fastapi/tutorial/stream-json-lines",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 203,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "e1890217-8741-4c15-b30b-1ba91a0a5925",
+     "slug": "fastapi/advanced/response-directly",
+     "version": "0.162.0",
+     "char_start": 4453,
+     "char_end": 4874,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.718647480010986,
+   "llm_calls": 1,
+   "prompt_tokens": 1406,
+   "completion_tokens": 227,
+   "latency_ms": {
+    "retrieval": 1855.48,
+    "llm": 8994.59,
+    "total": 10851.96
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0084",
+   "query_type": "version_specific",
+   "question": "In FastAPI 0.162.0, what does Depends(scope=\"function\") change for a dependency that uses yield?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "In FastAPI 0.162.0, setting `Depends(scope=\"function\")` on a dependency that uses `yield` causes the dependency’s exit (cleanup) code to run immediately after the path‑operation function finishes, but before the response is sent to the client, rather than after the response is sent.",
+   "citations": [
+    {
+     "chunk_id": "8f6fe67a-a989-44f9-a567-7913ac6d3a6f",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 5141,
+     "char_end": 5804,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5653a821-7b40-4343-a0e0-3ba05242291c",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 10959,
+     "char_end": 12089,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "8f6fe67a-a989-44f9-a567-7913ac6d3a6f",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 5141,
+     "char_end": 5804,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5653a821-7b40-4343-a0e0-3ba05242291c",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 10959,
+     "char_end": 12089,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "47b523de-d8f5-426f-a2df-83d7a07ed8c6",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 10220,
+     "char_end": 10843,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ff117dd4-d60a-4ca0-aed3-8e011d587d2c",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.115.0",
+     "char_start": 18938,
+     "char_end": 19503,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "dffc8b9a-e49e-4cea-9c16-643807b605d2",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 840,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.747612953186035,
+   "llm_calls": 1,
+   "prompt_tokens": 1462,
+   "completion_tokens": 234,
+   "latency_ms": {
+    "retrieval": 2167.31,
+    "llm": 10936.47,
+    "total": 13104.63
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately states that the dependency is closed when the path operation function returns, before the response is sent, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The answer’s behavior claim is supported, but the specific version 0.162.0 is not mentioned in the passages."
+    }
+   }
+  },
+  {
+   "id": "q-0088",
+   "query_type": "version_specific",
+   "question": "Did the FastAPI 0.115.0 documentation recommend Peewee as the ORM for FastAPI apps?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "No, the FastAPI 0.115.0 documentation states that Peewee is not recommended for FastAPI apps and suggests using SQLAlchemy or another async ORM instead.",
+   "citations": [
+    {
+     "chunk_id": "f4d0cf5a-1663-40e0-82eb-24882fbd7296",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 0,
+     "char_end": 1074,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "47771142-8c1f-451f-a4fc-40a9c206315b",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 928,
+     "char_end": 1320,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3a62b142-e56a-4e58-bf37-b4279b4e8854",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.115.0",
+     "char_start": 27508,
+     "char_end": 27675,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f4d0cf5a-1663-40e0-82eb-24882fbd7296",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 0,
+     "char_end": 1074,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "98f5a850-3840-4134-be48-74a88d0dbe2c",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 1322,
+     "char_end": 2319,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "53047ad6-b2b1-4394-9fcd-bdcf9dd79860",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 4600,
+     "char_end": 5727,
+     "matched_items": []
+    }
+   ],
+   "top_score": 0.13261766731739044,
+   "llm_calls": 1,
+   "prompt_tokens": 1512,
+   "completion_tokens": 341,
+   "latency_ms": {
+    "retrieval": 2146.33,
+    "llm": 6860.6,
+    "total": 9009.22
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that Peewee is not recommended, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The passage confirms Peewee is not recommended and suggests SQLAlchemy, but does not mention the FastAPI 0.115.0 version."
+    }
+   }
+  },
+  {
+   "id": "q-0089",
+   "query_type": "version_specific",
+   "question": "In FastAPI 0.162.0, should root_path be passed to the FastAPI() constructor?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "No – in FastAPI 0.162.0 the `root_path` argument to `FastAPI()` is deprecated.  Instead you should supply the path via the server command line, e.g. `fastapi run --root-path /api/v1`.",
+   "citations": [
+    {
+     "chunk_id": "59281d65-cf6c-451b-8af4-0fcf96fc03a6",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 7752,
+     "char_end": 8045,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "49b6adc3-d43a-4620-a8da-2bfc26636e62",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 6986,
+     "char_end": 7907,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "59281d65-cf6c-451b-8af4-0fcf96fc03a6",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 7752,
+     "char_end": 8045,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "dbffc16f-4c40-451d-8f7a-383d57a4dd57",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.115.0",
+     "char_start": 4105,
+     "char_end": 4700,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "49b6adc3-d43a-4620-a8da-2bfc26636e62",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 6986,
+     "char_end": 7907,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2ccde2d5-f17d-4f80-bb02-4b7342e695b8",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 3972,
+     "char_end": 5024,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "822f1296-fc34-4bd6-95e1-226eaa1a0f18",
+     "slug": "fastapi/advanced/sub-applications",
+     "version": "0.115.0",
+     "char_start": 2946,
+     "char_end": 3596,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.186275482177734,
+   "llm_calls": 1,
+   "prompt_tokens": 1447,
+   "completion_tokens": 211,
+   "latency_ms": {
+    "retrieval": 1838.89,
+    "llm": 11878.63,
+    "total": 13718.61
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that root_path should not be passed to FastAPI() and recommends using fastapi run --root-path, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both claims about deprecation of the root_path argument and using the server command line are directly stated in the passages."
+    }
+   }
+  },
+  {
+   "id": "q-0092",
+   "query_type": "version_specific",
+   "question": "Which parameter replaced the old OpenAPI-specific examples parameter, and since which FastAPI version?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The old OpenAPI‑specific `examples` parameter was replaced by the `openapi_examples` parameter, and this change was introduced in FastAPI 0.103.0.",
+   "citations": [
+    {
+     "chunk_id": "a6939c78-98fa-4447-97a5-aca0fa0c0dc1",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.162.0",
+     "char_start": 12186,
+     "char_end": 12588,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "eb96a406-91d8-4a11-a6a6-6ff4fe6c6259",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.115.0",
+     "char_start": 28649,
+     "char_end": 29005,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b0e1a4c7-93ca-4d53-9dfa-a66b4c0e6028",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.162.0",
+     "char_start": 9624,
+     "char_end": 10181,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "a6939c78-98fa-4447-97a5-aca0fa0c0dc1",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.162.0",
+     "char_start": 12186,
+     "char_end": 12588,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "eb96a406-91d8-4a11-a6a6-6ff4fe6c6259",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.115.0",
+     "char_start": 28649,
+     "char_end": 29005,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b0e1a4c7-93ca-4d53-9dfa-a66b4c0e6028",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.162.0",
+     "char_start": 9624,
+     "char_end": 10181,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "c4e2499a-1b69-4317-ac6e-ba33a5da0005",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.162.0",
+     "char_start": 6237,
+     "char_end": 7256,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "12310c8f-f4ef-4533-94ed-026b78577646",
+     "slug": "fastapi/tutorial/schema-extra-example",
+     "version": "0.115.0",
+     "char_start": 16419,
+     "char_end": 17425,
+     "matched_items": []
+    }
+   ],
+   "top_score": 5.862459182739258,
+   "llm_calls": 1,
+   "prompt_tokens": 1468,
+   "completion_tokens": 122,
+   "latency_ms": {
+    "retrieval": 2102.45,
+    "llm": 4774.72,
+    "total": 6878.68
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that the old examples parameter was replaced by openapi_examples and that this change occurred in FastAPI 0.103.0, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements about the replacement of the old `examples` parameter with `openapi_examples` and its introduction in FastAPI 0.103.0 are directly stated in the provided passages."
+    }
+   }
+  },
+  {
+   "id": "q-0093",
+   "query_type": "version_specific",
+   "question": "Does FastAPI 0.162.0 emit OpenTelemetry traces for HTTP requests without extra instrumentation code?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Yes. FastAPI 0.162.0 emits OpenTelemetry traces for HTTP requests by default, without requiring additional instrumentation code.",
+   "citations": [
+    {
+     "chunk_id": "f235b05a-d8f3-4d5d-93a8-2ac49286703b",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 1037,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "acd59714-5920-47ca-bbea-3cb0a5aaf038",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 6812,
+     "char_end": 7403,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "56861a07-874e-4ce6-95c6-f8cbade99952",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 1924,
+     "char_end": 3153,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e084ed57-d72a-486a-8d3d-b225ee3b84df",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 3439,
+     "char_end": 4666,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "eb30dd47-c5bb-48b1-86ca-6419d78571ed",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 5667,
+     "char_end": 6384,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f235b05a-d8f3-4d5d-93a8-2ac49286703b",
+     "slug": "fastapi/advanced/opentelemetry",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 1037,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "top_score": 1.0625228881835938,
+   "llm_calls": 1,
+   "prompt_tokens": 1572,
+   "completion_tokens": 409,
+   "latency_ms": {
+    "retrieval": 1932.33,
+    "llm": 12276.97,
+    "total": 14210.82
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that FastAPI 0.162.0 emits OpenTelemetry traces for HTTP requests by default, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The passage confirms FastAPI provides OpenTelemetry support for HTTP request traces by default, but does not specify version 0.162.0 or mention the lack of additional instrumentation code."
+    }
+   }
+  },
+  {
+   "id": "q-0095",
+   "query_type": "version_specific",
+   "question": "According to the FastAPI 0.162.0 deployment docs, how do you deploy an app to FastAPI Cloud?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Run the command `uv run fastapi deploy` to deploy your FastAPI app to FastAPI Cloud.",
+   "citations": [
+    {
+     "chunk_id": "3f2e8326-5aab-42bd-a325-683069019866",
+     "slug": "fastapi/tutorial/first-steps",
+     "version": "0.162.0",
+     "char_start": 8051,
+     "char_end": 8657,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "59b77c77-98ce-4563-9604-451a43fd79ea",
+     "slug": "fastapi/deployment/fastapicloud",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 573,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "3f2e8326-5aab-42bd-a325-683069019866",
+     "slug": "fastapi/tutorial/first-steps",
+     "version": "0.162.0",
+     "char_start": 8051,
+     "char_end": 8657,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "59b77c77-98ce-4563-9604-451a43fd79ea",
+     "slug": "fastapi/deployment/fastapicloud",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 573,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "245c0d61-9db4-460b-9d95-548272f7c31e",
+     "slug": "fastapi/tutorial/first-steps",
+     "version": "0.162.0",
+     "char_start": 13372,
+     "char_end": 13519,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bc0e73ba-f62b-4209-811b-d58554bffb01",
+     "slug": "fastapi/deployment/fastapicloud",
+     "version": "0.162.0",
+     "char_start": 1216,
+     "char_end": 1470,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f85c3d5f-2789-4d27-bb00-61fe23b9182a",
+     "slug": "fastapi/tutorial/first-steps",
+     "version": "0.162.0",
+     "char_start": 14008,
+     "char_end": 14264,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.589740753173828,
+   "llm_calls": 1,
+   "prompt_tokens": 1052,
+   "completion_tokens": 314,
+   "latency_ms": {
+    "retrieval": 2038.77,
+    "llm": 6787.01,
+    "total": 8826.93
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "incorrect",
+     "reason": "The answer adds an extra 'uv run' prefix not mentioned in the reference, which deviates from the documented single command 'fastapi deploy'."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages explicitly state that running `uv run fastapi deploy` deploys a FastAPI app to FastAPI Cloud."
+    }
+   }
+  },
+  {
+   "id": "q-0099",
+   "query_type": "multi_passage",
+   "question": "For an app served under /api/v1 behind a proxy on FastAPI 0.162.0, which server option should set the prefix, and why not pass root_path to FastAPI()?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "9c85ca31-7735-4a12-8d47-9566b693f285",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.115.0",
+     "char_start": 497,
+     "char_end": 1537,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a90a033c-da67-4c01-a4b1-8b4be00258d7",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.115.0",
+     "char_start": 1348,
+     "char_end": 2228,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e617eac2-dc03-4c29-9b01-e87a7c299403",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 4891,
+     "char_end": 5838,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8c1c8cec-de94-4213-838c-159755dd872d",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.115.0",
+     "char_start": 2064,
+     "char_end": 2746,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d58fed9d-61f1-4ae6-9ec5-739c4ce5f14f",
+     "slug": "fastapi/advanced/behind-a-proxy",
+     "version": "0.162.0",
+     "char_start": 11126,
+     "char_end": 11716,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.5146284103393555,
+   "llm_calls": 1,
+   "prompt_tokens": 1682,
+   "completion_tokens": 689,
+   "latency_ms": {
+    "retrieval": 2155.68,
+    "llm": 13997.91,
+    "total": 16155.04
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0100",
+   "query_type": "multi_passage",
+   "question": "In FastAPI 0.162.0, when is it appropriate to put binary data inside JSON as base64, and how does a Pydantic model decode it?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use base64 in JSON only when you must embed binary data in a JSON payload and cannot use file uploads or responses; Pydantic decodes it by base64‑decoding the string during validation when the model’s config sets `val_json_bytes` to \"base64\".",
+   "citations": [
+    {
+     "chunk_id": "37328a3f-8b30-4b00-bfbd-b522df15823e",
+     "slug": "fastapi/advanced/json-base64-bytes",
+     "version": "0.162.0",
+     "char_start": 182,
+     "char_end": 815,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "aece9a68-0eeb-4f56-9f18-ca47548c61c7",
+     "slug": "fastapi/advanced/json-base64-bytes",
+     "version": "0.162.0",
+     "char_start": 817,
+     "char_end": 1752,
+     "matched_items": [
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "aece9a68-0eeb-4f56-9f18-ca47548c61c7",
+     "slug": "fastapi/advanced/json-base64-bytes",
+     "version": "0.162.0",
+     "char_start": 817,
+     "char_end": 1752,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "c51fba13-511e-402e-9acd-cae548106fea",
+     "slug": "fastapi/advanced/json-base64-bytes",
+     "version": "0.162.0",
+     "char_start": 2564,
+     "char_end": 3488,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8bad9116-10d7-4b06-a212-037aba41bb96",
+     "slug": "fastapi/advanced/json-base64-bytes",
+     "version": "0.162.0",
+     "char_start": 3721,
+     "char_end": 4655,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "37328a3f-8b30-4b00-bfbd-b522df15823e",
+     "slug": "fastapi/advanced/json-base64-bytes",
+     "version": "0.162.0",
+     "char_start": 182,
+     "char_end": 815,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "4afcb1d1-bc33-45e8-a850-75f6f17d0a2a",
+     "slug": "fastapi/advanced/path-operation-advanced-configuration",
+     "version": "0.115.0",
+     "char_start": 10728,
+     "char_end": 11758,
+     "matched_items": []
+    }
+   ],
+   "top_score": 2.8189926147460938,
+   "llm_calls": 1,
+   "prompt_tokens": 1710,
+   "completion_tokens": 288,
+   "latency_ms": {
+    "retrieval": 1894.84,
+    "llm": 15716.1,
+    "total": 17612.06
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately states that base64 in JSON is only for when binary must be embedded and file mechanisms can't be used, and that Pydantic decodes it via the val_json_bytes='base64' config."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "Both claims are directly supported by the provided passages"
+    }
+   }
+  },
+  {
+   "id": "q-0101",
+   "query_type": "ambiguous",
+   "question": "How do I set the timeout?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use the Uvicorn command‑line flags: for keep‑alive connections set `--timeout-keep-alive <seconds>` (default 5 s) and for graceful shutdown set `--timeout-graceful-shutdown <seconds>` (default 5 s).",
+   "citations": [
+    {
+     "chunk_id": "472dc56c-581b-42f0-9d6a-d38e45638e99",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 12143,
+     "char_end": 12457,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "1d2e7556-7e41-4d70-8331-19d7976c1d0a",
+     "slug": "incidents/0008",
+     "version": "1",
+     "char_start": 700,
+     "char_end": 870,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ac76af26-40a6-4a3d-9bbc-80352a13f1c4",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 787,
+     "char_end": 878,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "472dc56c-581b-42f0-9d6a-d38e45638e99",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 12143,
+     "char_end": 12457,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "1d2e7556-7e41-4d70-8331-19d7976c1d0a",
+     "slug": "incidents/0008",
+     "version": "1",
+     "char_start": 700,
+     "char_end": 870,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d387b3c3-7898-4d69-9b6d-35bdece07a4c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3346,
+     "char_end": 3533,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ac76af26-40a6-4a3d-9bbc-80352a13f1c4",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 787,
+     "char_end": 878,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1b895485-c615-43df-bcc6-aa2cffcd7750",
+     "slug": "incidents/0009",
+     "version": "1",
+     "char_start": 880,
+     "char_end": 968,
+     "matched_items": []
+    }
+   ],
+   "top_score": 1.3327653408050537,
+   "llm_calls": 1,
+   "prompt_tokens": 765,
+   "completion_tokens": 180,
+   "latency_ms": {
+    "retrieval": 2846.96,
+    "llm": 1520.0,
+    "total": 5695.5
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly lists both Uvicorn timeout flags and the default keep-alive value, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The answer correctly states the keep-alive flag and its default of 5 s, but the default of 5 s for --timeout-graceful-shutdown is not provided in the cited passages."
+    }
+   }
+  },
+  {
+   "id": "q-0103",
+   "query_type": "ambiguous",
+   "question": "How do I limit the number of requests?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use Uvicorn’s resource‑limit flags: set `--limit-concurrency <int>` to cap the number of concurrent connections or tasks, or set `--limit-max-requests <int>` to stop the worker after a given number of requests. These options cause excess requests to receive a 503 response immediately.",
+   "citations": [
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2e0aebef-c7fc-4756-a06b-aac51dd02ee3",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 10906,
+     "char_end": 12081,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "09abee63-9281-4ac5-b2b8-f2e4ca868b5b",
+     "slug": "starlette/routing",
+     "version": "1.10.0",
+     "char_start": 7799,
+     "char_end": 9076,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "05096af8-6ef9-471d-8280-00c59c3bf04b",
+     "slug": "starlette/requests",
+     "version": "1.10.0",
+     "char_start": 3131,
+     "char_end": 4194,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "092601b8-53df-407a-8c0c-0ae431959bb2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 3535,
+     "char_end": 4573,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2e0aebef-c7fc-4756-a06b-aac51dd02ee3",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 10906,
+     "char_end": 12081,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "ce872242-af9f-414c-9f16-3d3c7705c3c2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 6735,
+     "char_end": 6998,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.2707977294921875,
+   "llm_calls": 1,
+   "prompt_tokens": 1622,
+   "completion_tokens": 181,
+   "latency_ms": {
+    "retrieval": 2276.92,
+    "llm": 1179.42,
+    "total": 4778.45
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "incorrect",
+     "reason": "The answer incorrectly states that --limit-max-requests returns a 503 for excess requests, contradicting the reference which says it restarts the worker instead."
+    },
+    "faithfulness": {
+     "verdict": "partially_supported",
+     "reason": "The answer correctly describes `--limit-concurrency` and `--limit-max-requests`, but incorrectly claims that `--limit-max-requests` causes excess requests to receive a 503 response, which is not suppo"
+    }
+   }
+  },
+  {
+   "id": "q-0104",
+   "query_type": "ambiguous",
+   "question": "How do I validate the length of a string?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Use a length constraint on the field. For example, in FastAPI you can set `max_length` on a query parameter: `q: Union[str, None] = Query(default=None, max_length=50)`. In Pydantic models you can use `Field(max_length=3)` for a maximum length or `Field(min_length=3)` for a minimum length.",
+   "citations": [
+    {
+     "chunk_id": "96130887-0e7a-4c6a-bd6a-b7e1f9c2b9e5",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.115.0",
+     "char_start": 7982,
+     "char_end": 8409,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5dc94566-90db-4461-a119-7bfbad3d5ef9",
+     "slug": "pydantic/errors/validation_errors",
+     "version": "v2.14.2",
+     "char_start": 37257,
+     "char_end": 37651,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "ff4c7cdc-999c-4986-a11e-21dff74d4274",
+     "slug": "pydantic/errors/validation_errors",
+     "version": "v2.14.2",
+     "char_start": 37653,
+     "char_end": 38043,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "96130887-0e7a-4c6a-bd6a-b7e1f9c2b9e5",
+     "slug": "fastapi/tutorial/query-params-str-validations",
+     "version": "0.115.0",
+     "char_start": 7982,
+     "char_end": 8409,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5dc94566-90db-4461-a119-7bfbad3d5ef9",
+     "slug": "pydantic/errors/validation_errors",
+     "version": "v2.14.2",
+     "char_start": 37257,
+     "char_end": 37651,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "ff4c7cdc-999c-4986-a11e-21dff74d4274",
+     "slug": "pydantic/errors/validation_errors",
+     "version": "v2.14.2",
+     "char_start": 37653,
+     "char_end": 38043,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6f7b45f8-54b2-42ca-a2ae-3e84f31e5391",
+     "slug": "pydantic/concepts/experimental",
+     "version": "v2.14.2",
+     "char_start": 2696,
+     "char_end": 3596,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ae50f5fd-f034-4081-b10e-c424cc4e190b",
+     "slug": "pydantic/concepts/unions",
+     "version": "v2.14.2",
+     "char_start": 21803,
+     "char_end": 22565,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.455783367156982,
+   "llm_calls": 1,
+   "prompt_tokens": 1333,
+   "completion_tokens": 179,
+   "latency_ms": {
+    "retrieval": 18004.37,
+    "llm": 1443.56,
+    "total": 20935.19
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly describes using Query(max_length) for query parameters and max_length in Pydantic model fields, matching the reference without contradiction."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements about using max_length on FastAPI Query and Field(max_length/min_length) in Pydantic are directly shown in the provided passages."
+    }
+   }
+  },
+  {
+   "id": "q-0105",
+   "query_type": "ambiguous",
+   "question": "How do I stream a response?",
+   "answerable": true,
+   "evidence_items": 3,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "To stream a response, send multiple `http.response.body` messages via the ASGI `send` coroutine, setting `more_body=True` for each chunk and ending with a final message without `more_body`. In FastAPI, you can also use a `StreamingResponse` and `yield` each chunk of data in the path operation function.",
+   "citations": [
+    {
+     "chunk_id": "8a5ba619-8f33-4662-96d0-477badf9ea62",
+     "slug": "uvicorn/concepts/asgi",
+     "version": "0.54.0",
+     "char_start": 3413,
+     "char_end": 4144,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "cd02f860-fc54-42ca-a7a6-d1c17309b1a8",
+     "slug": "fastapi/advanced/stream-data",
+     "version": "0.162.0",
+     "char_start": 705,
+     "char_end": 1700,
+     "matched_items": [
+      2
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "8a5ba619-8f33-4662-96d0-477badf9ea62",
+     "slug": "uvicorn/concepts/asgi",
+     "version": "0.54.0",
+     "char_start": 3413,
+     "char_end": 4144,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "53994db9-7602-4751-bf86-a8d12ba7017f",
+     "slug": "fastapi/advanced/custom-response",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 1071,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d0c1581b-5633-4089-9adb-e9d4101e32f7",
+     "slug": "fastapi/advanced/custom-response",
+     "version": "0.115.0",
+     "char_start": 12641,
+     "char_end": 13636,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b5488bd1-b83a-41ae-8419-9f26e6607c1e",
+     "slug": "fastapi/advanced/custom-response",
+     "version": "0.162.0",
+     "char_start": 10574,
+     "char_end": 11578,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "cd02f860-fc54-42ca-a7a6-d1c17309b1a8",
+     "slug": "fastapi/advanced/stream-data",
+     "version": "0.162.0",
+     "char_start": 705,
+     "char_end": 1700,
+     "matched_items": [
+      2
+     ]
+    }
+   ],
+   "top_score": 6.162562370300293,
+   "llm_calls": 1,
+   "prompt_tokens": 1732,
+   "completion_tokens": 201,
+   "latency_ms": {
+    "retrieval": 3151.35,
+    "llm": 806.88,
+    "total": 3959.26
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "partial",
+     "reason": "The answer mentions using StreamingResponse and yield, matching part of the reference, but omits the other methods (JSON Lines and Server-Sent Events) described in the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The answer's claims about using multiple http.response.body messages with more_body=True and ending without it, and about using FastAPI's StreamingResponse with yield, are directly stated in passages "
+    }
+   }
+  },
+  {
+   "id": "q-0106",
+   "query_type": "ambiguous",
+   "question": "How do I make it immutable?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "To make a Pydantic model immutable, set the model’s configuration to frozen by adding `model_config = ConfigDict(frozen=True)` in the class definition, or set `frozen=True` on individual fields with `Field(frozen=True)`. This prevents attribute assignments after creation.",
+   "citations": [
+    {
+     "chunk_id": "644da44c-6cff-4ec1-9299-0d1f1b330ee3",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 55171,
+     "char_end": 56237,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "adeb4db6-d0f9-434f-91db-b05f326a4281",
+     "slug": "pydantic/concepts/fields",
+     "version": "v2.14.2",
+     "char_start": 19700,
+     "char_end": 20539,
+     "matched_items": [
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "644da44c-6cff-4ec1-9299-0d1f1b330ee3",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 55171,
+     "char_end": 56237,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "adeb4db6-d0f9-434f-91db-b05f326a4281",
+     "slug": "pydantic/concepts/fields",
+     "version": "v2.14.2",
+     "char_start": 19700,
+     "char_end": 20539,
+     "matched_items": [
+      1
+     ]
+    },
+    {
+     "chunk_id": "f19398cc-5974-4146-b043-cb0661298c37",
+     "slug": "starlette/requests",
+     "version": "1.10.0",
+     "char_start": 1305,
+     "char_end": 1431,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "cf7b9ff7-d7ef-4171-a762-059ffdf2fe7b",
+     "slug": "incidents/0018",
+     "version": "1",
+     "char_start": 790,
+     "char_end": 875,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "383f43b0-f080-401a-9129-bdb77a3829d6",
+     "slug": "fastapi/advanced/advanced-dependencies",
+     "version": "0.162.0",
+     "char_start": 510,
+     "char_end": 1507,
+     "matched_items": []
+    }
+   ],
+   "top_score": 2.5421738624572754,
+   "llm_calls": 1,
+   "prompt_tokens": 1324,
+   "completion_tokens": 149,
+   "latency_ms": {
+    "retrieval": 3304.51,
+    "llm": 780.16,
+    "total": 4085.9
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that a model can be made immutable via a frozen config and that individual fields can be frozen with Field(frozen=True), matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "All statements about using model_config = ConfigDict(frozen=True) or Field(frozen=True) to make a Pydantic model immutable and prevent attribute assignment are directly confirmed by the provided passa"
+    }
+   }
+  },
+  {
+   "id": "q-0108",
+   "query_type": "ambiguous",
+   "question": "Which address and port does the server listen on by default?",
+   "answerable": true,
+   "evidence_items": 3,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "362ec53f-70ba-4957-8c4e-24e675e9849b",
+     "slug": "fastapi/deployment/https",
+     "version": "0.162.0",
+     "char_start": 5911,
+     "char_end": 7057,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "62bcf595-aa5e-48b4-8038-c67493d68b36",
+     "slug": "fastapi/deployment/concepts",
+     "version": "0.115.0",
+     "char_start": 9942,
+     "char_end": 10361,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c0f2f7f4-5ea7-465f-83e4-b076bb831930",
+     "slug": "fastapi/deployment/concepts",
+     "version": "0.162.0",
+     "char_start": 10439,
+     "char_end": 10860,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "243b1137-eb49-4f89-8e75-06349c708b1d",
+     "slug": "uvicorn/settings",
+     "version": "0.54.0",
+     "char_start": 11909,
+     "char_end": 12141,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e0bc9add-c942-476e-8a2e-a740398f2415",
+     "slug": "starlette/testclient",
+     "version": "1.10.0",
+     "char_start": 6043,
+     "char_end": 6331,
+     "matched_items": []
+    }
+   ],
+   "top_score": 5.870405673980713,
+   "llm_calls": 1,
+   "prompt_tokens": 1143,
+   "completion_tokens": 157,
+   "latency_ms": {
+    "retrieval": 10786.15,
+    "llm": 396.22,
+    "total": 11185.12
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0116",
+   "query_type": "unanswerable",
+   "question": "How should I add a circuit breaker around calls to a slow downstream service?",
+   "answerable": false,
+   "evidence_items": 0,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "67610e26-b66a-427a-a740-53aa12f6d552",
+     "slug": "fastapi/advanced/openapi-callbacks",
+     "version": "0.115.0",
+     "char_start": 10833,
+     "char_end": 11813,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5a8ab60a-ee08-4a34-9e21-5266a25df3cb",
+     "slug": "fastapi/advanced/openapi-callbacks",
+     "version": "0.162.0",
+     "char_start": 10652,
+     "char_end": 11608,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "9cdd7672-22e0-404a-bd43-40cd1211f005",
+     "slug": "incidents/0006",
+     "version": "1",
+     "char_start": 0,
+     "char_end": 181,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "9375f769-44e1-4638-a1a6-97864186c49f",
+     "slug": "fastapi/tutorial/middleware",
+     "version": "0.115.0",
+     "char_start": 2582,
+     "char_end": 3569,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c33ca8bb-d8ee-4f81-97ab-a9ea813a8a4c",
+     "slug": "fastapi/advanced/openapi-callbacks",
+     "version": "0.115.0",
+     "char_start": 7147,
+     "char_end": 8102,
+     "matched_items": []
+    }
+   ],
+   "top_score": -10.213973045349121,
+   "llm_calls": 1,
+   "prompt_tokens": 1561,
+   "completion_tokens": 85,
+   "latency_ms": {
+    "retrieval": 6314.24,
+    "llm": 1170.83,
+    "total": 7485.91
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0119",
+   "query_type": "unanswerable",
+   "question": "How do I implement idempotency keys so retried POST requests don't create duplicates?",
+   "answerable": false,
+   "evidence_items": 0,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "48679bb2-4513-40ab-a241-6125705438f9",
+     "slug": "fastapi/tutorial/body-nested-models",
+     "version": "0.115.0",
+     "char_start": 5648,
+     "char_end": 6021,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3f8e615c-156a-4b55-b4bf-ce73d89a3357",
+     "slug": "fastapi/tutorial/testing",
+     "version": "0.115.0",
+     "char_start": 11941,
+     "char_end": 12938,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "7681d6a2-a92a-4e16-b6f6-2c810c75d60e",
+     "slug": "fastapi/tutorial/testing",
+     "version": "0.162.0",
+     "char_start": 6654,
+     "char_end": 7663,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "0174061c-a8c9-4285-9551-8300256010a5",
+     "slug": "fastapi/tutorial/dependencies/dependencies-in-path-operation-decorators",
+     "version": "0.115.0",
+     "char_start": 8070,
+     "char_end": 9001,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6d8b28bf-699b-4771-833f-1a71bbe9da3f",
+     "slug": "fastapi/tutorial/dependencies/dependencies-in-path-operation-decorators",
+     "version": "0.162.0",
+     "char_start": 3815,
+     "char_end": 4729,
+     "matched_items": []
+    }
+   ],
+   "top_score": -3.3087010383605957,
+   "llm_calls": 1,
+   "prompt_tokens": 1639,
+   "completion_tokens": 99,
+   "latency_ms": {
+    "retrieval": 2129.46,
+    "llm": 522.62,
+    "total": 2652.99
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0121",
+   "query_type": "unanswerable",
+   "question": "What connection pool size should I configure for asyncpg in a FastAPI app?",
+   "answerable": false,
+   "evidence_items": 0,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "cc6622a9-4eae-49b7-ab56-af82e021e458",
+     "slug": "starlette/threadpool",
+     "version": "1.10.0",
+     "char_start": 743,
+     "char_end": 1383,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f1b2e7ea-5689-4f72-a4b0-b3d9eeab37d2",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.115.0",
+     "char_start": 343,
+     "char_end": 1423,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "38dcb3c3-53ce-4690-acf3-1ef2f27a512e",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 31304,
+     "char_end": 32344,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "84960091-f6a2-4d32-a068-3b4377bda035",
+     "slug": "fastapi/advanced/middleware",
+     "version": "0.162.0",
+     "char_start": 308,
+     "char_end": 1390,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "76ce0726-640a-4290-b9b1-305337972eb3",
+     "slug": "fastapi/deployment/manually",
+     "version": "0.115.0",
+     "char_start": 3254,
+     "char_end": 4198,
+     "matched_items": []
+    }
+   ],
+   "top_score": -0.5368469953536987,
+   "llm_calls": 1,
+   "prompt_tokens": 1704,
+   "completion_tokens": 98,
+   "latency_ms": {
+    "retrieval": 1901.24,
+    "llm": 638.57,
+    "total": 2541.12
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0122",
+   "query_type": "unanswerable",
+   "question": "How do I load application settings from AWS Secrets Manager with pydantic-settings?",
+   "answerable": false,
+   "evidence_items": 0,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "f63dd6b0-1bec-429a-9ec2-b20dd3b046de",
+     "slug": "pydantic/concepts/pydantic_settings",
+     "version": "v2.14.2",
+     "char_start": 114,
+     "char_end": 683,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "021249d9-7bb0-407e-a009-f94a2cefdf3e",
+     "slug": "fastapi/advanced/settings",
+     "version": "0.162.0",
+     "char_start": 3434,
+     "char_end": 3977,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "87d42bb2-c7a6-4dfd-89f6-05337a1601ee",
+     "slug": "fastapi/advanced/settings",
+     "version": "0.115.0",
+     "char_start": 1281,
+     "char_end": 1928,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "10c9f092-6106-4949-9644-d3ce70036f97",
+     "slug": "fastapi/advanced/settings",
+     "version": "0.115.0",
+     "char_start": 3969,
+     "char_end": 4507,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "a71d5050-4f74-4900-82a1-b899234acf1b",
+     "slug": "fastapi/advanced/settings",
+     "version": "0.162.0",
+     "char_start": 2017,
+     "char_end": 3091,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.042484283447266,
+   "llm_calls": 1,
+   "prompt_tokens": 1374,
+   "completion_tokens": 105,
+   "latency_ms": {
+    "retrieval": 1756.38,
+    "llm": 458.48,
+    "total": 2215.56
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0124",
+   "query_type": "unanswerable",
+   "question": "How do I send failed background tasks to a dead-letter queue?",
+   "answerable": false,
+   "evidence_items": 0,
+   "outcome": "insufficient_evidence",
+   "error_code": null,
+   "answer": "",
+   "citations": [],
+   "context": [
+    {
+     "chunk_id": "6a4d5887-4beb-437b-99ea-8ada1deab27d",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 10264,
+     "char_end": 10957,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8bfe2e76-21df-4f42-bfe2-e3fb6c2c690e",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 7558,
+     "char_end": 8238,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6196ac52-c6ae-4498-bce4-b35e215d0a2c",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.115.0",
+     "char_start": 0,
+     "char_end": 742,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "70780ab5-d911-40a9-8137-14e9b0ab35bb",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 4545,
+     "char_end": 5085,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "81c8db83-6686-4974-882b-d428d22e36c9",
+     "slug": "fastapi/tutorial/background-tasks",
+     "version": "0.162.0",
+     "char_start": 0,
+     "char_end": 764,
+     "matched_items": []
+    }
+   ],
+   "top_score": 0.18293267488479614,
+   "llm_calls": 1,
+   "prompt_tokens": 1335,
+   "completion_tokens": 82,
+   "latency_ms": {
+    "retrieval": 1423.32,
+    "llm": 563.47,
+    "total": 1987.72
+   },
+   "judgments": {}
+  },
+  {
+   "id": "q-0127",
+   "query_type": "factual",
+   "question": "How many threads can Starlette's default thread pool run at the same time?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Starlette’s default thread pool can run 40 threads at the same time.",
+   "citations": [
+    {
+     "chunk_id": "cc6622a9-4eae-49b7-ab56-af82e021e458",
+     "slug": "starlette/threadpool",
+     "version": "1.10.0",
+     "char_start": 743,
+     "char_end": 1383,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "cc6622a9-4eae-49b7-ab56-af82e021e458",
+     "slug": "starlette/threadpool",
+     "version": "1.10.0",
+     "char_start": 743,
+     "char_end": 1383,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "553815c2-cce4-405e-9c19-811fd046ec68",
+     "slug": "starlette/threadpool",
+     "version": "1.10.0",
+     "char_start": 0,
+     "char_end": 741,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "fb8e6c94-e5e8-477e-9e01-b18270e873c4",
+     "slug": "fastapi/how-to/sql-databases-peewee",
+     "version": "0.115.0",
+     "char_start": 5531,
+     "char_end": 6602,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "75475521-c180-40a0-b9cf-8cc4d8db8e17",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 4777,
+     "char_end": 5169,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f56d05a6-549d-4af5-87a8-309a37feed1d",
+     "slug": "starlette/background",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 181,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.342144966125488,
+   "llm_calls": 1,
+   "prompt_tokens": 1275,
+   "completion_tokens": 109,
+   "latency_ms": {
+    "retrieval": 1514.73,
+    "llm": 980.23,
+    "total": 2495.84
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states the default thread pool limit of 40, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that the default thread pool can run 40 threads simultaneously, directly supporting the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0131",
+   "query_type": "factual",
+   "question": "After consuming a Starlette request body with request.stream(), can the handler still call request.json()?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "No – once you consume the body via `request.stream()`, any subsequent call to `request.json()` (or `.body()`/`.form()`) will raise an error.",
+   "citations": [
+    {
+     "chunk_id": "da6316bc-0180-4491-987e-986c8d755c89",
+     "slug": "starlette/requests",
+     "version": "1.10.0",
+     "char_start": 1984,
+     "char_end": 3129,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "da6316bc-0180-4491-987e-986c8d755c89",
+     "slug": "starlette/requests",
+     "version": "1.10.0",
+     "char_start": 1984,
+     "char_end": 3129,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "ced56a49-73b8-4c98-aa63-c5414b0f6c34",
+     "slug": "fastapi/how-to/custom-request-and-route",
+     "version": "0.162.0",
+     "char_start": 4339,
+     "char_end": 5046,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "79eeac1e-79f4-4e6a-9236-d1c9087dbd24",
+     "slug": "fastapi/how-to/custom-request-and-route",
+     "version": "0.115.0",
+     "char_start": 4254,
+     "char_end": 4954,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "615effe7-9a5c-47df-a52a-aacd99935c5a",
+     "slug": "fastapi/advanced/using-request-directly",
+     "version": "0.162.0",
+     "char_start": 444,
+     "char_end": 1155,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2216e204-3524-407b-8b23-f7f6fddba29b",
+     "slug": "fastapi/advanced/using-request-directly",
+     "version": "0.115.0",
+     "char_start": 412,
+     "char_end": 1137,
+     "matched_items": []
+    }
+   ],
+   "top_score": 3.7852351665496826,
+   "llm_calls": 1,
+   "prompt_tokens": 1511,
+   "completion_tokens": 153,
+   "latency_ms": {
+    "retrieval": 1691.28,
+    "llm": 1200.89,
+    "total": 2893.14
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that after using request.stream(), subsequent request.json() calls will raise an error, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that after using request.stream(), subsequent calls to .json(), .body(), or .form() will raise an error, matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0132",
+   "query_type": "factual",
+   "question": "Why is UploadFile.size a better way to get an uploaded file's size than the Content-Length header?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "UploadFile.size is calculated from the actual request contents, so it reliably reflects the uploaded file’s size, whereas the Content‑Length header may be missing or inaccurate.",
+   "citations": [
+    {
+     "chunk_id": "e2685d8e-6087-4c23-a86a-634eab950a8c",
+     "slug": "starlette/requests",
+     "version": "1.10.0",
+     "char_start": 4765,
+     "char_end": 5771,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "e2685d8e-6087-4c23-a86a-634eab950a8c",
+     "slug": "starlette/requests",
+     "version": "1.10.0",
+     "char_start": 4765,
+     "char_end": 5771,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "4a9b86f7-ea91-405f-a51f-94bf43544cc1",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 2017,
+     "char_end": 2986,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "570fdc5a-7531-4017-92d5-7ee7ae4361d2",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 4518,
+     "char_end": 5343,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f67fa443-6c61-462d-ae25-6a2d228b2444",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.162.0",
+     "char_start": 3254,
+     "char_end": 4100,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1de49836-697f-4cbd-a9f9-8d2252713880",
+     "slug": "fastapi/tutorial/request-files",
+     "version": "0.115.0",
+     "char_start": 6664,
+     "char_end": 7629,
+     "matched_items": []
+    }
+   ],
+   "top_score": -0.9162116646766663,
+   "llm_calls": 1,
+   "prompt_tokens": 1745,
+   "completion_tokens": 157,
+   "latency_ms": {
+    "retrieval": 1469.97,
+    "llm": 1200.68,
+    "total": 2671.35
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that UploadFile.size is derived from the actual request contents while Content‑Length is only the client‑provided value, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage states that UploadFile.size is calculated from the request's contents and is a better choice than the Content‑Length header, directly supporting the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0133",
+   "query_type": "factual",
+   "question": "With debug=True, what does Starlette send when an unhandled error occurs instead of using the installed 500 handler?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "When debug=True, Starlette returns a traceback response instead of the custom 500 handler.",
+   "citations": [
+    {
+     "chunk_id": "80f70449-7d0d-46ff-9043-e69b910040b1",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 1169,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "80f70449-7d0d-46ff-9043-e69b910040b1",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 1169,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "4a08d2e0-2578-42eb-a447-5fcac551c8dc",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3183,
+     "char_end": 3865,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "cff41dec-85b5-4a41-ab5e-e377f8fa9471",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 8555,
+     "char_end": 9578,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "3909a036-5b53-469c-8205-2182c3d23929",
+     "slug": "starlette/index",
+     "version": "1.10.0",
+     "char_start": 2524,
+     "char_end": 2894,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "5356df8a-4987-4678-a1fb-74b1c407de58",
+     "slug": "starlette/middleware",
+     "version": "1.10.0",
+     "char_start": 252,
+     "char_end": 1530,
+     "matched_items": []
+    }
+   ],
+   "top_score": 4.3875250816345215,
+   "llm_calls": 1,
+   "prompt_tokens": 1525,
+   "completion_tokens": 135,
+   "latency_ms": {
+    "retrieval": 1633.9,
+    "llm": 5018.54,
+    "total": 6653.38
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that Starlette sends a traceback response when debug=True, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that with debug enabled Starlette returns a traceback response instead of the installed 500 handler, matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0134",
+   "query_type": "factual",
+   "question": "If a Starlette background task raises an exception, what happens to the response returned by the Exception (500) handler?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "If a background task raises an exception after the response has already been sent, the 500‑handler’s response is discarded – the client receives the original response, not the error response.",
+   "citations": [
+    {
+     "chunk_id": "4a08d2e0-2578-42eb-a447-5fcac551c8dc",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3183,
+     "char_end": 3865,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "4a08d2e0-2578-42eb-a447-5fcac551c8dc",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3183,
+     "char_end": 3865,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "80f70449-7d0d-46ff-9043-e69b910040b1",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 1169,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ee5d8d3e-71be-4496-861a-851c6cb98382",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.115.0",
+     "char_start": 17744,
+     "char_end": 18579,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6a4d5887-4beb-437b-99ea-8ada1deab27d",
+     "slug": "fastapi/tutorial/dependencies/dependencies-with-yield",
+     "version": "0.162.0",
+     "char_start": 10264,
+     "char_end": 10957,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8b495eeb-d60c-4dc4-b210-db12c9364af5",
+     "slug": "starlette/background",
+     "version": "1.10.0",
+     "char_start": 941,
+     "char_end": 1988,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.936945915222168,
+   "llm_calls": 1,
+   "prompt_tokens": 1546,
+   "completion_tokens": 273,
+   "latency_ms": {
+    "retrieval": 1473.16,
+    "llm": 9304.99,
+    "total": 10778.69
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately reflects that the exception handler runs but its response is discarded, with the client receiving the original response."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that when an exception occurs after the response is sent, the error handler's response is discarded and the original response is sent to the client, matching the answer's"
+    }
+   }
+  },
+  {
+   "id": "q-0135",
+   "query_type": "factual",
+   "question": "What happens when a Starlette WebSocket endpoint raises HTTPException before calling websocket.accept()?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "If an HTTPException is raised before calling websocket.accept(), the connection is not upgraded to a WebSocket and the appropriate HTTP response is returned to the client.",
+   "citations": [
+    {
+     "chunk_id": "1f1bdf7c-90c5-450a-a5b0-77caec633fad",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3867,
+     "char_end": 5027,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "8b48dc97-b3c1-4fc4-80c2-2db017f1f69c",
+     "slug": "starlette/websockets",
+     "version": "1.10.0",
+     "char_start": 3111,
+     "char_end": 4275,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1f1bdf7c-90c5-450a-a5b0-77caec633fad",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3867,
+     "char_end": 5027,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "e291feef-ea3e-4381-91d0-926a03b16386",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 4890,
+     "char_end": 5033,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "487fb2f7-6825-48c2-8f60-bd3930807113",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 5035,
+     "char_end": 5304,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "4a08d2e0-2578-42eb-a447-5fcac551c8dc",
+     "slug": "starlette/exceptions",
+     "version": "1.10.0",
+     "char_start": 3183,
+     "char_end": 3865,
+     "matched_items": []
+    }
+   ],
+   "top_score": 5.464101314544678,
+   "llm_calls": 1,
+   "prompt_tokens": 1331,
+   "completion_tokens": 188,
+   "latency_ms": {
+    "retrieval": 1385.44,
+    "llm": 9713.01,
+    "total": 11099.23
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer restates the reference that the connection is not upgraded and the client receives the HTTP error response, with no contradictions."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that raising an HTTPException before websocket.accept() prevents WebSocket upgrade and returns the proper HTTP response."
+    }
+   }
+  },
+  {
+   "id": "q-0136",
+   "query_type": "factual",
+   "question": "If an app sends a 200 response start and then raises an exception, which status code does the client see from Uvicorn?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "The client sees a 200 OK response.",
+   "citations": [
+    {
+     "chunk_id": "ab6238e6-a8a9-4582-8b8d-0c0b3d8ceb62",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 7125,
+     "char_end": 7674,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "ab6238e6-a8a9-4582-8b8d-0c0b3d8ceb62",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 7125,
+     "char_end": 7674,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "8b3fd5f2-a469-495c-854b-b32c24d5e1f7",
+     "slug": "uvicorn/concepts/http2",
+     "version": "0.54.0",
+     "char_start": 4732,
+     "char_end": 5444,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c49ae9ec-3066-4c22-91a5-8b489cfd8c75",
+     "slug": "uvicorn/concepts/lifespan",
+     "version": "0.54.0",
+     "char_start": 3526,
+     "char_end": 3949,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ab5fa820-600a-4195-ae6e-338f430c7ef5",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 7676,
+     "char_end": 7927,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d90dabba-ee8f-4ed0-8bf8-551c9f19dfce",
+     "slug": "uvicorn/concepts/websockets",
+     "version": "0.54.0",
+     "char_start": 1975,
+     "char_end": 2687,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.9165143966674805,
+   "llm_calls": 1,
+   "prompt_tokens": 1218,
+   "completion_tokens": 106,
+   "latency_ms": {
+    "retrieval": 1333.58,
+    "llm": 9791.81,
+    "total": 11126.11
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that the client sees a 200 OK response, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that the response will be sent with a 200 OK status, supporting the claim that the client sees a 200 OK response."
+    }
+   }
+  },
+  {
+   "id": "q-0137",
+   "query_type": "factual",
+   "question": "What does Uvicorn do with the response body of a HEAD request?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Uvicorn removes any response body for HEAD requests, sending only the headers.",
+   "citations": [
+    {
+     "chunk_id": "ad56243c-a12b-49a6-a0fe-2a6d78951ff6",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 2839,
+     "char_end": 3344,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "ad56243c-a12b-49a6-a0fe-2a6d78951ff6",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 2839,
+     "char_end": 3344,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "d45af404-d24a-45a8-ac1c-618b899cdb9d",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 1765,
+     "char_end": 2130,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "e4123198-d261-4eeb-b3ae-41dd5a056d9c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 297,
+     "char_end": 1106,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bf8b2f76-6dd6-4b65-98db-a0c46341daf6",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 1516,
+     "char_end": 1731,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "498120c9-dd8e-4c0c-84da-303668538c38",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 2132,
+     "char_end": 2837,
+     "matched_items": []
+    }
+   ],
+   "top_score": 8.348250389099121,
+   "llm_calls": 1,
+   "prompt_tokens": 1121,
+   "completion_tokens": 112,
+   "latency_ms": {
+    "retrieval": 1374.44,
+    "llm": 7693.66,
+    "total": 9068.71
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that Uvicorn strips the response body for HEAD requests and sends only headers, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that Uvicorn strips any response body from HEAD requests, which matches the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0138",
+   "query_type": "factual",
+   "question": "When a client sends Expect 100-Continue, when does Uvicorn send the 100 Continue confirmation?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Uvicorn sends the 100 Continue response only after the ASGI application calls the receive function to read the request body.",
+   "citations": [
+    {
+     "chunk_id": "498120c9-dd8e-4c0c-84da-303668538c38",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 2132,
+     "char_end": 2837,
+     "matched_items": [
+      0,
+      1
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "498120c9-dd8e-4c0c-84da-303668538c38",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 2132,
+     "char_end": 2837,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "ab6238e6-a8a9-4582-8b8d-0c0b3d8ceb62",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 7125,
+     "char_end": 7674,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d45af404-d24a-45a8-ac1c-618b899cdb9d",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 1765,
+     "char_end": 2130,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "bf8b2f76-6dd6-4b65-98db-a0c46341daf6",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 1516,
+     "char_end": 1731,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "6af87ff0-7bac-4d94-b65e-aa643cdf36a2",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 1317,
+     "char_end": 1514,
+     "matched_items": []
+    }
+   ],
+   "top_score": 8.887273788452148,
+   "llm_calls": 1,
+   "prompt_tokens": 1028,
+   "completion_tokens": 162,
+   "latency_ms": {
+    "retrieval": 1367.57,
+    "llm": 7736.12,
+    "total": 9104.31
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that Uvicorn sends the 100 Continue only after the ASGI app calls receive to read the body, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that Uvicorn sends 100 Continue only if the ASGI app calls receive to read the body, matching the answer."
+    }
+   }
+  },
+  {
+   "id": "q-0139",
+   "query_type": "factual",
+   "question": "How does Uvicorn send a response body when the app sets no Content-Length header?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "When an application omits a Content‑Length header, Uvicorn falls back to chunked transfer encoding for the body and adds a Transfer‑Encoding header as needed.",
+   "citations": [
+    {
+     "chunk_id": "e4123198-d261-4eeb-b3ae-41dd5a056d9c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 297,
+     "char_end": 1106,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "e4123198-d261-4eeb-b3ae-41dd5a056d9c",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 297,
+     "char_end": 1106,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "ad56243c-a12b-49a6-a0fe-2a6d78951ff6",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 2839,
+     "char_end": 3344,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d45af404-d24a-45a8-ac1c-618b899cdb9d",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 1765,
+     "char_end": 2130,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ab6238e6-a8a9-4582-8b8d-0c0b3d8ceb62",
+     "slug": "uvicorn/server-behavior",
+     "version": "0.54.0",
+     "char_start": 7125,
+     "char_end": 7674,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8b3fd5f2-a469-495c-854b-b32c24d5e1f7",
+     "slug": "uvicorn/concepts/http2",
+     "version": "0.54.0",
+     "char_start": 4732,
+     "char_end": 5444,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.760040283203125,
+   "llm_calls": 1,
+   "prompt_tokens": 1240,
+   "completion_tokens": 138,
+   "latency_ms": {
+    "retrieval": 1321.69,
+    "llm": 9201.22,
+    "total": 10523.5
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that Uvicorn uses chunked transfer encoding and adds a Transfer‑Encoding header when no Content‑Length is set, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that if no Content‑Length header is included, Uvicorn uses chunked encoding and sets a Transfer‑Encoding header if required, matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0143",
+   "query_type": "factual",
+   "question": "Is it generally faster to validate JSON with model_validate_json() or with model_validate(json.loads(...))?",
+   "answerable": true,
+   "evidence_items": 2,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "model_validate_json() is generally faster than model_validate(json.loads(...)).",
+   "citations": [
+    {
+     "chunk_id": "b3bd5194-55a6-481f-8390-2b1bcc06b66f",
+     "slug": "pydantic/concepts/performance",
+     "version": "v2.14.2",
+     "char_start": 287,
+     "char_end": 1228,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "c6e3f36a-b2ed-467c-8361-49074be2b955",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 18565,
+     "char_end": 19598,
+     "matched_items": []
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "b3bd5194-55a6-481f-8390-2b1bcc06b66f",
+     "slug": "pydantic/concepts/performance",
+     "version": "v2.14.2",
+     "char_start": 287,
+     "char_end": 1228,
+     "matched_items": [
+      0,
+      1
+     ]
+    },
+    {
+     "chunk_id": "7c38d5ab-5c8b-41dd-ab8f-b6021efec6a0",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 19411,
+     "char_end": 20506,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "0028b8e3-1ea0-47cd-8887-b1a994097262",
+     "slug": "pydantic/concepts/performance",
+     "version": "v2.14.2",
+     "char_start": 1060,
+     "char_end": 1256,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "c6e3f36a-b2ed-467c-8361-49074be2b955",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 18565,
+     "char_end": 19598,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "b696a72e-7899-4056-a62b-e3cb999973b2",
+     "slug": "pydantic/concepts/models",
+     "version": "v2.14.2",
+     "char_start": 20322,
+     "char_end": 21235,
+     "matched_items": []
+    }
+   ],
+   "top_score": 8.109667778015137,
+   "llm_calls": 1,
+   "prompt_tokens": 1568,
+   "completion_tokens": 209,
+   "latency_ms": {
+    "retrieval": 1403.76,
+    "llm": 10778.47,
+    "total": 12182.82
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that model_validate_json() is generally faster, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passages state that, in general, model_validate_json() is faster than model_validate(json.loads(...)), matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0144",
+   "query_type": "factual",
+   "question": "With the Annotated pattern, in which order does Pydantic apply before, wrap and after validators on a field?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "Before and wrap validators are applied from right to left, and after validators are applied from left to right.",
+   "citations": [
+    {
+     "chunk_id": "de2868d2-b171-4211-9951-1786ed75f441",
+     "slug": "pydantic/concepts/validators",
+     "version": "v2.14.2",
+     "char_start": 25053,
+     "char_end": 25966,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "de2868d2-b171-4211-9951-1786ed75f441",
+     "slug": "pydantic/concepts/validators",
+     "version": "v2.14.2",
+     "char_start": 25053,
+     "char_end": 25966,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "44a90e4b-14bf-472f-aca6-2e7a4f445c5b",
+     "slug": "pydantic/concepts/validators",
+     "version": "v2.14.2",
+     "char_start": 4812,
+     "char_end": 6015,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "ea3b97c3-e001-4c12-8730-ae5957212bf4",
+     "slug": "pydantic/concepts/validators",
+     "version": "v2.14.2",
+     "char_start": 1669,
+     "char_end": 2842,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "d90fc5fa-0974-45b2-9789-7f39e0a291ff",
+     "slug": "pydantic/concepts/validators",
+     "version": "v2.14.2",
+     "char_start": 5823,
+     "char_end": 7048,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "8e70cc5a-038a-4a88-aba4-1436984e1d42",
+     "slug": "pydantic/concepts/validators",
+     "version": "v2.14.2",
+     "char_start": 13452,
+     "char_end": 14479,
+     "matched_items": []
+    }
+   ],
+   "top_score": 7.69691801071167,
+   "llm_calls": 1,
+   "prompt_tokens": 1863,
+   "completion_tokens": 192,
+   "latency_ms": {
+    "retrieval": 1424.07,
+    "llm": 14918.62,
+    "total": 16343.55
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer accurately restates the reference that before and wrap validators run right‑to‑left and after validators run left‑to‑right."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage explicitly states that before and wrap validators run from right to left and after validators run from left to right, matching the answer's claim."
+    }
+   }
+  },
+  {
+   "id": "q-0145",
+   "query_type": "exact_identifier",
+   "question": "What does TestClient(app, raise_server_exceptions=False) let a test check?",
+   "answerable": true,
+   "evidence_items": 1,
+   "outcome": "answered",
+   "error_code": null,
+   "answer": "It lets a test inspect the body of a 500‑level error response instead of having the client raise the exception.",
+   "citations": [
+    {
+     "chunk_id": "21daf56f-0a8d-4c7c-bca0-338007c83b9a",
+     "slug": "starlette/testclient",
+     "version": "1.10.0",
+     "char_start": 1800,
+     "char_end": 2699,
+     "matched_items": [
+      0
+     ]
+    }
+   ],
+   "context": [
+    {
+     "chunk_id": "21daf56f-0a8d-4c7c-bca0-338007c83b9a",
+     "slug": "starlette/testclient",
+     "version": "1.10.0",
+     "char_start": 1800,
+     "char_end": 2699,
+     "matched_items": [
+      0
+     ]
+    },
+    {
+     "chunk_id": "3b47147b-0b44-436c-8b13-8b9cc5577216",
+     "slug": "starlette/testclient",
+     "version": "1.10.0",
+     "char_start": 3487,
+     "char_end": 4317,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "2627f466-043f-4a91-a0a4-7534a5c85f3b",
+     "slug": "starlette/testclient",
+     "version": "1.10.0",
+     "char_start": 1,
+     "char_end": 1141,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "1c6090ca-a858-4d4a-8d76-b36331efdb80",
+     "slug": "fastapi/advanced/testing-database",
+     "version": "0.115.0",
+     "char_start": 6762,
+     "char_end": 7754,
+     "matched_items": []
+    },
+    {
+     "chunk_id": "f957758a-09c1-4b64-86b3-02fcd91f0ac3",
+     "slug": "fastapi/tutorial/testing",
+     "version": "0.115.0",
+     "char_start": 1306,
+     "char_end": 2298,
+     "matched_items": []
+    }
+   ],
+   "top_score": 6.584656715393066,
+   "llm_calls": 1,
+   "prompt_tokens": 1701,
+   "completion_tokens": 433,
+   "latency_ms": {
+    "retrieval": 1351.52,
+    "llm": 10066.92,
+    "total": 11419.36
+   },
+   "judgments": {
+    "correctness": {
+     "verdict": "correct",
+     "reason": "The answer correctly states that the flag allows inspecting the 500 error response body instead of re‑raising the exception, matching the reference."
+    },
+    "faithfulness": {
+     "verdict": "supported",
+     "reason": "The passage states that using TestClient with raise_server_exceptions=False lets you test the content of 500 error responses rather than having the client raise the exception, which directly supports "
+    }
+   }
+  }
+ ]
+}

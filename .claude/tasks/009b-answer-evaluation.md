@@ -1,6 +1,6 @@
 # Task 009b — Answer evaluation: abstention, citations, judged correctness, calibrated gate
 
-**Status:** 🔨 Code done; dev/test runs pending the code commit
+**Status:** ✅ Done (gate not adopted)
 **Week:** W3 · **Modules:** `app/evaluation`, `app/generation` (small) ·
 **Branch:** `task/009b-answer-evaluation` (off `task/009a-grounded-answers`)
 
@@ -236,23 +236,194 @@ eval/reports/answers-*              generated (second commit)
 - [x] Judge prompts/loader + `judge.py` + tests
 - [x] Reports, spot-check sheet, CLI, config
 - [x] `ruff check`, `ruff format --check`, full test suite clean
-- [ ] Commit 1 (code) after confirmation
-- [ ] Dev: answer run, judge, spot-check by you (agreement), gate decision
-- [ ] Test: one answer run + judge; report with and without the dev gate
-- [ ] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
-- [ ] Commit 2 (reports + handover) after confirmation
+- [x] Commit 1 (code) after confirmation
+- [x] Dev: answer run, judge, spot-check by you (agreement), gate decision
+- [x] Test: one answer run + judge; report with and without the dev gate
+- [x] Update [architecture.md](../architecture.md), [api-spec.md](../api-spec.md), [tasks.md](../tasks.md), [plan.md](../plan.md), handover below
+- [x] Commit 2 (reports + handover) after confirmation
+
 
 ---
 
 ## Handover
 
-*(Filled in after implementation.)*
-
 ### Summary
+The `/v1/answers` pipeline is now measured over `evidencedesk-v1`:
+- `answer-run`: paced and resumable.
+- `answer-judge`: correctness and faithfulness, from `gpt-oss-120b`.
+- `answer-report`: report, spot-check sheet, recorded agreement, gate comparison.
+
+Deterministic metrics come first; LLM-judged metrics sit next to them, with human agreement
+recorded. An optional pre-LLM abstention gate (`ANSWER_MIN_RERANK_SCORE`) exists and was
+calibrated on dev by a rule fixed in advance. **It was not adopted.** `/v1/answers` now also
+returns `retrieval.top_score` and `score_kind`.
+
+268 tests pass. Code is in `ec8653f`; every report was generated from that commit with a
+clean tree.
+
+**Results, test split (70 questions, one run):**
+
+| Measure | Result |
+|---|---|
+| Answered (answerable) | 56/65 (86 %) |
+| Correctly refused (unanswerable) | 5/5 |
+| Judged correct (answered) | 50/56 |
+| Unsupported | 0 |
+| Errors | 0 |
+
+**The main limit is retrieval, not generation.** 8 of 9 wrong refusals are retrieval misses.
+Paraphrase questions have their evidence in the context only 46 % of the time.
+
 ### Architecture Notes
+- **Modules in `app/evaluation`:**
+
+  | Module | Role |
+  |---|---|
+  | `answer_runner.py` | Pacing, resume, recording |
+  | `answer_records.py` | Raw-fact record format |
+  | `answer_metrics.py` | Pure metrics and gate sweep |
+  | `judge.py` | Verdicts via the 009a `LLMClient` gateway |
+  | `answer_report.py` | Markdown and spot-check sheet |
+  | `answer_cli.py` | Commands on `python -m app.evaluation.cli` |
+
+- **Records store raw facts, not metrics:** outcome, answer, citations and context with the
+  evidence items each overlaps, top score, tokens, latency. Every metric is recomputed from
+  them, so report changes never need a re-run.
+- **Failure attribution.** A wrong refusal is a *retrieval miss* when no context chunk
+  overlaps labelled evidence; otherwise it is *generation*.
+- **The judge:**
+  - Faithfulness sees only the cited passages; correctness sees question, reference and
+    answer.
+  - Verdicts use a strict schema and are retried once, otherwise recorded as `unjudged`.
+  - Judge prompts live in `prompts.md`.
+- **The gate.** In `generation.service`, it applies only to cross-encoder scores (rerank on),
+  before the LLM call. Off by default.
+- **Shared rule.** `retrieval.service.score_kind(mode, rerank)` is now the one rule for what
+  a score means, shared by search, answers and evaluation records.
+
 ### Deviations from the plan
+- **The test run spanned two days.**
+  - **2026-11-03:** stopped at 48/70. Groq's free tier allows 200,000 tokens/day per model
+    (rolling 24 h); the error read "Limit 200000, Used 198858". The judge hit the same limit
+    on `gpt-oss-120b`.
+  - **2026-11-16:** resumed. The resume retried only the 22 failed questions, then judged
+    them.
+  - **Same code (`ec8653f`) and configuration throughout.** The 22 later questions were
+    answered by the same Groq model ID 13 days later; provider-side changes cannot be ruled
+    out, and this is stated as a limitation.
+  - **Run-time-only changes during the resume:** pacing 8 s instead of 2 s, and
+    `LLM_MAX_RETRIES=5`. These affect waiting, not what is asked or scored.
+- **A clean tree for the resume.** Uncommitted doc notes (the resume instructions) were
+  stashed during the run, so the report records a clean tree. They were restored afterwards.
+- **`answer_report.py` and `answer_cli.py` are new modules,** not extensions of
+  `report.py` and `cli.py`, which were already large.
+- **The human spot-check covers dev only (20/20 agreement), as planned.** The test report
+  shows "agreement not yet checked" because no test spot-check was done.
+- **The gate comparison on test** uses the dev sweep's best threshold (t = −4.767), shown
+  for transparency even though it was not adopted. On test it changes nothing.
+- **Found, not fixed** (they would have changed code mid-experiment):
+  - `answer-judge` exits with a raw traceback on `LLMUnavailableError`.
+  - `answer-run` records each remaining question as an error after a daily-limit 429,
+    instead of stopping with "resume after the limit resets".
+
+  Both are for task 011.
+- **Environment.** A stale Windows user variable `GROQ_API_KEY` overrides `.env`, so every
+  run used `env -u GROQ_API_KEY`.
+
 ### Database Changes
+None.
+
 ### API Changes
+- `/v1/answers` `retrieval` gains `top_score` and `score_kind`.
+- New settings: `ANSWER_MIN_RERANK_SCORE` (empty = off) and `LLM_JUDGE_MODEL`.
+- New CLI commands: `answer-run`, `answer-judge`, `answer-report`. See
+  [api-spec.md](../api-spec.md).
+
 ### Evaluation Results
+**Setup:**
+- Dataset `evidencedesk-v1` (sha256 `b77c981f…cbcf9920`), tenant `eval-corpus-v1`.
+- Generator `openai/gpt-oss-20b`; retrieval dense, rerank top 20
+  (`cross-encoder/ms-marco-MiniLM-L6-v2`), 5 context chunks.
+- Judge `openai/gpt-oss-120b`.
+- Git `ec8653f` (clean); Groq free tier.
+
+| | dev (80) | test (70) |
+|---|---|---|
+| Answered (answerable) | 61/70 (87 %) | 56/65 (86 %) |
+| Correctly refused (unanswerable) | 9/10 | 5/5 |
+| Wrong refusals: retrieval miss / generation | 8 / 1 | 8 / 1 |
+| Citation precision | 59 % | 58 % |
+| Evidence coverage (answered) | 73 % | 82 % |
+| Context hit (answerable) | 76 % | 77 % |
+| Judged correctness: correct / partial / incorrect | 50 / 8 / 3 | 50 / 1 / 5 |
+| Judged faithfulness: supported / partial / unsupported | 53 / 9 / 0 | 48 / 8 / 0 |
+| Errors | 0 | 0 |
+| LLM calls | 81 | 70 |
+| Tokens (prompt / completion) | 108,629 / 16,872 | 99,692 / 15,431 |
+| Total latency p50 / p95 | 11.3 s / 15.4 s | 10.3 s / 16.3 s |
+
+**Judge reliability:**
+- You agreed with all 20 spot-checked dev verdicts. 20/20 is a small sample: it shows no
+  systematic judge error, not a precise agreement rate.
+- **Judged numbers are labelled as such and were never used to tune anything.**
+
+**Per type (test, answered of answerable / context hit):**
+
+| Type | Answered | Context hit |
+|---|---|---|
+| exact_identifier | 12/12 | 83 % |
+| factual | 17/18 | 94 % |
+| version_specific | 6/7 | 100 % |
+| multi_passage | 7/9 | 56 % |
+| paraphrase | 9/13 | 46 % |
+| ambiguous | 5/6 | 83 % |
+
+**Abstention gate (rule fixed in the plan):**
+- **The dev sweep:** without a gate, J = +0.77. The best threshold, t = −4.767, gives
+  J = +0.86, a gain of **+0.09**.
+- **Why it falls short.** That threshold would have caught the one dev hallucination
+  candidate (q-0123, about the non-existent pool-exhaustion incident), but also refused one
+  answerable question.
+- **Decision: not adopted.** The gain is below the 0.10 bar.
+- **Test:** the model alone refused all 5 unanswerable questions, and the gate changed
+  nothing.
+- `ANSWER_MIN_RERANK_SCORE` stays unset.
+
+**Reading:**
+- **Generation is reliable when the evidence is in the context.** Only 1 wrong refusal per
+  split had its evidence in the context (q-0072 dev, q-0077 test). No answer was judged
+  unsupported on either split.
+- **Retrieval limits answer quality.** About 9 in 10 wrong refusals are retrieval misses.
+  Multi-passage and paraphrase questions have context hit rates of 56 % and 46 % on test,
+  in line with the retrieval findings from 006a to 008. Task 010 (chunking and context
+  budget) is the lever.
+- **Citation precision is about 58 % while coverage is 73–82 %.** Answers usually cite their
+  evidence, but also cite neighbouring related chunks. That is acceptable, since faithfulness
+  holds, but citation-pruning prompts could tighten it.
+- **Small groups.** There are 10 dev and 5 test unanswerable questions; rates like "5/5" are
+  indicative only.
+
 ### Future Work
+- **010:** raise context hit for paraphrase and multi-passage questions, using chunk size,
+  heading context, more context chunks, and version awareness from 008.
+- **011:**
+  - stop cleanly on daily-limit 429s with a resume hint
+  - clean exit from `answer-judge` on provider errors
+  - a distinct error for an invalid key (009a)
+- **The gate:** revisit once there are more unanswerable questions (benchmark v2).
+- **Persistence:** store answer runs in the database and API for the dashboard (014).
+- **Budget:** the Groq free tier fits about one split per model per day. Larger evaluations
+  need the paid tier.
+
 ### Modified Files
+| File | Why |
+|---|---|
+| `app/evaluation/answer_runner.py`, `answer_records.py`, `answer_metrics.py`, `judge.py`, `answer_report.py`, `answer_cli.py` (new) | Answer evaluation |
+| `app/evaluation/cli.py`, `repository.py` (`chunks_by_id`), `runner.py` (`evidence_items`), `records.py` (`run_score_kind`) | Wiring and shared helpers |
+| `app/generation/service.py`, `schemas.py`, `prompts.md`, `prompts.py`, `deps.py` | Gate, `top_score`/`score_kind`, judge prompts, `build_llm_client` |
+| `app/retrieval/service.py` | Shared `score_kind` rule |
+| `app/core/config.py`, `.env.example` | `ANSWER_MIN_RERANK_SCORE`, `LLM_JUDGE_MODEL` |
+| `tests/evaluation/test_answer_*.py`, `test_judge.py`, `tests/generation/test_answers_api.py`, `tests/evaluation/test_runner.py` | Risk-based tests |
+| `eval/configs/answers-rerank20.yaml` | Run configuration |
+| `eval/reports/answers-rerank20-{dev,test}.{json,md}` | Results |
+| `.claude/{architecture,api-spec,tasks,plan}.md`, this file | Docs |
